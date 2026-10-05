@@ -7,15 +7,26 @@
     <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
-    <nav>
-        <h2>MediSync | Paciente</h2>
-        <a href="../../index.html">Salir / Cambiar Rol</a>
+    <nav style="padding: 15px; background: #0f172a; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin:0; color:#38bdf8;">MediSync | Paciente</h2>
+        <a href="../../index.html" style="color:#94a3b8; text-decoration:none;">&larr; Cambiar Rol</a>
     </nav>
-    <main class="dashboard">
-        <a href="agendar.html" class="card">Agendar Consulta</a>
-        <a href="auxilios.html" class="card">Primeros Auxilios</a>
-        <a href="recetas.html" class="card">Consultar Recetas y Farmacias</a>
-        <a href="historial.html" class="card">Historial Médico</a>
-    </main>
+
+    <div class="container" style="max-width: 800px; margin: 30px auto; padding: 0 20px;">
+        <main class="dashboard" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+            <a href="agendar.html" class="card" style="background:#1e293b; padding:20px; border-radius:8px; text-decoration:none; color:#f8fafc; font-weight:bold; border:1px solid #334155; text-align:center;">
+                📅 Agendar Consulta
+            </a>
+            <a href="auxilios.html" class="card" style="background:#1e293b; padding:20px; border-radius:8px; text-decoration:none; color:#f8fafc; font-weight:bold; border:1px solid #334155; text-align:center;">
+                🚨 Primeros Auxilios
+            </a>
+            <a href="recetas.html" class="card" style="background:#1e293b; padding:20px; border-radius:8px; text-decoration:none; color:#f8fafc; font-weight:bold; border:1px solid #334155; text-align:center;">
+                💊 Recetas y Farmacias
+            </a>
+            <a href="historial.html" class="card" style="background:#1e293b; padding:20px; border-radius:8px; text-decoration:none; color:#f8fafc; font-weight:bold; border:1px solid #334155; text-align:center;">
+                📋 Historial Médico
+            </a>
+        </main>
+    </div>
 </body>
 </html>

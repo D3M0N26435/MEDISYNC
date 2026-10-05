@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSync | Portal Médico</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; }
+        nav { padding: 15px 25px; background: #1e293b; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155; text-align: center; }
+    </style>
+</head>
+<body>
+    <nav>
+        <h2 style="margin:0; color:#38bdf8;">MediSync | Panel Médico</h2>
+        <a href="../../index.html" style="color:#94a3b8; text-decoration:none;">&larr; Cambiar Rol</a>
+    </nav>
+    <div class="container">
+        <h3>Bienvenido, Dr. Mendoza</h3>
+        <div class="grid">
+            <div class="card">
+                <h4>📅 Agenda del Día</h4>
+                <p style="color:#94a3b8;">Ver consultas programadas y horarios de atención.</p>
+            </div>
+            <div class="card">
+                <h4>📝 Emitir Receta</h4>
+                <p style="color:#94a3b8;">Prescribir medicamentos e integrarlos al expediente del paciente.</p>
+            </div>
+            <div class="card">
+                <h4>📂 Expedientes Médicos</h4>
+                <p style="color:#94a3b8;">Consultar historial clínico e informes de pacientes.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

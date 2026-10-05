@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial Médico | MediSync</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        .history-card {
+            background-color: #1e293b;
+            border-left: 4px solid #2563eb;
+            border-radius: 6px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+        }
+        .history-card h3 {
+            margin: 0 0 8px 0;
+            color: #f8fafc;
+        }
+        .history-meta {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            display: flex;
+            gap: 15px;
+            margin-bottom: 6px;
+        }
+        .badge {
+            background-color: #064e3b;
+            color: #a7f3d0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+            background-color: #1e293b;
+            border-radius: 8px;
+        }
+        .btn-clear {
+            background-color: #7f1d1d;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html">&larr; Volver al Panel de Paciente</a>
+        <h2>Historial y Citas Agendadas</h2>
+
+        <div id="actionArea" style="display: none;">
+            <button onclick="clearHistory()" class="btn-clear">Limpiar Historial</button>
+        </div>
+
+        <div id="historyList">
+            <!-- Las citas se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <script>
+        function loadHistory() {
+            const historyList = document.getElementById('historyList');
+            const actionArea = document.getElementById('actionArea');
+            const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+
+            if (appointments.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-state">
+                        <p>📋 No tienes citas agendadas registradas en tu historial.</p>
+                        <a href="agendar.html" style="color: #60a5fa;">Agendar una nueva cita aquí</a>
+                    </div>
+                `;
+                actionArea.style.display = 'none';
+                return;
+            }
+
+            actionArea.style.display = 'block';
+            historyList.innerHTML = appointments.map((app, index) => `
+                <div class="history-card">
+                    <h3>${app.specialty} <span class="badge">Agendada</span></h3>
+                    <div class="history-meta">
+                        <span>👨‍⚕️ <strong>Médico:</strong> ${app.doctor}</span>
+                    </div>
+                    <div class="history-meta">
+                        <span>📅 <strong>Fecha:</strong> ${app.date}</span>
+                        <span>⏰ <strong>Hora:</strong> ${app.time}</span>
+                    </div>
+                </div>
+            `).reverse().join('');
+        }
+
+        function clearHistory() {
+            if (confirm('¿Deseas borrar las citas agendadas de tu historial local?')) {
+                localStorage.removeItem('appointments');
+                loadHistory();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadHistory);
+    </script>
+</body>
+</html>
