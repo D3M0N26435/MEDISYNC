@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emitir Receta | MediSync</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        .form-card {
+            background-color: #1e293b;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            margin-top: 15px;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #cbd5e1; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-size: 1rem;
+        }
+        .btn-submit {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-submit:hover { background-color: #1d4ed8; }
+        .success-banner {
+            display: none;
+            background-color: #064e3b;
+            border: 1px solid #10b981;
+            color: #a7f3d0;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 700px; margin: 30px auto; padding: 0 20px;">
+        <a href="index.html" style="color: #60a5fa; text-decoration: none;">&larr; Volver al Panel Médico</a>
+        <h2 style="color: #f8fafc; margin-top: 15px;">📝 Prescribir Receta Digital</h2>
+
+        <div id="successMsg" class="success-banner">
+            ✓ Receta emitida correctamente y sincronizada con el módulo de farmacia.
+        </div>
+
+        <div class="form-card">
+            <form id="recipeForm" onsubmit="saveRecipe(event)">
+                <div class="form-group">
+                    <label for="patientName">Nombre Completo del Paciente:</label>
+                    <input type="text" id="patientName" required placeholder="Ej: Juan Pérez">
+                </div>
+
+                <div class="form-group">
+                    <label for="medication">Medicamento Prescrito:</label>
+                    <input type="text" id="medication" required placeholder="Ej: Paracetamol 500mg, Amoxicilina 875mg">
+                </div>
+
+                <div class="form-group">
+                    <label for="instructions">Dosis e Indicaciones:</label>
+                    <textarea id="instructions" rows="3" required placeholder="Ej: Tomar 1 comprimido cada 8 horas durante 7 días."></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Emitir Receta Médica</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function saveRecipe(e) {
+            e.preventDefault();
+            
+            const recipe = {
+                patient: document.getElementById('patientName').value,
+                medication: document.getElementById('medication').value,
+                instructions: document.getElementById('instructions').value,
+                doctor: "Dr. Carlos Mendoza",
+                date: new Date().toLocaleDateString('es-ES')
+            };
+
+            let recipes = JSON.parse(localStorage.getItem('prescriptions') || '[]');
+            recipes.push(recipe);
+            localStorage.setItem('prescriptions', JSON.stringify(recipes));
+
+            document.getElementById('successMsg').style.display = 'block';
+            document.getElementById('recipeForm').reset();
+            
+            setTimeout(() => {
+                document.getElementById('successMsg').style.display = 'none';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

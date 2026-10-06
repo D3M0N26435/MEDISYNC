@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atender Citas | MediSync</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        .appointment-card {
+            background-color: #1e293b;
+            border-left: 4px solid #38bdf8;
+            border-radius: 6px;
+            padding: 18px 20px;
+            margin-bottom: 15px;
+        }
+        .meta-info {
+            display: flex;
+            gap: 20px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin: 8px 0;
+            flex-wrap: wrap;
+        }
+        .notes-input {
+            width: 100%;
+            height: 60px;
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            border-radius: 4px;
+        }
+        .btn-action {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .btn-action:hover { background-color: #059669; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 850px; margin: 30px auto; padding: 0 20px;">
+        <a href="index.html" style="color: #60a5fa; text-decoration: none;">&larr; Volver al Panel Médico</a>
+        <h2 style="color: #f8fafc; margin-top: 15px;">📋 Citas Pacientes Pendientes</h2>
+
+        <div id="appointmentsList">
+            <!-- Se cargan dinámicamente -->
+        </div>
+    </div>
+
+    <script>
+        function loadAppointments() {
+            const list = document.getElementById('appointmentsList');
+            const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+
+            if (appointments.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <p>☕ No hay citas registradas o pendientes por atender.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = appointments.map((app, index) => `
+                <div class="appointment-card">
+                    <h3 style="margin: 0; color: #f8fafc;">${app.specialty}</h3>
+                    <div class="meta-info">
+                        <span>👨‍⚕️ <strong>Asignado:</strong> ${app.doctor}</span>
+                        <span>📅 <strong>Fecha:</strong> ${app.date}</span>
+                        <span>⏰ <strong>Hora:</strong> ${app.time}</span>
+                    </div>
+                    <textarea id="note-${index}" class="notes-input" placeholder="Escribir diagnóstico o nota clínica para el paciente..."></textarea>
+                    <button onclick="completeAppointment(${index})" class="btn-action">✓ Finalizar Consulta</button>
+                </div>
+            `).reverse().join('');
+        }
+
+        function completeAppointment(index) {
+            let appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+            const note = document.getElementById(`note-${index}`).value;
+            
+            alert(`Consulta atendida. Diagnóstico registrado: "${note || 'Sin notas'}"`);
+            
+            // Eliminar de la cola de pendientes
+            appointments.splice(appointments.length - 1 - index, 1);
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+            loadAppointments();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAppointments);
+    </script>
+</body>
+</html>
