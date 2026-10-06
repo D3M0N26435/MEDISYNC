@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sucursales | MediSync Admin</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        .branch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .branch-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 18px;
+        }
+        .branch-card h3 { color: #c084fc; margin-top: 0; }
+        .branch-details { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 900px; margin: 30px auto; padding: 0 20px;">
+        <a href="index.html" style="color: #60a5fa; text-decoration: none;">&larr; Volver al Panel Admin</a>
+        <h2 style="color: #f8fafc; margin-top: 15px;">🏥 Red de Sucursales y Puntos de Dispensación</h2>
+
+        <div class="branch-grid">
+            <div class="branch-card">
+                <h3>Hospital Central MediSync</h3>
+                <div class="branch-details">
+                    <p>📍 Av. Principal #123</p>
+                    <p>📞 Contacto: 2-2456789</p>
+                    <p>🟢 Servicios: Consulta externa, Urgencias, Farmacia 24h</p>
+                </div>
+            </div>
+
+            <div class="branch-card">
+                <h3>Sucursal San José</h3>
+                <div class="branch-details">
+                    <p>📍 Calle Bolívar esq. 6 de Octubre</p>
+                    <p>📞 Contacto: 2-2451122</p>
+                    <p>🟢 Servicios: Pediatría, Farmacia de Turno</p>
+                </div>
+            </div>
+
+            <div class="branch-card">
+                <h3>Centro de Salud Norte</h3>
+                <div class="branch-details">
+                    <p>📍 Av. Circunvalación Norte #450</p>
+                    <p>📞 Contacto: 2-2459988</p>
+                    <p>🟢 Servicios: Medicina General, Traumatología</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
