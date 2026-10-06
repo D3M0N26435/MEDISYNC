@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validar Recetas | MediSync</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        .rx-card {
+            background-color: #1e293b;
+            border-left: 4px solid #10b981;
+            border-radius: 6px;
+            padding: 18px 20px;
+            margin-bottom: 15px;
+        }
+        .meta-info {
+            display: flex;
+            gap: 20px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin: 8px 0;
+            flex-wrap: wrap;
+        }
+        .btn-dispense {
+            background-color: #059669;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn-dispense:hover { background-color: #047857; }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+            background-color: #1e293b;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 850px; margin: 30px auto; padding: 0 20px;">
+        <a href="index.html" style="color: #60a5fa; text-decoration: none;">&larr; Volver al Panel de Farmacia</a>
+        <h2 style="color: #f8fafc; margin-top: 15px;">💊 Recetas Pendientes de Dispensación</h2>
+
+        <div id="prescriptionsList">
+            <!-- Carga dinámica -->
+        </div>
+    </div>
+
+    <script>
+        function loadPrescriptions() {
+            const container = document.getElementById('prescriptionsList');
+            const recipes = JSON.parse(localStorage.getItem('prescriptions') || '[]');
+
+            if (recipes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>📦 No hay recetas pendientes por entregar en este momento.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = recipes.map((rx, index) => `
+                <div class="rx-card">
+                    <h3 style="margin: 0; color: #f8fafc;">👤 Paciente: ${rx.patient}</h3>
+                    <div class="meta-info">
+                        <span>💊 <strong>Medicamento:</strong> ${rx.medication}</span>
+                        <span>👨‍⚕️ <strong>Prescrito por:</strong> ${rx.doctor}</span>
+                        <span>📅 <strong>Fecha:</strong> ${rx.date}</span>
+                    </div>
+                    <p style="color: #cbd5e1; font-size: 0.95rem; margin: 8px 0;"><strong>Indicaciones:</strong> ${rx.instructions}</p>
+                    <button onclick="dispenseRecipe(${index})" class="btn-dispense">✓ Marcar como Entregado / Dispensado</button>
+                </div>
+            `).reverse().join('');
+        }
+
+        function dispenseRecipe(index) {
+            let recipes = JSON.parse(localStorage.getItem('prescriptions') || '[]');
+            const dispensed = recipes.splice(recipes.length - 1 - index, 1)[0];
+            
+            localStorage.setItem('prescriptions', JSON.stringify(recipes));
+            alert(`✓ Fármaco "${dispensed.medication}" entregado correctamente a ${dispensed.patient}.`);
+            loadPrescriptions();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPrescriptions);
+    </script>
+</body>
+</html>

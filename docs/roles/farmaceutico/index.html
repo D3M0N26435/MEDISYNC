@@ -3,36 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediSync | Portal Farmacéutico</title>
+    <title>MediSync | Farmacia</title>
     <link rel="stylesheet" href="../../css/style.css">
     <style>
         body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; }
         nav { padding: 15px 25px; background: #1e293b; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
         .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: #1e293b; padding: 25px 20px; border-radius: 8px; border: 1px solid #334155; text-align: center; text-decoration: none; color: #f8fafc; transition: transform 0.2s, border-color 0.2s; display: block; }
+        .card:hover { transform: translateY(-3px); border-color: #34d399; }
+        .card-icon { font-size: 2rem; display: block; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <nav>
-        <h2 style="margin:0; color:#38bdf8;">MediSync | Panel Farmacia</h2>
+        <h2 style="margin:0; color:#34d399;">MediSync | Panel Farmacia</h2>
         <a href="../../index.html" style="color:#94a3b8; text-decoration:none;">&larr; Cambiar Rol</a>
     </nav>
     <div class="container">
-        <h3>Gestión de Dispensación de Medicamentos</h3>
+        <h3>Punto de Dispensación y Control de Stock</h3>
+        <p style="color:#94a3b8;">Verificación de recetas electrónicas y gestión de existencias.</p>
+
         <div class="grid">
-            <div class="card">
-                <h4>🔍 Validar Receta</h4>
-                <p style="color:#94a3b8;">Verificar recetas emitidas mediante código o cédula del paciente.</p>
-            </div>
-            <div class="card">
-                <h4>📦 Stock e Inventario</h4>
-                <p style="color:#94a3b8;">Controlar existencias de medicamentos esenciales por sucursal.</p>
-            </div>
-            <div class="card">
-                <h4>📍 Ubicación de la Sucursal</h4>
-                <p style="color:#94a3b8;">Actualizar la geolocalización de la farmacia para el mapa Leaflet.</p>
-            </div>
+            <a href="validar.html" class="card">
+                <span class="card-icon">💊</span>
+                <h4>Validar y Dispensar Recetas</h4>
+                <p style="color:#94a3b8; font-size:0.9rem;">Consultar prescripciones emitidas por los médicos y entregar fármacos.</p>
+            </a>
+            <a href="inventario.html" class="card">
+                <span class="card-icon">📦</span>
+                <h4>Inventario de Medicamentos</h4>
+                <p style="color:#94a3b8; font-size:0.9rem;">Control de stock disponible y alerta de medicamentos esenciales.</p>
+            </a>
         </div>
     </div>
 </body>
