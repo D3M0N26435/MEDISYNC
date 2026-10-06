@@ -6,152 +6,109 @@
     <title>Primeros Auxilios | MediSync</title>
     <link rel="stylesheet" href="../../css/style.css">
     <style>
-        .search-box {
-            width: 100%;
-            padding: 12px;
-            margin: 15px 0 25px 0;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background-color: #1e293b;
-            color: #f8fafc;
-            font-size: 1rem;
-        }
         .emergency-banner {
             background-color: #7f1d1d;
             border: 1px solid #ef4444;
-            color: #fca5a5;
-            padding: 12px 16px;
+            color: #fecaca;
+            padding: 15px 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .emergency-banner h3 { margin: 0; }
+        .phone-badge {
+            background-color: #dc2626;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
         }
         .guide-card {
-            background: #1e293b;
+            background-color: #1e293b;
             border: 1px solid #334155;
             border-radius: 8px;
-            margin-bottom: 12px;
-            overflow: hidden;
+            padding: 18px;
         }
-        .guide-header {
-            padding: 15px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #0f172a;
+        .guide-card h3 {
+            color: #38bdf8;
+            margin-top: 0;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 8px;
         }
-        .guide-content {
-            padding: 15px 20px;
-            display: none;
-            border-top: 1px solid #334155;
-            line-height: 1.6;
-        }
-        .guide-card.active .guide-content {
-            display: block;
-        }
-        .step-list {
+        .guide-card ol {
             padding-left: 20px;
+            color: #cbd5e1;
+            line-height: 1.5;
         }
-        .step-list li {
+        .guide-card li {
             margin-bottom: 8px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html">&larr; Volver al Panel de Paciente</a>
-        
-        <h2>Módulo de Primeros Auxilios</h2>
+    <div class="container" style="max-width: 900px; margin: 30px auto; padding: 0 20px;">
+        <a href="index.html" style="color: #60a5fa; text-decoration: none;">&larr; Volver al Panel de Paciente</a>
+        <h2 style="color: #f8fafc; margin-top: 15px;">🚨 Primeros Auxilios y Emergencias</h2>
 
         <div class="emergency-banner">
-            <span>🚨 En caso de emergencia extrema, contacta inmediatamente:</span>
-            <strong>Ambulancias: 165 / Policía: 110</strong>
+            <div>
+                <h3>¿Línea de Emergencia Inmediata?</h3>
+                <small>En caso de riesgo vital, contacta a emergencias de inmediato.</small>
+            </div>
+            <div>
+                <a href="tel:110" class="phone-badge">📞 Llamar 110 / 160</a>
+            </div>
         </div>
 
-        <input type="text" id="search" class="search-box" placeholder="🔍 Buscar caso (ej. RCP, Quemaduras, Atragantamiento)..." onkeyup="filterGuides()">
-
-        <div id="guides-container">
+        <div class="guide-grid">
             <div class="guide-card">
-                <div class="guide-header" onclick="toggleCard(this)">
-                    <span>🫀 Reanimación Cardiopulmonar (RCP)</span>
-                    <span>▼</span>
-                </div>
-                <div class="guide-content">
-                    <ol class="step-list">
-                        <li>Verifica si la persona responde o respira.</li>
-                        <li>Llama a emergencias inmediatamente.</li>
-                        <li>Coloca tus manos en el centro del pecho e inicia 30 compresiones rápidas y firmes (100-120 por minuto).</li>
-                        <li>Da 2 insuflaciones de rescate si estás capacitado. Revisa respiración.</li>
-                        <li>Continúa hasta que llegue la ayuda médica.</li>
-                    </ol>
-                </div>
+                <h3>🫀 RCP Básico (Adultos)</h3>
+                <ol>
+                    <li>Verifica si la persona responde y respira.</li>
+                    <li>Llama a emergencias inmediatamente.</li>
+                    <li>Coloca las manos en el centro del pecho.</li>
+                    <li>Comprime firme y rápido (100-120 por min) hasta que llegue ayuda.</li>
+                </ol>
             </div>
 
             <div class="guide-card">
-                <div class="guide-header" onclick="toggleCard(this)">
-                    <span>🗣️ Atragantamiento (Maniobra de Heimlich)</span>
-                    <span>▼</span>
-                </div>
-                <div class="guide-content">
-                    <ol class="step-list">
-                        <li>Párate detrás de la persona y rodea su cintura con tus brazos.</li>
-                        <li>Haz un puño con una mano y colócala justo por encima del ombligo.</li>
-                        <li>Sujeta el puño con la otra mano y presiona hacia adentro y hacia arriba con fuerza.</li>
-                        <li>Repite hasta que el objeto sea expulsado o la persona recupere el aliento.</li>
-                    </ol>
-                </div>
+                <h3>🩹 Quemaduras Leves</h3>
+                <ol>
+                    <li>Enfría la zona con agua corriente templada por 10-15 minutos.</li>
+                    <li>No apliques hielo directo ni cremas caseras.</li>
+                    <li>Cubre suavemente con una gasa limpia y seca.</li>
+                </ol>
             </div>
 
             <div class="guide-card">
-                <div class="guide-header" onclick="toggleCard(this)">
-                    <span>🔥 Quemaduras (Térmicas / Químicas)</span>
-                    <span>▼</span>
-                </div>
-                <div class="guide-content">
-                    <ul class="step-list">
-                        <li>Enfría la zona afectada con agua limpia a temperatura ambiente durante 10 a 15 minutos.</li>
-                        <li><strong>NO</strong> apliques hielo, crema dental ni aceites caseros.</li>
-                        <li>Cubre la quemadura con una gasa estéril o paño limpio no adherente.</li>
-                        <li>Busca atención médica si hay ampollas extensas o afecta rostro/manos.</li>
-                    </ul>
-                </div>
+                <h3>🩸 Hemorragias</h3>
+                <ol>
+                    <li>Aplica presión directa sobre la herida con un paño limpio.</li>
+                    <li>Mantén la presión constante sin retirar la tela.</li>
+                    <li>Eleva la extremidad afectada si no hay sospecha de fractura.</li>
+                </ol>
             </div>
 
             <div class="guide-card">
-                <div class="guide-header" onclick="toggleCard(this)">
-                    <span>🩸 Control de Hemorragias</span>
-                    <span>▼</span>
-                </div>
-                <div class="guide-content">
-                    <ol class="step-list">
-                        <li>Aplica presión directa sobre la herida con un paño estéril o tela limpia.</li>
-                        <li>Mantén la presión firme de manera continua por al menos 5 a 10 minutos.</li>
-                        <li>Si el paño se empapa de sangre, <strong>no lo retires</strong>; coloca otro paño encima y sigue presionando.</li>
-                        <li>Eleva la extremidad afectada por encima del nivel del corazón si es posible.</li>
-                    </ol>
-                </div>
+                <h3>😮‍💨 Atragantamiento (Maniobra Heimlich)</h3>
+                <ol>
+                    <li>Párate detrás de la persona y rodéala con tus brazos.</li>
+                    <li>Coloca un puño arriba del ombligo.</li>
+                    <li>Presiona con movimientos rápidos hacia adentro y hacia arriba.</li>
+                </ol>
             </div>
         </div>
     </div>
-
-    <script>
-        function toggleCard(header) {
-            const card = header.parentElement;
-            card.classList.toggle('active');
-        }
-
-        function filterGuides() {
-            const query = document.getElementById('search').value.toLowerCase();
-            const cards = document.querySelectorAll('.guide-card');
-
-            cards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(query) ? 'block' : 'none';
-            });
-        }
-    </script>
 </body>
 </html>
