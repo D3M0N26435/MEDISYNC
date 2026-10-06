@@ -5,31 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recetas y Farmacias | MediSync</title>
     <link rel="stylesheet" href="../../css/style.css">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .rx-card {
+            background-color: #1e293b;
+            border-left: 4px solid #10b981;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 15px;
+        }
+        .rx-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .rx-title {
+            color: #f8fafc;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .badge-essential {
+            background-color: #1e3a8a;
+            color: #93c5fd;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .rx-details {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .pharmacy-list {
+            margin-top: 30px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .pharmacy-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #1e293b;
+            color: #cbd5e1;
+        }
+        .pharmacy-item:last-child { border-bottom: none; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html">&larr; Volver al Panel</a>
-        <h2>Recetas y Puntos de Dispensación</h2>
-        
-        <div id="map" style="height: 400px; border-radius: 8px; margin-top: 15px;"></div>
+    <div class="container" style="max-width: 800px; margin: 30px auto; padding: 0 20px;">
+        <a href="index.html" style="color: #60a5fa; text-decoration: none;">&larr; Volver al Panel de Paciente</a>
+        <h2 style="color: #f8fafc; margin-top: 15px;">💊 Mis Recetas Médicas</h2>
+
+        <div id="recipesContainer">
+            <!-- Ejemplo de receta activa -->
+            <div class="rx-card">
+                <div class="rx-header">
+                    <span class="rx-title">Paracetamol 500mg (Comprimidos)</span>
+                    <span class="badge-essential">Medicamento Esencial</span>
+                </div>
+                <div class="rx-details">
+                    <p>👨‍⚕️ <strong>Prescrito por:</strong> Dr. Carlos Mendoza</p>
+                    <p>📋 <strong>Indicación:</strong> 1 comprimido cada 8 horas por 5 días.</p>
+                    <p>📅 <strong>Emisión:</strong> Cita previa | <strong>Estado:</strong> Activa para retiro</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pharmacy-list">
+            <h3 style="color: #38bdf8; margin-top: 0;">🏥 Farmacias de Turno Cercanas</h3>
+            <div class="pharmacy-item">
+                <div>
+                    <strong>Farmacia Central</strong><br>
+                    <small style="color: #64748b;">Av. Principal #123 — Abierto 24h</small>
+                </div>
+                <span style="color: #34d399; font-weight: bold; font-size: 0.85rem;">✓ Stock Disponible</span>
+            </div>
+            <div class="pharmacy-item">
+                <div>
+                    <strong>Farmacia MediSync San José</strong><br>
+                    <small style="color: #64748b;">Calle Bolívar esq. 6 de Octubre</small>
+                </div>
+                <span style="color: #34d399; font-weight: bold; font-size: 0.85rem;">✓ Stock Disponible</span>
+            </div>
+        </div>
     </div>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Inicializar Mapa centrado
-        const map = L.map('map').setView([-17.9647, -67.1060], 13); // Ejemplo Oruro
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Ejemplo de marcador de farmacia disponible
-        L.marker([-17.9647, -67.1060]).addTo(map)
-            .bindPopup('<b>Farmacia Central</b><br>Stock: Paracetamol, Ibuprofeno.<br>Dirección: Av. 6 de Octubre')
-            .openPopup();
-    </script>
 </body>
 </html>
