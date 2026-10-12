@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSync - Plataforma Médica Integral</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #0284c7; /* Azul médico profesional */
+            --primary-hover: #0369a1;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar por Roles */
+        aside { width: 280px; background: var(--card-bg); border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; padding: 20px; box-shadow: var(--shadow); z-index: 10; }
+        .brand { font-size: 1.4rem; font-weight: bold; color: var(--primary); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+        .nav-links li a { padding: 12px 15px; border-radius: 8px; text-decoration: none; color: var(--text); font-weight: 500; transition: all 0.2s ease; display: block; }
+        .nav-links li a:hover, .nav-links li a.active { background: #e0f2fe; color: var(--primary); }
+
+        /* Contenido Principal */
+        main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 30px; position: relative; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .role-badge { background: #dbeafe; color: var(--primary); padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
+
+        /* Secciones Dinámicas por Roles */
+        .panel-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .panel-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card-bg); padding: 25px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid #f1f5f9; }
+
+        /* Botón Flotante MEDIBOT (Ley de Fitts: Visible y accesible en la esquina inferior derecha) */
+        #medibot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #0284c7, #0ea5e9);
+            color: white;
+            border: none;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.4);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 1000;
+        }
+        #medibot-btn:hover { transform: scale(1.08); box-shadow: 0 15px 30px rgba(2, 132, 199, 0.6); }
+
+        /* Modal Chat MediBot */
+        #medibot-modal {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 360px;
+            height: 480px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1000;
+            border: 1px solid #e2e8f0;
+        }
+        .bot-header { background: var(--primary); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .bot-body { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; }
+        .bot-footer { padding: 12px; background: white; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; }
+        .bot-footer input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; }
+        .bot-footer button { background: var(--primary); color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- Menú Lateral Dinámico -->
+    <aside>
+        <div class="brand">🏥 MediSync</div>
+        <ul class="nav-links" id="menu-roles">
+            <!-- Se carga dinámicamente según el rol de Firebase Auth -->
+        </ul>
+        <button onclick="cerrarSesion()" style="background:#fee2e2; color:#dc2626; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:auto;">Cerrar Sesión</button>
+    </aside>
+
+    <!-- Área de Trabajo Principal -->
+    <main>
+        <header>
+            <div>
+                <h1 id="titulo-vista">Panel de Control</h1>
+                <p style="color: #64748b; font-size: 0.9rem;">Sistema Integrado de Gestión Hospitalaria</p>
+            </div>
+            <div>
+                <span class="role-badge" id="rol-usuario">Cargando rol...</span>
+            </div>
+        </header>
+
+        <!-- SECCIÓN: DOCTOR -->
+        <section id="panel-doctor" class="panel-section">
+            <div class="card">
+                <h2>Gestión de Consultas e Historiales</h2>
+                <p style="margin-top:10px; color:#64748b;">CRUD de diagnósticos y emisión de recetas digitales tras consulta.</p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: FARMACÉUTICO -->
+        <section id="panel-farmaceutico" class="panel-section">
+            <div class="card">
+                <h2>Inventario y Sucursales de Medicamentos</h2>
+                <p style="margin-top:10px; color:#64748b;">Administra el stock de medicamentos por sucursal farmacéutica.</p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: PACIENTE -->
+        <section id="panel-paciente" class="panel-section">
+            <div class="card">
+                <h2>Agendar Consulta y Buscar Medicamentos</h2>
+                <p style="margin-top:10px; color:#64748b; margin-bottom: 15px;">Selecciona horarios disponibles y encuentra farmacias cercanas con stock.</p>
+                <!-- Contenedor Leaflet Map -->
+                <div id="map" style="width: 100%; height: 300px; border-radius: 12px; margin-top: 15px;"></div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN: ADMIN -->
+        <section id="panel-admin" class="panel-section">
+            <div class="card">
+                <h2>Control de Personal Médico</h2>
+                <p style="margin-top:10px; color:#64748b;">Autoriza doctores o marca estados (activo / vacaciones).</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Botón Flotante MEDIBOT -->
+    <button id="medibot-btn" onclick="toggleMediBot()" title="Abrir MediBot IA">🤖</button>
+
+    <!-- Modal Chat MEDIBOT -->
+    <div id="medibot-modal">
+        <div class="bot-header">
+            <span>🤖 MediBot Asistente IA</span>
+            <span onclick="toggleMediBot()" style="cursor:pointer;">✕</span>
+        </div>
+        <div class="bot-body" id="bot-mensajes">
+            <div style="background: white; padding: 8px 12px; border-radius: 8px; max-width: 80%; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">¡Hola! Soy tu asistente MediBot integrado. ¿En qué te puedo ayudar hoy?</div>
+        </div>
+        <div class="bot-footer">
+            <input type="text" id="bot-input" placeholder="Pregúntale al bot..." onkeypress="if(event.key==='Enter') enviarMediBot()">
+            <button onclick="enviarMediBot()">Enviar</button>
+        </div>
+    </div>
+
+    <!-- Scripts de Firebase, Socket.IO y Leaflet -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "{{apiKey}}",
+            authDomain: "{{authDomain}}",
+            projectId: "{{projectId}}",
+            storageBucket: "{{storageBucket}}",
+            messagingSenderId: "{{messagingSenderId}}",
+            appId: "{{appId}}"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Control de Autenticación y Carga de Roles
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Consultar rol en Firestore (colección users)
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                
+                let rol = "patient"; // Por defecto
+                if (userSnap.exists()) {
+                    rol = userSnap.data().role || "patient";
+                }
+
+                configurarInterfazPorRol(rol, user.email);
+            } else {
+                window.location.href = "/";
+            }
+        });
+
+        function configurarInterfazPorRol(rol, email) {
+            document.getElementById("rol-usuario").innerText = `Rol: ${rol.toUpperCase()} (${email})`
+            const menu = document.getElementById("menu-roles");
+            menu.innerHTML = "";
+
+            // Ocultar todas las secciones
+            document.querySelectorAll('.panel-section').forEach(sec => sec.classList.remove('active'));
+
+            if (rol === 'doctor') {
+                menu.innerHTML = `<li><a href="#" class="active" onclick="cambiarVista('doctor')">🩺 Consultas & Recetas</a></li>`;
+                document.getElementById('panel-doctor').classList.add('active');
+                document.getElementById('titulo-vista').innerText = "Panel del Médico";
+            } else if (rol === 'pharmacist') {
+                menu.innerHTML = `<li><a href="#" class="active" onclick="cambiarVista('farmaceutico')">💊 Inventario Sucursales</a></li>`;
+                document.getElementById('panel-farmaceutico').classList.add('active');
+                document.getElementById('titulo-vista').innerText = "Panel de Farmacia";
+            } else if (rol === 'patient') {
+                menu.innerHTML = `<li><a href="#" class="active" onclick="cambiarVista('paciente')">📅 Agendar & Recetas</a></li>`;
+                document.getElementById('panel-paciente').classList.add('active');
+                document.getElementById('titulo-vista').innerText = "Portal del Paciente";
+                inicializarMapaLeaflet();
+            } else if (rol === 'admin') {
+                menu.innerHTML = `<li><a href="#" class="active" onclick="cambiarVista('admin')">⚙️ Gestión de Médicos</a></li>`;
+                document.getElementById('panel-admin').classList.add('active');
+                document.getElementById('titulo-vista').innerText = "Panel de Administración";
+            }
+        }
+
+        window.cerrarSesion = async function() {
+            await signOut(auth);
+            window.location.href = "/";
+        }
+    </script>
+
+    <!-- Lógica de Mapa y MediBot con Socket.IO -->
+    <script>
+        const socket = io();
+
+        function toggleMediBot() {
+            const modal = document.getElementById("medibot-modal");
+            modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+        }
+
+        function enviarMediBot() {
+            const input = document.getElementById("bot-input");
+            const texto = input.value.trim();
+            if(!texto) return;
+
+            const contenedor = document.getElementById("bot-mensajes");
+            contenedor.innerHTML += `<div style="background: #0284c7; color: white; padding: 8px 12px; border-radius: 8px; max-width: 80%; align-self: flex-end;">${texto}</div>`;
+            input.value = "";
+
+            // Enviar a través de Socket.IO al backend (donde procesa Gemini)
+            socket.emit("medibot_query", { pregunta: texto });
+        }
+
+        socket.on("medibot_respuesta", (data) => {
+            const contenedor = document.getElementById("bot-mensajes");
+            contenedor.innerHTML += `<div style="background: white; padding: 8px 12px; border-radius: 8px; max-width: 80%; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">${data.respuesta}</div>`;
+            contenedor.scrollTop = contenedor.scrollHeight;
+        });
+
+        function inicializarMapaLeaflet() {
+            // Inicialización de Leaflet centrada en la ubicación de farmacias
+            setTimeout(() => {
+                if(window.mapaInicializado) return;
+                const map = L.map('map').setView([-17.9647, -67.106], 13); // Coordenadas referenciales
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Marcador de ejemplo de una farmacia con stock
+                L.marker([-17.9647, -67.106]).addTo(map)
+                  .bindPopup("<b>Farmacia Central MediSync</b><br>Stock disponible: Paracetamol, Ibuprofeno")
+                  .openPopup();
+                
+                window.mapaInicializado = true;
+            }, 300);
+        }
+    </script>
+</body>
+</html>
