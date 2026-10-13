@@ -59,6 +59,7 @@
     </div>
 
     <!-- Script de Firebase Authentication y Firestore -->
+    <!-- Script de Firebase Authentication y Firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
@@ -94,13 +95,18 @@
                 const userCredential = await signInWithEmailAndPassword(auth, correo, password);
                 const user = userCredential.user;
 
-                // Consultar rol en Firestore (colección "users", documento con el UID del usuario)
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
+                let rol = "patient"; // Rol por defecto
 
-                let rol = "patient"; // Por defecto paciente si no existe el registro en la BD
-                if (userSnap.exists()) {
-                    rol = userSnap.data().role || "patient";
+                try {
+                    // Consultar rol en Firestore (colección "users", documento con el UID del usuario)
+                    const userRef = doc(db, "users", user.uid);
+                    const userSnap = await getDoc(userRef);
+
+                    if (userSnap.exists()) {
+                        rol = userSnap.data().role || "patient";
+                    }
+                } catch (firestoreError) {
+                    console.warn("No se pudo leer el rol de Firestore, usando rol por defecto (patient):", firestoreError);
                 }
 
                 resultado.style.color = "#16a34a";
@@ -131,5 +137,7 @@
             if (e.key === "Enter") iniciarSesion();
         });
     </script>
+
+
 </body>
 </html>
