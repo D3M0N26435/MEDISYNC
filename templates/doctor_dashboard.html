@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <header class="dashboard-header">
+        <h1>Panel Médico</h1>
+        <p>Atención de pacientes, historial clínico y prescripción de recetas.</p>
+    </header>
+
+    <!-- BÚSQUEDA Y FILTRO DE PACIENTES -->
+    <div class="form-grid" style="margin-bottom: 1.5rem;">
+        <div class="form-group">
+            <label for="searchPatient">Buscar Paciente por Cédula o Nombre:</label>
+            <input type="text" id="searchPatient" placeholder="Ej. Juan Mamani...">
+        </div>
+        <div class="form-group" style="justify-content: flex-end; display: flex; align-items: flex-end;">
+            <button class="btn">Buscar Historial</button>
+        </div>
+    </div>
+
+    <!-- REGISTRO DE CONSULTA Y RECETA -->
+    <section class="doctor-section">
+        <h2>Nueva Consulta y Receta Médica</h2>
+        <form class="form-grid" method="POST" action="/doctor/save-consultation">
+            <div class="form-group">
+                <label>Paciente Seleccionado:</label>
+                <input type="text" value="Juan Mamani - C.I. 8392011" disabled>
+            </div>
+            <div class="form-group">
+                <label>Diagnóstico (CIE-10 / Clínico):</label>
+                <input type="text" name="diagnosis" placeholder="Ingrese diagnóstico principal" required>
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Prescripción y Medicamentos (Norma LINAME):</label>
+                <textarea name="prescription" rows="4" placeholder="Indique medicamento, dosis y frecuencia..." style="padding: 10px; border: 1px solid var(--gray-border); border-radius: 6px; font-size: 1rem;" required></textarea>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn">Guardar Consulta y Emitir Receta</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

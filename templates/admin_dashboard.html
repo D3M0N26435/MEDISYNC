@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <header class="dashboard-header">
+        <h1>Panel de Administración</h1>
+        <p>Gestión global de usuarios, roles y catálogo de medicamentos.</p>
+    </header>
+
+    <!-- SECCIÓN 1: CRUD DE USUARIOS Y ROLES -->
+    <section class="admin-section">
+        <div class="section-toolbar">
+            <h2>Gestión de Usuarios</h2>
+            <button class="btn" onclick="openModal('userModal')">+ Nuevo Usuario</button>
+        </div>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Correo Electrónico</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Dr. Carlos Pérez</td>
+                        <td>carlos.perez@medisync.com</td>
+                        <td><span class="badge role-doctor">Médico</span></td>
+                        <td>Activo</td>
+                        <td>
+                            <button class="btn-sm btn-edit">Editar</button>
+                            <button class="btn-sm btn-delete">Eliminar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ana Gómez</td>
+                        <td>ana.gomez@medisync.com</td>
+                        <td><span class="badge role-pharmacist">Farmacéutico</span></td>
+                        <td>Activo</td>
+                        <td>
+                            <button class="btn-sm btn-edit">Editar</button>
+                            <button class="btn-sm btn-delete">Eliminar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 2: CRUD DE MEDICAMENTOS (CATÁLOGO GENERAL) -->
+    <section class="admin-section" style="margin-top: 2rem;">
+        <div class="section-toolbar">
+            <h2>Catálogo de Medicamentos (LINAME)</h2>
+            <button class="btn" onclick="openModal('medModal')">+ Agregar Medicamento</button>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre Comercial</th>
+                        <th>Principio Activo</th>
+                        <th>Presentación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MED-001</td>
+                        <td>Paracetamol</td>
+                        <td>Paracetamol 500mg</td>
+                        <td>Tableta</td>
+                        <td>
+                            <button class="btn-sm btn-edit">Editar</button>
+                            <button class="btn-sm btn-delete">Eliminar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

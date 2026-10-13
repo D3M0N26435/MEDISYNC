@@ -6,76 +6,10 @@
     <title>MediSync - Panel Integral</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root {
-            --primary: #0284c7;
-            --primary-hover: #0369a1;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-            --border: #e2e8f0;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-
-        /* Sidebar Glassmorphism & UI Laws */
-        aside { width: 280px; background: var(--card-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 25px; box-shadow: var(--shadow); z-index: 10; }
-        .brand { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 35px; display: flex; align-items: center; gap: 10px; }
-        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 12px; flex: 1; }
-        .nav-links li a { padding: 12px 16px; border-radius: 10px; text-decoration: none; color: var(--text); font-weight: 600; font-size: 0.95rem; transition: all 0.25s ease; display: block; }
-        .nav-links li a:hover, .nav-links li a.active { background: #e0f2fe; color: var(--primary); transform: translateX(4px); }
-
-        /* Main Workspace */
-        main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 40px; position: relative; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .role-badge { background: #dbeafe; color: var(--primary); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; }
-
-        /* Panels */
-        .panel-section { display: none; animation: fadeIn 0.35s ease-in-out; }
-        .panel-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card { background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 25px; border: 1px solid #f1f5f9; }
-        .card h2 { margin-bottom: 15px; color: #0f172a; font-size: 1.25rem; }
-
-        /* Form Controls & Tables */
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #475569; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
-        .form-group input:focus, .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
-
-        button.btn-action { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; }
-        button.btn-action:hover { background: var(--primary-hover); }
-        button.btn-action:active { transform: scale(0.98); }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        table th, table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
-        table th { background: #f8fafc; font-weight: 700; color: #475569; }
-
-        /* Floating MediBot Widget (Fitts's Law applied) */
-        #medibot-btn {
-            position: fixed; bottom: 35px; right: 35px;
-            background: linear-gradient(135deg, #0284c7, #0ea5e9);
-            color: white; border: none; width: 65px; height: 65px;
-            border-radius: 50%; cursor: pointer; box-shadow: 0 12px 30px rgba(2, 132, 199, 0.45);
-            font-size: 1.8rem; display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s, box-shadow 0.2s; z-index: 1000;
-        }
-        #medibot-btn:hover { transform: scale(1.1); box-shadow: 0 18px 35px rgba(2, 132, 199, 0.6); }
-
-        #medibot-modal {
-            position: fixed; bottom: 115px; right: 35px; width: 380px; height: 500px;
-            background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            display: none; flex-direction: column; overflow: hidden; z-index: 1000; border: 1px solid var(--border);
-        }
-        .bot-header { background: var(--primary); color: white; padding: 15px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .bot-body { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem; }
-        .bot-footer { padding: 15px; background: white; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .bot-footer input { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 25px; outline: none; }
-        .bot-footer button { background: var(--primary); color: white; border: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    </style>
+    <!-- CSS Global unificado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <!-- CSS Exclusivo del MediBot -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/medibot.css') }}">
 </head>
 <body>
 
@@ -85,7 +19,7 @@
         <ul class="nav-links" id="menu-roles">
             <!-- Inyectado por rol -->
         </ul>
-        <button onclick="cerrarSesion()" style="background:#fee2e2; color:#dc2626; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:auto;">Cerrar Sesión</button>
+        <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
     </aside>
 
     <!-- Contenido Principal -->
@@ -105,12 +39,16 @@
             <div class="card">
                 <h2>🩺 Gestión de Historiales y Recetas Médicas</h2>
                 <div class="form-group">
-                    <label>Nombre del Paciente</label>
-                    <input type="text" id="doc-paciente" placeholder="Ej. Juan Pérez">
+                    <label>Nombre o C.I. del Paciente</label>
+                    <input type="text" id="doc-paciente" placeholder="Ej. Juan Pérez - C.I. 8392011">
                 </div>
                 <div class="form-group">
-                    <label>Diagnóstico y Receta Médica</label>
-                    <textarea id="doc-receta" rows="3" placeholder="Escriba el diagnóstico y los medicamentos recetados..."></textarea>
+                    <label>Diagnóstico (CIE-10 / Clínico)</label>
+                    <input type="text" id="doc-diagnostico" placeholder="Ej. Infección respiratoria aguda">
+                </div>
+                <div class="form-group">
+                    <label>Prescripción y Medicamentos (Norma LINAME)</label>
+                    <textarea id="doc-receta" rows="3" placeholder="Indique medicamento, dosis y frecuencia..."></textarea>
                 </div>
                 <button class="btn-action" onclick="guardarRecetaDoctor()">Emitir Receta Digital</button>
             </div>
@@ -125,7 +63,7 @@
                     <input type="text" id="farm-med" placeholder="Ej. Paracetamol 500mg">
                 </div>
                 <div class="form-group">
-                    <label>Sucursal y Stock</label>
+                    <label>Sucursal y Stock Actual</label>
                     <input type="text" id="farm-sucursal" placeholder="Ej. Sucursal Central (Stock: 120)">
                 </div>
                 <button class="btn-action" onclick="guardarMedicamentoFarmacia()">Actualizar Inventario</button>
@@ -145,24 +83,25 @@
                     </select>
                 </div>
                 <button class="btn-action" onclick="agendarConsultaPaciente()">Confirmar Cita</button>
-                <div id="map" style="width: 100%; height: 320px; border-radius: 12px; margin-top: 25px;"></div>
+                <div id="map"></div>
             </div>
         </section>
 
         <!-- 4. PANEL ADMIN -->
         <section id="panel-admin" class="panel-section">
             <div class="card">
-                <h2>⚙️ Administración de Personal Médico</h2>
-                <p style="color: #64748b; margin-bottom: 15px; font-size: 0.95rem;">Autoriza doctores o cambia su estado de disponibilidad.</p>
+                <h2>⚙️ Administración de Personal Médico y Roles</h2>
+                <p style="color: #64748b; margin-bottom: 15px; font-size: 0.95rem;">Autoriza doctores, farmacéuticos o cambia su estado de disponibilidad.</p>
                 <div class="form-group">
-                    <label>Correo del Doctor</label>
-                    <input type="email" id="admin-email" placeholder="doctor@medisync.com">
+                    <label>Correo del Usuario</label>
+                    <input type="email" id="admin-email" placeholder="usuario@medisync.com">
                 </div>
                 <div class="form-group">
-                    <label>Estado</label>
+                    <label>Asignar Rol / Estado</label>
                     <select id="admin-estado">
-                        <option value="activo">Activo / Autorizado</option>
-                        <option value="vacaciones">De Vacaciones</option>
+                        <option value="doctor">Médico</option>
+                        <option value="pharmacist">Farmacéutico</option>
+                        <option value="patient">Paciente</option>
                     </select>
                 </div>
                 <button class="btn-action" onclick="actualizarEstadoMedico()">Guardar Cambios</button>
@@ -173,14 +112,14 @@
     <!-- Botón Flotante MEDIBOT -->
     <button id="medibot-btn" onclick="toggleMediBot()" title="Asistente MediBot">🤖</button>
 
-    <!-- Modal MediBot -->
+    <!-- Modal MediBot (Con su propia interfaz y estilos independientes) -->
     <div id="medibot-modal">
         <div class="bot-header">
             <span>🤖 MediBot Asistente</span>
             <span onclick="toggleMediBot()" style="cursor:pointer; font-size: 1.2rem;">✕</span>
         </div>
         <div class="bot-body" id="bot-mensajes">
-            <div style="background: white; padding: 10px 14px; border-radius: 10px; max-width: 85%; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">¡Hola! Soy tu asistente MediBot. Pregúntame sobre recetas, citas o sucursales.</div>
+            <div class="bot-msg-received">¡Hola! Soy tu asistente MediBot. Pregúntame sobre recetas, citas o sucursales.</div>
         </div>
         <div class="bot-footer">
             <input type="text" id="bot-input" placeholder="Escribe tu consulta..." onkeypress="if(event.key==='Enter') enviarMediBot()">
@@ -273,7 +212,7 @@
             if(!texto) return;
 
             const contenedor = document.getElementById("bot-mensajes");
-            contenedor.innerHTML += `<div style="background: var(--primary); color: white; padding: 10px 14px; border-radius: 10px; max-width: 85%; align-self: flex-end;">${texto}</div>`;
+            contenedor.innerHTML += `<div class="bot-msg-sent">${texto}</div>`;
             input.value = "";
 
             socket.emit("medibot_query", { pregunta: texto });
@@ -281,7 +220,7 @@
 
         socket.on("medibot_respuesta", (data) => {
             const contenedor = document.getElementById("bot-mensajes");
-            contenedor.innerHTML += `<div style="background: white; padding: 10px 14px; border-radius: 10px; max-width: 85%; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">${data.respuesta}</div>`;
+            contenedor.innerHTML += `<div class="bot-msg-received">${data.respuesta}</div>`;
             contenedor.scrollTop = contenedor.scrollHeight;
         });
 
@@ -300,11 +239,11 @@
             }, 250);
         }
 
-        // Placeholders de acciones CRUD (conectables a tu Firestore)
+        // Funciones CRUD conectables a tu base de datos / backend Flask
         function guardarRecetaDoctor() { alert("¡Receta emitida y guardada con éxito en el historial!"); }
         function guardarMedicamentoFarmacia() { alert("¡Inventario actualizado correctamente en la sucursal!"); }
         function agendarConsultaPaciente() { alert("¡Consulta agendada con éxito!"); }
-        function actualizarEstadoMedico() { alert("¡Estado del médico actualizado en el sistema!"); }
+        function actualizarEstadoMedico() { alert("¡Estado del usuario actualizado en el sistema!"); }
     </script>
 </body>
 </html>
