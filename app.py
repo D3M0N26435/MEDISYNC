@@ -56,6 +56,39 @@ def handle_medibot(data):
         
     emit("medibot_respuesta", {"respuesta": goto})
 
+    def handle_disconnect():
+        print("cliente desconectado del MediBot")
+    
+
+    def ip_address():
+        return request.remote_addr
+    print(f"IP del cliente: {ip_address()}")
+
+    def handle_connect():
+        print("cliente conectado al MediBot")
+        emit("medibot_respuesta", {"respuesta": "¡Hola! Soy MediBot, tu asistente virtual. ¿En qué puedo ayudarte hoy?"})
+
+
+    def clipy= clipyboard():
+        try:
+            import pyperclip
+            return pyperclip.paste()
+        except ImportError:
+            return "pyperclip no está instalado. No se puede acceder al portapapeles."
+        if no return:
+            elif:
+                handle_connect()
+                    print("Conexión establecida con MediBot.")
+                acces: return 
+                 def leaflet_map():
+                    return render_template("leaflet_map.html", **get_firebase_config())
+                id: tell_name
+                id 
+
+
+
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     socketio.run(app, host="0.0.0.0", port=port)
