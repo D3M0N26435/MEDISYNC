@@ -58,10 +58,11 @@
         <p id="resultado"></p>
     </div>
 
-    <!-- Script de Firebase Authentication -->
+    <!-- Script de Firebase Authentication y Firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "{{apiKey}}",
@@ -74,6 +75,7 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         window.iniciarSesion = async function() {
             const correo = document.getElementById("correo").value.trim();
@@ -89,13 +91,34 @@
 
             try {
                 btn.innerText = "Verificando...";
-                await signInWithEmailAndPassword(auth, correo, password);
+                const userCredential = await signInWithEmailAndPassword(auth, correo, password);
+                const user = userCredential.user;
+
+                // Consultar rol en Firestore (colección "users", documento con el UID del usuario)
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                let rol = "patient"; // Por defecto paciente si no existe el registro en la BD
+                if (userSnap.exists()) {
+                    rol = userSnap.data().role || "patient";
+                }
+
                 resultado.style.color = "#16a34a";
                 resultado.innerText = "¡Acceso concedido! Redirigiendo...";
                 
+                // Redirección dinámica según el rol detectado
                 setTimeout(() => {
-                    window.location.href = "/dashboard";
+                    if (rol === 'admin') {
+                        window.location.href = "/admin";
+                    } else if (rol === 'doctor') {
+                        window.location.href = "/doctor";
+                    } else if (rol === 'pharmacist') {
+                        window.location.href = "/pharmacist";
+                    } else {
+                        window.location.href = "/patient";
+                    }
                 }, 800);
+
             } catch (error) {
                 console.error(error);
                 btn.innerText = "Acceder al Sistema";
