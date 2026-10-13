@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - MediSync</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, #0284c7 0%, #0f172a 100%);
+            position: relative; overflow: hidden;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px);
+            padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            width: 100%; max-width: 400px; text-align: center; z-index: 2;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .logo-icon { font-size: 55px; margin-bottom: 10px; }
+        h1 { color: #0f172a; margin-bottom: 8px; font-size: 26px; font-weight: 800; }
+        p.subtitle { color: #64748b; font-size: 14px; margin-bottom: 30px; font-weight: 500; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 6px; color: #475569; font-weight: 600; font-size: 13px; }
+        .input-group input {
+            width: 100%; padding: 13px 15px; border: 1px solid #cbd5e1; border-radius: 10px;
+            font-size: 14px; outline: none; transition: all 0.3s ease; background: #f8fafc;
+        }
+        .input-group input:focus { border-color: #0284c7; background: #fff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+        button.btn-login {
+            width: 100%; padding: 14px; background: #0284c7; color: white; border: none;
+            border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer;
+            transition: background 0.3s, transform 0.1s; margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+        button.btn-login:hover { background: #0369a1; }
+        button.btn-login:active { transform: scale(0.98); }
+        #resultado { margin-top: 15px; color: #dc2626; font-size: 13px; font-weight: 600; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo-icon">🏥</div>
+        <h1>MediSync</h1>
+        <p class="subtitle">Plataforma Médica Inteligente</p>
+        
+        <div class="input-group">
+            <label for="correo">Correo Electrónico</label>
+            <input type="email" id="correo" placeholder="nombre@medisync.com" autocomplete="off">
+        </div>
+        
+        <div class="input-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+        
+        <button class="btn-login" onclick="iniciarSesion()">Acceder al Sistema</button>
+        <p id="resultado"></p>
+    </div>
+
+    <!-- Script de Firebase Authentication -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "{{apiKey}}",
+            authDomain: "{{authDomain}}",
+            projectId: "{{projectId}}",
+            storageBucket: "{{storageBucket}}",
+            messagingSenderId: "{{messagingSenderId}}",
+            appId: "{{appId}}"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.iniciarSesion = async function() {
+            const correo = document.getElementById("correo").value.trim();
+            const password = document.getElementById("password").value;
+            const resultado = document.getElementById("resultado");
+            const btn = document.querySelector('button');
+            
+            resultado.innerText = "";
+            if (!correo || !password) {
+                resultado.innerText = "Por favor, completa todos los campos.";
+                return;
+            }
+
+            try {
+                btn.innerText = "Verificando...";
+                await signInWithEmailAndPassword(auth, correo, password);
+                resultado.style.color = "#16a34a";
+                resultado.innerText = "¡Acceso concedido! Redirigiendo...";
+                
+                setTimeout(() => {
+                    window.location.href = "/dashboard";
+                }, 800);
+            } catch (error) {
+                console.error(error);
+                btn.innerText = "Acceder al Sistema";
+                resultado.style.color = "#dc2626";
+                resultado.innerText = "Correo o contraseña incorrectos.";
+            }
+        };
+
+        document.getElementById("password").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") iniciarSesion();
+        });
+    </script>
+</body>
+</html>
