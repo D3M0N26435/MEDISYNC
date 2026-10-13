@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSync - Portal del Paciente</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/medibot.css') }}">
+</head>
+<body>
+    <aside>
+        <div class="brand">🏥 MediSync</div>
+        <ul class="nav-links">
+            <li><a href="/patient" class="active">📅 Mis Citas & Mapa</a></li>
+        </ul>
+        <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
+    </aside>
+    <main>
+        <header>
+            <h1>Portal del Paciente</h1>
+            <span class="role-badge">PACIENTE</span>
+        </header>
+        <div class="card">
+            <h2>Agendar Consulta & Ubicar Farmacias</h2>
+            <div class="form-group">
+                <label>Seleccionar Horario Disponible</label>
+                <select>
+                    <option>Dr. Pérez - Lunes 09:00 AM</option>
+                    <option>Dra. Gómez - Miércoles 03:00 PM</option>
+                </select>
+            </div>
+            <button class="btn-action" onclick="alert('Cita agendada')">Confirmar Cita</button>
+            <div id="map" style="width: 100%; height: 320px; border-radius: 12px; margin-top: 25px;"></div>
+        </div>
+    </main>
+
+    <!-- Botón y Modal MediBot (Solo en el portal del paciente o donde desees) -->
+    <button id="medibot-btn" onclick="toggleMediBot()" title="Asistente MediBot">🤖</button>
+    <div id="medibot-modal">
+        <div class="bot-header">
+            <span>🤖 MediBot Asistente</span>
+            <span onclick="toggleMediBot()" style="cursor:pointer; font-size: 1.2rem;">✕</span>
+        </div>
+        <div class="bot-body" id="bot-mensajes">
+            <div class="bot-msg-received">¡Hola! Soy tu asistente MediBot. Pregúntame sobre recetas, citas o sucursales.</div>
+        </div>
+        <div class="bot-footer">
+            <input type="text" id="bot-input" placeholder="Escribe tu consulta...">
+            <button>➤</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([-17.9647, -67.106], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+        L.marker([-17.9647, -67.106]).addTo(map).bindPopup("<b>Farmacia Central MediSync</b>").openPopup();
+
+        function toggleMediBot() {
+            const modal = document.getElementById("medibot-modal");
+            modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+        }
+        function cerrarSesion() { window.location.href = "/"; }
+    </script>
+</body>
+</html>

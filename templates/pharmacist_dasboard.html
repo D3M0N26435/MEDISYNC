@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSync - Panel Farmacéutico</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <aside>
+        <div class="brand">🏥 MediSync</div>
+        <ul class="nav-links">
+            <li><a href="/pharmacist" class="active">💊 Inventario Farmacia</a></li>
+        </ul>
+        <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
+    </aside>
+    <main>
+        <header>
+            <h1>Panel de Farmacéutico</h1>
+            <span class="role-badge">FARMACÉUTICO</span>
+        </header>
+        <div class="card">
+            <h2>CRUD de Inventario y Sucursales</h2>
+            <div class="form-group">
+                <label>Nombre del Medicamento</label>
+                <input type="text" placeholder="Ej. Paracetamol 500mg">
+            </div>
+            <div class="form-group">
+                <label>Sucursal y Stock Actual</label>
+                <input type="text" placeholder="Ej. Sucursal Central (Stock: 120)">
+            </div>
+            <button class="btn-action" onclick="alert('Inventario actualizado')">Actualizar Inventario</button>
+        </div>
+    </main>
+    <script>function cerrarSesion() { window.location.href = "/"; }</script>
+</body>
+</html>

@@ -1,42 +1,37 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container">
-    <header class="dashboard-header">
-        <h1>Panel Médico</h1>
-        <p>Atención de pacientes, historial clínico y prescripción de recetas.</p>
-    </header>
-
-    <!-- BÚSQUEDA Y FILTRO DE PACIENTES -->
-    <div class="form-grid" style="margin-bottom: 1.5rem;">
-        <div class="form-group">
-            <label for="searchPatient">Buscar Paciente por Cédula o Nombre:</label>
-            <input type="text" id="searchPatient" placeholder="Ej. Juan Mamani...">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSync - Panel Médico</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <aside>
+        <div class="brand">🏥 MediSync</div>
+        <ul class="nav-links">
+            <li><a href="/doctor" class="active">🩺 Consultas & Recetas</a></li>
+        </ul>
+        <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
+    </aside>
+    <main>
+        <header>
+            <h1>Panel del Médico</h1>
+            <span class="role-badge">MÉDICO</span>
+        </header>
+        <div class="card">
+            <h2>Gestión de Historiales y Recetas Médicas</h2>
+            <div class="form-group">
+                <label>Nombre o C.I. del Paciente</label>
+                <input type="text" placeholder="Ej. Juan Pérez - C.I. 8392011">
+            </div>
+            <div class="form-group">
+                <label>Prescripción y Medicamentos (Norma LINAME)</label>
+                <textarea rows="3" placeholder="Indique medicamento, dosis y frecuencia..."></textarea>
+            </div>
+            <button class="btn-action" onclick="alert('Receta emitida con éxito')">Emitir Receta Digital</button>
         </div>
-        <div class="form-group" style="justify-content: flex-end; display: flex; align-items: flex-end;">
-            <button class="btn">Buscar Historial</button>
-        </div>
-    </div>
-
-    <!-- REGISTRO DE CONSULTA Y RECETA -->
-    <section class="doctor-section">
-        <h2>Nueva Consulta y Receta Médica</h2>
-        <form class="form-grid" method="POST" action="/doctor/save-consultation">
-            <div class="form-group">
-                <label>Paciente Seleccionado:</label>
-                <input type="text" value="Juan Mamani - C.I. 8392011" disabled>
-            </div>
-            <div class="form-group">
-                <label>Diagnóstico (CIE-10 / Clínico):</label>
-                <input type="text" name="diagnosis" placeholder="Ingrese diagnóstico principal" required>
-            </div>
-            <div class="form-group" style="grid-column: span 2;">
-                <label>Prescripción y Medicamentos (Norma LINAME):</label>
-                <textarea name="prescription" rows="4" placeholder="Indique medicamento, dosis y frecuencia..." style="padding: 10px; border: 1px solid var(--gray-border); border-radius: 6px; font-size: 1rem;" required></textarea>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn">Guardar Consulta y Emitir Receta</button>
-            </div>
-        </form>
-    </section>
-</div>
-{% endblock %}
+    </main>
+    <script>function cerrarSesion() { window.location.href = "/"; }</script>
+</body>
+</html>
