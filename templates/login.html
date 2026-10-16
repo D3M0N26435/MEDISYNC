@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - MediSync</title>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
+    <button class="theme-toggle login-theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button>
     <div class="login-card">
         <div class="logo-icon">🏥</div>
         <h1>MediSync</h1>

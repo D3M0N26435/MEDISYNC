@@ -3,14 +3,14 @@
     position: fixed; 
     bottom: 35px; 
     right: 35px;
-    background: linear-gradient(135deg, #0284c7, #0ea5e9);
+    background: linear-gradient(135deg, #147d83, #0d9488);
     color: white; 
     border: none; 
     width: 65px; 
     height: 65px;
     border-radius: 50%; 
     cursor: pointer; 
-    box-shadow: 0 12px 30px rgba(2, 132, 199, 0.45);
+    box-shadow: 0 12px 30px rgba(13, 148, 136, 0.35);
     font-size: 1.8rem; 
     display: flex; 
     align-items: center; 
@@ -21,7 +21,7 @@
 
 #medibot-btn:hover { 
     transform: scale(1.1); 
-    box-shadow: 0 18px 35px rgba(2, 132, 199, 0.6); 
+    box-shadow: 0 18px 35px rgba(13, 148, 136, 0.45);
 }
 
 /* Modal MediBot */
@@ -42,7 +42,7 @@
 }
 
 .bot-header { 
-    background: #0284c7; 
+    background: #147d83;
     color: white; 
     padding: 15px 20px; 
     font-weight: bold; 
@@ -79,7 +79,7 @@
 }
 
 .bot-footer button { 
-    background: #0284c7; 
+    background: #147d83;
     color: white; 
     border: none; 
     width: 42px; 
@@ -100,10 +100,17 @@
 }
 
 .bot-msg-sent {
-    background: #0284c7; 
+    background: #147d83;
     color: white; 
     padding: 10px 14px; 
     border-radius: 10px; 
     max-width: 85%; 
     align-self: flex-end;
 }
+
+html[data-theme="dark"] #medibot-modal { background: #102a2d; border-color: #1e484c; }
+html[data-theme="dark"] .bot-header { background: #0f766e; }
+html[data-theme="dark"] .bot-body { background: #091e20; color: #e2eeee; }
+html[data-theme="dark"] .bot-footer { background: #102a2d; border-color: #1e484c; }
+html[data-theme="dark"] .bot-footer input { color: #e2eeee; background: #0b2225; border-color: #285256; }
+html[data-theme="dark"] .bot-msg-received { color: #e2eeee; background: #17373a; }

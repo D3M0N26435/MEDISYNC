@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediSync - Panel Médico</title>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
@@ -17,7 +18,7 @@
     <main>
         <header>
             <h1>Panel del Médico</h1>
-            <span class="role-badge">MÉDICO</span>
+            <div class="header-actions"><span class="role-badge">MÉDICO</span><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
         </header>
         <div class="card">
             <h2>Gestión de Historiales y Recetas Médicas</h2>
