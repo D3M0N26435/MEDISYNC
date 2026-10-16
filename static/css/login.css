@@ -49,6 +49,9 @@ body {
     margin: 0 0 8px;
     font-size: 1.8rem;
     letter-spacing: -.04em;
+    color: #164452;
+    font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+    font-weight: 700;
 }
 
 p.subtitle {
