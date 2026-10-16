@@ -3,40 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediSync - Panel Administrador</title>
+    <title>MediSync - Administración</title>
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 </head>
 <body>
     <aside>
-        <div class="brand">🏥 MediSync</div>
-        <ul class="nav-links">
-            <li><a href="/admin" class="active">⚙️ Gestión de Personal</a></li>
+        <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
+        <ul class="nav-links" role="tablist" aria-label="Administración">
+            <li><a id="tab-personal-label" href="#personal" class="active" role="tab" aria-selected="true" data-admin-tab="personal">👥 Gestión de Personal</a></li>
+            <li><a id="tab-sedes-label" href="#sedes" role="tab" aria-selected="false" data-admin-tab="sedes">📍 Centros y Farmacias</a></li>
         </ul>
         <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
     </aside>
     <main>
         <header>
-            <h1>Panel de Administración</h1>
+            <h1>Administración de MediSync</h1>
             <div class="header-actions"><span class="role-badge">ADMIN</span><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
         </header>
-        <div class="card">
-            <h2>Gestión de Usuarios y Roles</h2>
-            <div class="form-group">
-                <label>Correo del Usuario</label>
-                <input type="email" id="admin-email" placeholder="usuario@medisync.com">
+
+        <p id="admin-feedback" class="admin-feedback" role="status" aria-live="polite"></p>
+
+        <section class="admin-tab active" id="tab-personal" role="tabpanel" aria-labelledby="tab-personal-label">
+            <div class="admin-section-heading">
+                <div><p class="eyebrow">EQUIPO Y DISPONIBILIDAD</p><h2>Gestión de Personal</h2><p>Administra perfiles, roles, asignaciones y periodos de vacaciones.</p></div>
+                <button class="btn-action" id="new-staff-button" type="button">＋ Añadir personal</button>
             </div>
-            <div class="form-group">
-                <label>Asignar Rol</label>
-                <select id="admin-estado">
-                    <option value="doctor">Médico</option>
-                    <option value="pharmacist">Farmacéutico</option>
-                    <option value="patient">Paciente</option>
-                </select>
+            <div class="card admin-card">
+                <div class="admin-toolbar">
+                    <label class="admin-search-label" for="staff-search">Buscar personal</label>
+                    <input id="staff-search" type="search" placeholder="Nombre, correo o rol">
+                    <select id="staff-role-filter" aria-label="Filtrar por rol">
+                        <option value="">Todos los roles</option><option value="doctor">Médicos</option><option value="pharmacist">Farmacéuticos</option><option value="admin">Administradores</option><option value="patient">Pacientes</option>
+                    </select>
+                </div>
+                <div class="table-wrap">
+                    <table class="admin-table">
+                        <thead><tr><th>Personal</th><th>Rol</th><th>Centro / farmacia</th><th>Disponibilidad</th><th>Estado</th><th>Acciones</th></tr></thead>
+                        <tbody id="staff-table-body"><tr><td colspan="6" class="empty-state">Cargando personal…</td></tr></tbody>
+                    </table>
+                </div>
             </div>
-            <button class="btn-action" onclick="alert('Cambios guardados')">Guardar Cambios</button>
-        </div>
+            <div class="card staff-editor" id="staff-editor-card" hidden>
+                <div class="editor-heading"><div><p class="eyebrow" id="staff-form-eyebrow">NUEVO PERFIL</p><h2 id="staff-form-title">Añadir personal</h2></div><button class="icon-button" type="button" id="cancel-staff-button" aria-label="Cerrar formulario">✕</button></div>
+                <form id="staff-form">
+                    <input type="hidden" id="staff-uid">
+                    <div class="admin-form-grid">
+                        <div class="form-group"><label for="staff-name">Nombre completo</label><input id="staff-name" required maxlength="100" placeholder="Nombre y apellido"></div>
+                        <div class="form-group"><label for="staff-email">Correo electrónico</label><input id="staff-email" type="email" required autocomplete="off" placeholder="persona@medisync.com"></div>
+                        <div class="form-group" id="staff-password-group"><label for="staff-password">Contraseña inicial</label><input id="staff-password" type="password" minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres"><small>Se usará para crear su acceso a MediSync.</small></div>
+                        <div class="form-group"><label for="staff-role">Rol</label><select id="staff-role" required><option value="doctor">Médico</option><option value="pharmacist">Farmacéutico</option><option value="admin">Administrador</option></select></div>
+                        <div class="form-group"><label for="staff-location">Centro o farmacia</label><select id="staff-location"><option value="">Sin asignar</option></select></div>
+                    </div>
+                    <fieldset class="vacation-fieldset"><legend>Periodos de vacaciones</legend><div id="vacation-periods"></div><button class="btn-action secondary" type="button" id="add-vacation-button">＋ Añadir periodo</button></fieldset>
+                    <div class="editor-actions"><button class="btn-action" id="save-staff-button" type="submit">Crear perfil</button><button class="btn-action secondary" id="cancel-staff-button-bottom" type="button">Cancelar</button></div>
+                </form>
+            </div>
+        </section>
+
+        <section class="admin-tab" id="tab-sedes" role="tabpanel" aria-labelledby="tab-sedes-label" hidden>
+            <div class="admin-section-heading">
+                <div><p class="eyebrow">RED DE ATENCIÓN</p><h2>Centros de salud y farmacias</h2><p>Ubica las sedes en el mapa y consulta qué personal está asignado y disponible.</p></div>
+                <button class="btn-action" id="new-location-button" type="button">＋ Añadir sede</button>
+            </div>
+            <div class="location-layout">
+                <div class="card location-map-card"><div class="card-heading-row"><div><h3>Mapa de sedes</h3><p>Selecciona una sede para ver su equipo.</p></div><span class="map-hint">Haz clic en el mapa para fijar ubicación</span></div><div id="admin-map" aria-label="Mapa de centros de salud y farmacias"></div></div>
+                <div class="card location-team-card"><div class="card-heading-row"><div><h3 id="selected-location-title">Personal de la sede</h3><p id="selected-location-subtitle">Selecciona una sede del listado o del mapa.</p></div></div><div id="location-team" class="location-team-list"><p class="empty-state">No hay una sede seleccionada.</p></div></div>
+            </div>
+            <div class="card admin-card location-list-card"><div class="card-heading-row"><div><h3>Sedes registradas</h3><p>Dirección, tipo y equipo asignado.</p></div><div class="location-filters"><button class="filter-chip active" type="button" data-location-filter="all">Todas</button><button class="filter-chip" type="button" data-location-filter="health_center">Centros de salud</button><button class="filter-chip" type="button" data-location-filter="pharmacy">Farmacias</button></div></div><div id="locations-list" class="locations-list"><p class="empty-state">Cargando sedes…</p></div></div>
+            <div class="card location-editor" id="location-editor-card" hidden>
+                <div class="editor-heading"><div><p class="eyebrow" id="location-form-eyebrow">NUEVA SEDE</p><h2 id="location-form-title">Añadir centro o farmacia</h2></div><button class="icon-button" type="button" id="cancel-location-button" aria-label="Cerrar formulario">✕</button></div>
+                <form id="location-form"><input type="hidden" id="location-id">
+                    <div class="admin-form-grid">
+                        <div class="form-group"><label for="location-name">Nombre de la sede</label><input id="location-name" required maxlength="120" placeholder="Centro de Salud Central"></div>
+                        <div class="form-group"><label for="location-type">Tipo de sede</label><select id="location-type"><option value="health_center">Centro de salud</option><option value="pharmacy">Farmacia</option></select></div>
+                        <div class="form-group form-grid-wide"><label for="location-address">Dirección</label><input id="location-address" required maxlength="220" placeholder="Calle, número, zona y ciudad"></div>
+                        <div class="form-group"><label for="location-lat">Latitud</label><input id="location-lat" type="number" step="any" required placeholder="-17.9647"></div>
+                        <div class="form-group"><label for="location-lng">Longitud</label><input id="location-lng" type="number" step="any" required placeholder="-67.1060"></div>
+                    </div>
+                    <div class="editor-actions"><button class="btn-action" type="submit">Guardar sede</button><button class="btn-action secondary" id="cancel-location-button-bottom" type="button">Cancelar</button></div>
+                </form>
+            </div>
+        </section>
     </main>
+
+    <script id="firebase-config" type="application/json">{{ {
+        'apiKey': apiKey, 'authDomain': authDomain, 'projectId': projectId,
+        'storageBucket': storageBucket, 'messagingSenderId': messagingSenderId, 'appId': appId
+    }|tojson }}</script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/admin.js') }}"></script>
     <script>function cerrarSesion() { window.location.href = "/"; }</script>
 </body>
 </html>

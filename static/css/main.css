@@ -508,6 +508,21 @@ body > aside {
     box-shadow: 8px 0 28px rgba(13, 50, 57, .12);
 }
 .brand { color: #e8f5f3; letter-spacing: .025em; }
+.brand-logo {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(94, 234, 212, .42);
+    border-radius: 13px;
+    background: linear-gradient(145deg, #2dd4bf, #0d9488);
+    box-shadow: 0 7px 18px rgba(13, 148, 136, .25);
+    color: #073b3b;
+    font-size: .82rem;
+    font-weight: 900;
+    letter-spacing: -.04em;
+}
 .nav-links li a { color: rgba(232, 245, 243, .78); }
 .nav-links li a:hover { background: rgba(45, 212, 191, .13); color: #fff; }
 .nav-links li a.active { background: rgba(13, 148, 136, .5); color: #fff; box-shadow: inset 3px 0 #5eead4; }

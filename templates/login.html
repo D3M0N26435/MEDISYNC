@@ -10,7 +10,7 @@
 <body>
     <button class="theme-toggle login-theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button>
     <div class="login-card">
-        <div class="logo-icon">🏥</div>
+        <div class="logo-icon" aria-label="Espacio reservado para el logo oficial">MS</div>
         <h1>MediSync</h1>
         <p class="subtitle">Plataforma Médica Inteligente</p>
         
@@ -32,7 +32,7 @@
     <!-- Script de Firebase Authentication y Firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
         
         const firebaseConfig = {
@@ -73,7 +73,14 @@
                     const userSnap = await getDoc(userRef);
 
                     if (userSnap.exists()) {
-                        rol = userSnap.data().role || "patient";
+                        const perfil = userSnap.data();
+                        if (perfil.active === false) {
+                            await signOut(auth);
+                            btn.innerText = "Acceder al Sistema";
+                            resultado.innerText = "Tu cuenta está inactiva. Contacta al administrador.";
+                            return;
+                        }
+                        rol = perfil.role || "patient";
                     }
                 } catch (firestoreError) {
                     console.warn("No se pudo leer el rol de Firestore, usando rol por defecto (patient):", firestoreError);
