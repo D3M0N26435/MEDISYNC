@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
 :root {
     --primary: #0284c7;
     --primary-hover: #0369a1;
@@ -209,7 +211,7 @@ header h1 {
 /* Panels */
 .panel-section { 
     display: none; 
-    animation: fadeIn 0.35s ease-in-out; 
+    animation: fadeIn var(--transition-slow) ease-out; 
 }
 
 .panel-section.active { 
@@ -222,97 +224,217 @@ header h1 {
 }
 
 .card { 
-    background: var(--card-bg); 
-    padding: 30px; 
-    border-radius: 16px; 
+    background: var(--surface); 
+    padding: var(--space-6); 
+    border-radius: var(--radius-lg); 
     box-shadow: var(--shadow); 
-    margin-bottom: 25px; 
-    border: 1px solid #f1f5f9; 
+    margin-bottom: var(--space-5); 
+    border: 1px solid var(--border); 
+    transition: box-shadow var(--transition), border-color var(--transition);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-strong);
 }
 
 .card h2 { 
-    margin-bottom: 15px; 
-    color: #0f172a; 
-    font-size: 1.25rem; 
+    margin-bottom: var(--space-4); 
+    color: var(--text); 
+    font-size: 1.125rem; 
+    font-weight: 600;
 }
 
 /* Form Controls & Tables */
 .form-group { 
-    margin-bottom: 15px; 
+    margin-bottom: var(--space-4); 
 }
 
 .form-group label { 
     display: block; 
-    margin-bottom: 6px; 
-    font-weight: 600; 
-    font-size: 0.9rem; 
-    color: #475569; 
+    margin-bottom: var(--space-2); 
+    font-weight: 500; 
+    font-size: 0.875rem; 
+    color: var(--text-muted); 
 }
 
 .form-group input, .form-group select, .form-group textarea { 
     width: 100%; 
-    padding: 12px; 
+    padding: var(--space-3) var(--space-4); 
     border: 1px solid var(--border); 
-    border-radius: 8px; 
-    font-size: 0.95rem; 
+    border-radius: var(--radius); 
+    font-size: 0.9rem; 
     outline: none; 
-    transition: border-color 0.2s; 
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast); 
+    background: var(--surface);
 }
 
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
     border-color: var(--primary); 
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); 
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); 
+}
+
+.form-group input:disabled, .form-group select:disabled, .form-group textarea:disabled {
+    background: var(--bg);
+    color: var(--text-muted);
+    cursor: not-allowed;
 }
 
 button.btn-action { 
     background: var(--primary); 
     color: white; 
     border: none; 
-    padding: 12px 20px; 
-    border-radius: 8px; 
+    padding: var(--space-3) var(--space-5); 
+    border-radius: var(--radius); 
     font-weight: 600; 
+    font-size: 0.9rem;
     cursor: pointer; 
-    transition: background 0.2s, transform 0.1s; 
+    transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast); 
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
 button.btn-action:hover { 
     background: var(--primary-hover); 
+    box-shadow: var(--shadow);
 }
 
 button.btn-action:active { 
     transform: scale(0.98); 
 }
 
+button.btn-action:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+button.btn-action.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+button.btn-action.secondary:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+}
+
 table { 
     width: 100%; 
     border-collapse: collapse; 
-    margin-top: 15px; 
+    margin-top: var(--space-4); 
+    font-size: 0.875rem;
 }
 
 table th, table td { 
-    padding: 12px 15px; 
+    padding: var(--space-3) var(--space-4); 
     text-align: left; 
     border-bottom: 1px solid var(--border); 
-    font-size: 0.95rem; 
 }
 
 table th { 
-    background: #f8fafc; 
-    font-weight: 700; 
-    color: #475569; 
+    background: var(--bg); 
+    font-weight: 600; 
+    color: var(--text-muted); 
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+table tr:last-child td {
+    border-bottom: none;
+}
+
+table tr:hover td {
+    background: var(--bg);
 }
 
 #map { 
     width: 100%; 
     height: 320px; 
-    border-radius: 12px; 
-    margin-top: 25px; 
+    border-radius: var(--radius-lg); 
+    margin-top: var(--space-6); 
+    border: 1px solid var(--border);
 }
 
-/* Responsividad para móviles */
+/* Responsive */
+@media (max-width: 1024px) {
+    aside { 
+        width: var(--sidebar-collapsed); 
+    }
+    
+    aside .brand span,
+    aside .nav-links li a span:last-child,
+    aside .btn-logout span {
+        display: none;
+    }
+    
+    aside .brand {
+        justify-content: center;
+    }
+    
+    aside .nav-links li a {
+        justify-content: center;
+        padding: var(--space-3);
+    }
+}
+
 @media (max-width: 768px) {
-    body { flex-direction: column; overflow: auto; }
-    aside { width: 100%; height: auto; padding: 15px; }
-    main { padding: 20px; overflow: visible; }
-    #medibot-modal { width: 90% !important; right: 5% !important; left: 5% !important; }
+    body { 
+        flex-direction: column; 
+        overflow: auto; 
+    }
+    aside { 
+        width: 100%; 
+        height: auto; 
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        flex-direction: row;
+        align-items: center;
+        padding: var(--space-3) var(--space-4);
+        gap: var(--space-4);
+    }
+    
+    aside .brand {
+        margin-bottom: 0;
+    }
+    
+    .nav-links { 
+        flex-direction: row; 
+        flex-wrap: wrap; 
+        gap: var(--space-2); 
+        flex: 1; 
+        justify-content: center;
+    }
+    
+    .nav-links li a {
+        padding: var(--space-2) var(--space-3);
+        font-size: 0.85rem;
+    }
+    
+    .btn-logout {
+        margin-top: 0;
+        padding: var(--space-2) var(--space-3);
+        font-size: 0.8rem;
+    }
+    
+    main { 
+        padding: var(--space-6); 
+        overflow: visible; 
+    }
+    
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+    
+    #medibot-modal { 
+        width: 90% !important; 
+        right: 5% !important; 
+        left: 5% !important; 
+        height: 70vh;
+        bottom: 80px;
+    }
 }
