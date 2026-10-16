@@ -1,19 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-
 :root {
-    --primary: #0284c7;
-    --primary-hover: #0369a1;
-    --primary-light: #e0f2fe;
-    --bg: #f8fafc;
+    color-scheme: light;
+    --primary: #087e8b;
+    --primary-hover: #066873;
+    --primary-light: #e6f4f4;
+    --bg: #f4f7f8;
     --surface: #ffffff;
     --surface-hover: #f1f5f9;
-    --text: #0f172a;
+    --text: #172b36;
     --text-muted: #64748b;
-    --border: #e2e8f0;
-    --border-strong: #cbd5e1;
+    --border: #e1e9eb;
+    --border-strong: #c9d8dc;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 12px 28px -16px rgba(18, 48, 58, 0.22), 0 3px 8px rgba(18, 48, 58, 0.04);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
     --radius-sm: 6px;
     --radius: 10px;
@@ -35,18 +34,19 @@
     --header-height: 64px;
 }
 
-* { 
+* {
     box-sizing: border-box; 
     margin: 0; 
     padding: 0; 
-    font-family: 'Inter', 'IBM Plex Sans', system-ui, -apple-system, sans-serif; 
+    font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 body { 
     background-color: var(--bg); 
     color: var(--text); 
     display: flex; 
-    height: 100vh; 
+    height: 100dvh;
+    min-height: 100vh;
     overflow: hidden; 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -55,12 +55,12 @@ body {
 /* Sidebar Glassmorphism & UI Laws */
 aside { 
     width: var(--sidebar-width); 
-    background: var(--surface); 
+    background: var(--surface);
     border-right: 1px solid var(--border); 
     display: flex; 
     flex-direction: column; 
     padding: var(--space-6) var(--space-4); 
-    box-shadow: var(--shadow-lg); 
+    box-shadow: 4px 0 24px rgba(18, 48, 58, 0.035);
     z-index: 10; 
     transition: width var(--transition);
 }
@@ -107,7 +107,7 @@ aside.collapsed .brand {
     color: var(--text-muted); 
     font-weight: 500; 
     font-size: 0.9rem; 
-    transition: all var(--transition-fast); 
+    transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
     display: flex; 
     align-items: center; 
     gap: var(--space-3);
@@ -117,10 +117,11 @@ aside.collapsed .brand {
 .nav-links li a:hover { 
     background: var(--primary-light); 
     color: var(--primary); 
+    transform: translateX(2px);
 }
 
 .nav-links li a.active { 
-    background: var(--primary); 
+    background: linear-gradient(135deg, var(--primary), #0b929a);
     color: white; 
 }
 
@@ -175,10 +176,10 @@ main {
     display: flex; 
     flex-direction: column; 
     overflow-y: auto; 
-    padding: var(--space-10); 
+    padding: clamp(24px, 4vw, 56px);
     position: relative; 
     background: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(2, 132, 199, 0.03), transparent),
+        radial-gradient(ellipse 80% 45% at 50% -20%, rgba(8, 126, 139, 0.07), transparent),
         var(--bg);
 }
 
@@ -186,13 +187,13 @@ header {
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    margin-bottom: var(--space-8);
-    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-6);
+    padding: 0 0 var(--space-5);
     border-bottom: 1px solid var(--border);
 }
 
 header h1 {
-    font-size: 1.5rem;
+    font-size: clamp(1.35rem, 2vw, 1.75rem);
     font-weight: 700;
     letter-spacing: -0.02em;
 }
@@ -211,7 +212,7 @@ header h1 {
 /* Panels */
 .panel-section { 
     display: none; 
-    animation: fadeIn var(--transition-slow) ease-out; 
+    animation: fadeIn 220ms ease-out;
 }
 
 .panel-section.active { 
@@ -227,15 +228,16 @@ header h1 {
     background: var(--surface); 
     padding: var(--space-6); 
     border-radius: var(--radius-lg); 
-    box-shadow: var(--shadow); 
+    box-shadow: var(--shadow);
     margin-bottom: var(--space-5); 
     border: 1px solid var(--border); 
-    transition: box-shadow var(--transition), border-color var(--transition);
+    transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
 }
 
 .card:hover {
     box-shadow: var(--shadow-lg);
     border-color: var(--border-strong);
+    transform: translateY(-1px);
 }
 
 .card h2 { 
@@ -271,7 +273,7 @@ header h1 {
 
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
     border-color: var(--primary); 
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); 
+    box-shadow: 0 0 0 3px rgba(8, 126, 139, 0.13);
 }
 
 .form-group input:disabled, .form-group select:disabled, .form-group textarea:disabled {
@@ -342,6 +344,14 @@ table th {
     letter-spacing: 0.05em;
 }
 
+table tbody tr { transition: background-color var(--transition-fast); }
+table tbody tr:hover td { background: #f5faf9; }
+button, input, select, textarea { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 3px solid rgba(8, 126, 139, 0.28);
+    outline-offset: 2px;
+}
+
 table tr:last-child td {
     border-bottom: none;
 }
@@ -394,6 +404,7 @@ table tr:hover td {
         align-items: center;
         padding: var(--space-3) var(--space-4);
         gap: var(--space-4);
+        overflow-x: auto;
     }
     
     aside .brand {
@@ -406,6 +417,7 @@ table tr:hover td {
         gap: var(--space-2); 
         flex: 1; 
         justify-content: center;
+        min-width: max-content;
     }
     
     .nav-links li a {
@@ -437,4 +449,17 @@ table tr:hover td {
         height: 70vh;
         bottom: 80px;
     }
+}
+
+@media (max-width: 520px) {
+    aside { gap: var(--space-2); }
+    aside .brand { font-size: 0; gap: 0; }
+    .nav-links { justify-content: flex-start; flex-wrap: nowrap; }
+    main { padding: 20px 16px; }
+    .card { padding: 20px; }
+    table { display: block; overflow-x: auto; white-space: nowrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

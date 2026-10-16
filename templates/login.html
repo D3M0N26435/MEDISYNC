@@ -4,39 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - MediSync</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body {
-            display: flex; justify-content: center; align-items: center; min-height: 100vh;
-            background: linear-gradient(135deg, #0284c7 0%, #0f172a 100%);
-            position: relative; overflow: hidden;
-        }
-        .login-card {
-            background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px);
-            padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            width: 100%; max-width: 400px; text-align: center; z-index: 2;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .logo-icon { font-size: 55px; margin-bottom: 10px; }
-        h1 { color: #0f172a; margin-bottom: 8px; font-size: 26px; font-weight: 800; }
-        p.subtitle { color: #64748b; font-size: 14px; margin-bottom: 30px; font-weight: 500; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 6px; color: #475569; font-weight: 600; font-size: 13px; }
-        .input-group input {
-            width: 100%; padding: 13px 15px; border: 1px solid #cbd5e1; border-radius: 10px;
-            font-size: 14px; outline: none; transition: all 0.3s ease; background: #f8fafc;
-        }
-        .input-group input:focus { border-color: #0284c7; background: #fff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
-        button.btn-login {
-            width: 100%; padding: 14px; background: #0284c7; color: white; border: none;
-            border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer;
-            transition: background 0.3s, transform 0.1s; margin-top: 10px;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-        }
-        button.btn-login:hover { background: #0369a1; }
-        button.btn-login:active { transform: scale(0.98); }
-        #resultado { margin-top: 15px; color: #dc2626; font-size: 13px; font-weight: 600; min-height: 20px; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
     <div class="login-card">
