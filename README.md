@@ -4,7 +4,7 @@
 
 El panel de administración usa Firebase Authentication y Cloud Firestore. Copia `.env.example` a `.env`, completa la configuración web de Firebase y habilita el proveedor **Correo electrónico/contraseña** en Firebase Authentication.
 
-Flask también verifica el token de Firebase en el servidor y consulta el perfil antes de crear una sesión o entregar un panel. Configura `GOOGLE_APPLICATION_CREDENTIALS` con la ruta a una cuenta de servicio de Firebase Admin con acceso a Authentication y Firestore. Mantén ese archivo fuera del repositorio y define un valor privado para `SECRET_KEY`. En producción, sirve el sitio por HTTPS y configura `SESSION_COOKIE_SECURE=true`.
+Flask verifica el token de acceso de Firebase y consulta el perfil de Firestore usando ese mismo token y las reglas de seguridad. Para iniciar sesión en Render no hace falta subir una cuenta de servicio: basta con que la configuración web incluya el `projectId` correcto. En Render, la cookie se marca como segura automáticamente; en otros servidores HTTPS configura `SESSION_COOKIE_SECURE=true`.
 
 Antes de usar el panel, crea en Firebase Authentication la cuenta inicial de administración. Después crea manualmente en Firestore un documento en `users/{UID_DE_ESE_USUARIO}` con al menos estos campos:
 

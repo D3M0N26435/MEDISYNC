@@ -1,33 +1,26 @@
 import os
-import secrets
 import threading
 import time
 from collections import deque
-from datetime import timedelta
-from functools import wraps
+from functools import lru_cache, wraps
 from pathlib import Path
+from urllib.parse import quote
 
-from flask import Flask, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, jsonify, make_response, redirect, render_template, request, url_for
 from flask_socketio import SocketIO
 from dotenv import load_dotenv
 import google.auth
+from google.auth import exceptions as google_auth_exceptions
 from google.auth.transport.requests import Request as GoogleAuthRequest
+from google.oauth2 import id_token as google_id_token
 import requests
-
-import firebase_admin
-from firebase_admin import auth as firebase_admin_auth
-from firebase_admin import firestore as firebase_admin_firestore
 
 load_dotenv()
 
 app = Flask(__name__)
-app.config.update(
-    SECRET_KEY=os.getenv("SECRET_KEY") or secrets.token_hex(32),
-    PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true",
-)
+app.config["SESSION_COOKIE_SECURE"] = os.getenv(
+    "SESSION_COOKIE_SECURE", "true" if os.getenv("RENDER") else "false"
+).lower() == "true"
 socketio = SocketIO(app, async_mode="threading")
 
 ROLE_ENDPOINTS = {
@@ -43,6 +36,7 @@ _assistant_rate_limit = 8
 _assistant_rate_window = 60
 _assistant_question_limit = 1000
 _assistant_knowledge_file = Path(__file__).resolve().parent / "chat" / "informacion.txt"
+_firebase_token_cookie = "firebase_token"
 _assistant_system_instruction = """
 Eres MediBot, un asistente cordial de información general para MediSync. Responde en español, con mensajes claros y breves, en texto plano y con un emoji como máximo.
 
@@ -70,6 +64,73 @@ def _load_assistant_knowledge():
     if not knowledge:
         raise AssistantKnowledgeUnavailable
     return knowledge
+
+
+@lru_cache(maxsize=512)
+def _verify_firebase_id_token_signature(token, project_id):
+    try:
+        claims = google_id_token.verify_firebase_token(
+            token,
+            GoogleAuthRequest(),
+            audience=project_id,
+        )
+    except (ValueError, google_auth_exceptions.GoogleAuthError) as error:
+        raise ValueError("El token de Firebase no es válido.") from error
+    return dict(claims)
+
+
+def _decode_firebase_id_token(token, project_id):
+    claims = _verify_firebase_id_token_signature(token, project_id)
+    if claims.get("iss") != f"https://securetoken.google.com/{project_id}":
+        raise ValueError("El emisor del token de Firebase no es válido.")
+    expires_at = claims.get("exp")
+    if not isinstance(expires_at, (int, float)) or expires_at <= time.time():
+        raise ValueError("El token de Firebase expiró.")
+    uid = claims.get("user_id") or claims.get("sub")
+    if not uid:
+        raise ValueError("El token de Firebase no contiene un UID.")
+    return uid, expires_at
+
+
+def _get_user_profile(uid, id_token):
+    project_id = get_firebase_config()["projectId"]
+    if not project_id:
+        raise RuntimeError("Falta projectId en la configuración de Firebase.")
+
+    document_url = (
+        "https://firestore.googleapis.com/v1/projects/"
+        f"{quote(project_id, safe='')}/databases/(default)/documents/users/"
+        f"{quote(uid, safe='')}"
+    )
+    response = requests.get(
+        document_url,
+        headers={"Authorization": f"Bearer {id_token}"},
+        timeout=10,
+    )
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+
+    fields = response.json().get("fields", {})
+    role = fields.get("role", {}).get("stringValue")
+    active_field = fields.get("active", {})
+    active = active_field.get("booleanValue", True)
+    return {"role": role, "active": active}
+
+
+def _delete_firebase_cookie(response):
+    response.delete_cookie(
+        _firebase_token_cookie,
+        path="/",
+        secure=app.config["SESSION_COOKIE_SECURE"],
+        httponly=True,
+        samesite="Lax",
+    )
+    return response
+
+
+def _redirect_to_login():
+    return _delete_firebase_cookie(redirect(url_for("login")))
 
 
 def _get_assistant_auth(provider):
@@ -164,46 +225,40 @@ def get_firebase_config():
     }
 
 
-def get_firebase_admin_services():
-    """Inicializa Firebase Admin con Application Default Credentials."""
-    try:
-        firebase_admin.get_app()
-    except ValueError:
-        project_id = os.getenv("projectId") or os.getenv("FIREBASE_PROJECT_ID")
-        options = {"projectId": project_id} if project_id else None
-        firebase_admin.initialize_app(options=options)
-    return firebase_admin_auth, firebase_admin_firestore.client()
-
-
 def render_panel(template):
     return render_template(template, firebase_config=get_firebase_config())
 
 
 def role_required(expected_role):
-    """Exige una sesión Flask válida y vuelve a comprobar el perfil en Firestore."""
+    """Verifica el token Firebase y el rol guardado en Firestore."""
     def decorator(view):
         @wraps(view)
         def wrapped(*args, **kwargs):
-            uid = session.get("uid")
-            if not uid:
-                return redirect(url_for("login"))
+            id_token = request.cookies.get(_firebase_token_cookie)
+            project_id = get_firebase_config()["projectId"]
+            if not id_token or not project_id:
+                return _redirect_to_login()
 
             try:
-                _, db = get_firebase_admin_services()
-                profile_snapshot = db.collection("users").document(uid).get()
+                uid, _ = _decode_firebase_id_token(id_token, project_id)
+                profile = _get_user_profile(uid, id_token)
+            except (ValueError, google_auth_exceptions.GoogleAuthError):
+                return _redirect_to_login()
+            except requests.HTTPError as error:
+                if error.response is not None and error.response.status_code in (401, 403):
+                    return _redirect_to_login()
+                app.logger.exception("No se pudo consultar el perfil en Firestore.")
+                abort(503)
             except Exception:
                 app.logger.exception("No se pudo comprobar el perfil de Firebase.")
                 abort(503)
 
-            if not profile_snapshot.exists:
-                session.clear()
-                return redirect(url_for("login"))
+            if not profile:
+                return _redirect_to_login()
 
-            profile = profile_snapshot.to_dict() or {}
             role = profile.get("role")
             if profile.get("active") is False or role not in ROLE_ENDPOINTS:
-                session.clear()
-                return redirect(url_for("login"))
+                return _redirect_to_login()
 
             if role != expected_role:
                 return redirect(url_for(ROLE_ENDPOINTS[role]))
@@ -225,45 +280,55 @@ def create_session():
     if not isinstance(id_token, str) or not id_token:
         return jsonify(error="Falta el token de inicio de sesión."), 400
 
-    try:
-        auth_service, db = get_firebase_admin_services()
-    except Exception:
-        app.logger.exception("No se pudo inicializar Firebase Admin.")
-        return jsonify(error="No se pudo validar la cuenta. Revisa la configuración del servidor."), 503
+    project_id = get_firebase_config()["projectId"]
+    if not project_id:
+        return jsonify(error="Falta projectId en la configuración de Firebase del servidor."), 503
 
     try:
-        decoded_token = auth_service.verify_id_token(id_token, check_revoked=True)
-    except Exception:
+        uid, expires_at = _decode_firebase_id_token(id_token, project_id)
+    except (ValueError, google_auth_exceptions.GoogleAuthError):
         return jsonify(error="Firebase no pudo validar el inicio de sesión. Inténtalo de nuevo."), 401
 
     try:
-        uid = decoded_token["uid"]
-        profile_snapshot = db.collection("users").document(uid).get()
+        profile = _get_user_profile(uid, id_token)
+    except requests.HTTPError as error:
+        if error.response is not None and error.response.status_code == 401:
+            return jsonify(error="Firebase rechazó la sesión. Vuelve a iniciar sesión."), 401
+        app.logger.exception("No se pudo consultar el perfil en Firestore.")
+        return jsonify(error="No se pudo consultar tu perfil. Inténtalo más tarde."), 503
+    except requests.RequestException:
+        app.logger.exception("No se pudo conectar con Firestore.")
+        return jsonify(error="No se pudo conectar con Firebase. Inténtalo más tarde."), 503
     except Exception:
         app.logger.exception("No se pudo leer el perfil de Firebase.")
         return jsonify(error="No se pudo consultar tu perfil. Inténtalo más tarde."), 503
 
-    if not profile_snapshot.exists:
+    if not profile:
         return jsonify(error="Tu cuenta no tiene un perfil autorizado. Contacta al administrador."), 403
 
-    profile = profile_snapshot.to_dict() or {}
     role = profile.get("role")
-    if profile.get("active") is False:
+    if profile.get("active") is not True:
         return jsonify(error="Tu cuenta está inactiva. Contacta al administrador."), 403
     if role not in ROLE_ENDPOINTS:
         return jsonify(error="Tu perfil no tiene un rol autorizado. Contacta al administrador."), 403
 
-    session.clear()
-    session.permanent = True
-    session["uid"] = uid
-    session["role"] = role
-    return jsonify(redirect=url_for(ROLE_ENDPOINTS[role]))
+    response = make_response(jsonify(redirect=url_for(ROLE_ENDPOINTS[role])))
+    max_age = max(1, min(3600, int(expires_at - time.time()))) if expires_at else 3600
+    response.set_cookie(
+        _firebase_token_cookie,
+        id_token,
+        max_age=max_age,
+        httponly=True,
+        secure=app.config["SESSION_COOKIE_SECURE"],
+        samesite="Lax",
+        path="/",
+    )
+    return response
 
 
 @app.route("/auth/logout", methods=["POST"])
 def close_session():
-    session.clear()
-    return "", 204
+    return _delete_firebase_cookie(make_response("", 204))
 
 
 @app.route("/admin")
@@ -291,20 +356,20 @@ def patient_panel():
 
 
 def _active_patient_uid():
-    uid = session.get("uid")
-    if not uid or session.get("role") != "patient":
+    id_token = request.cookies.get(_firebase_token_cookie)
+    project_id = get_firebase_config()["projectId"]
+    if not id_token or not project_id:
         return None
 
     try:
-        _, db = get_firebase_admin_services()
-        profile_snapshot = db.collection("users").document(uid).get()
+        uid, _ = _decode_firebase_id_token(id_token, project_id)
+        profile = _get_user_profile(uid, id_token)
     except Exception:
-        app.logger.exception("No se pudo comprobar el acceso de MediBot.")
+        app.logger.exception("No se pudo comprobar el perfil de MediBot en Firestore.")
         return None
 
-    if not profile_snapshot.exists:
+    if not profile:
         return None
-    profile = profile_snapshot.to_dict() or {}
     if profile.get("role") != "patient" or profile.get("active") is False:
         return None
     return uid

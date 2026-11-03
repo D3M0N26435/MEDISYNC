@@ -77,6 +77,12 @@
         setStatus('Se perdió la conexión. Intentando reconectar…');
     });
 
+    window.addEventListener('firebase-session-renewed', () => {
+        if (!socket.connected) return;
+        socket.disconnect();
+        socket.connect();
+    });
+
     socket.on('connect_error', () => {
         setStatus('No pude conectar con MediBot. Vuelve a iniciar sesión o inténtalo más tarde.');
         if (pendingReply) {

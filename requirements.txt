@@ -4,5 +4,4 @@ gunicorn
 eventlet
 requests
 python-dotenv
-firebase-admin
 google-auth
