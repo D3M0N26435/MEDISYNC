@@ -29,6 +29,17 @@ Las reglas requieren que los documentos de personal estén en `users` y que el d
 
 ## MediBot
 
-El chat web de MediBot toma su referencia de `chat/informacion.txt`, que se vuelve a leer en cada consulta. El proveedor y el modelo se configuran por separado en `.env` mediante `AI_PROVIDER` y `AI_MODEL`. La configuración propuesta usa MedGemma 1.5 4B en un endpoint desplegado en Vertex AI: completa `AI_PROJECT_ID`, `AI_LOCATION` y `AI_ENDPOINT_ID`, y configura credenciales de Google Cloud con el permiso `aiplatform.endpoints.predict`. El despliegue del endpoint puede generar cargos de Vertex AI. El servicio también admite cualquier proveedor compatible con OpenAI Chat Completions usando `AI_PROVIDER=openai_compatible`, `AI_BASE_URL` y `AI_API_KEY`. No se guarda historial entre consultas.
+El chat web de MediBot toma su referencia de `chat/informacion.txt`, que se vuelve a leer en cada consulta. El proveedor y el modelo se configuran por separado en `.env` mediante `AI_PROVIDER` y `AI_MODEL`.
 
-Las consultas se envían al proveedor seleccionado. No ingreses datos personales ni información médica sensible. MedGemma es un modelo para desarrolladores enfocado en comprensión de texto e imágenes médicas; Google indica que debe validarse para cada caso de uso y que no se diseñó para dar diagnósticos o tratamientos clínicos directos ([documentación de MedGemma](https://developers.google.com/health-ai-developer-foundations/medgemma), [despliegue](https://developers.google.com/health-ai-developer-foundations/medgemma/get-started)). MediBot ofrece orientación general sobre el prototipo; no diagnostica ni receta. La integración con Telegram queda pendiente.
+Para usar Gemini API con una clave de Google AI Studio, configura estas variables en `.env` y reinicia el servidor:
+
+```env
+AI_PROVIDER=openai_compatible
+AI_MODEL=gemini-3.8-flash
+AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+AI_API_KEY=tu_clave_de_google_ai_studio
+```
+
+La clave se usa solo desde el servidor y `.env` está excluido de Git. No la pongas en el frontend ni la compartas en el chat. Puedes crearla en la sección **API Keys** de Google AI Studio. Esta integración usa la interfaz compatible con OpenAI de Gemini y no requiere desplegar un modelo en Vertex AI. También se mantiene disponible la configuración de Vertex AI con MedGemma: completa `AI_PROJECT_ID`, `AI_LOCATION` y `AI_ENDPOINT_ID`, y configura credenciales de Google Cloud con el permiso `aiplatform.endpoints.predict`. No se guarda historial entre consultas.
+
+Las consultas se envían al proveedor seleccionado y pueden estar sujetas a sus cuotas y condiciones de uso. No ingreses datos personales ni información médica sensible. MediBot ofrece orientación general sobre el prototipo; no diagnostica ni receta. La integración con Telegram queda pendiente.
