@@ -16,7 +16,7 @@
             <li><a id="tab-personal-label" href="#personal" class="active" role="tab" aria-selected="true" data-admin-tab="personal">👥 Gestión de Personal</a></li>
             <li><a id="tab-sedes-label" href="#sedes" role="tab" aria-selected="false" data-admin-tab="sedes">📍 Centros y Farmacias</a></li>
         </ul>
-        <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
+        <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
     <main>
         <header>
@@ -36,7 +36,7 @@
                     <label class="admin-search-label" for="staff-search">Buscar personal</label>
                     <input id="staff-search" type="search" placeholder="Nombre, correo o rol">
                     <select id="staff-role-filter" aria-label="Filtrar por rol">
-                        <option value="">Todos los roles</option><option value="doctor">Médicos</option><option value="pharmacist">Farmacéuticos</option><option value="admin">Administradores</option><option value="patient">Pacientes</option>
+                        <option value="">Todos los roles</option><option value="doctor">Médicos</option><option value="pharmacist">Farmacéuticos</option><option value="admin">Administradores</option>
                     </select>
                 </div>
                 <div class="table-wrap">
@@ -89,12 +89,10 @@
         </section>
     </main>
 
-    <script id="firebase-config" type="application/json">{{ {
-        'apiKey': apiKey, 'authDomain': authDomain, 'projectId': projectId,
-        'storageBucket': storageBucket, 'messagingSenderId': messagingSenderId, 'appId': appId
-    }|tojson }}</script>
+    <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/admin.js') }}"></script>
-    <script>function cerrarSesion() { window.location.href = "/"; }</script>
+    <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>
 </html>
+    

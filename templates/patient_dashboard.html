@@ -15,7 +15,7 @@
         <ul class="nav-links">
             <li><a href="/patient" class="active">📅 Mis Citas & Mapa</a></li>
         </ul>
-        <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
+        <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
     <main>
         <header>
@@ -36,33 +36,34 @@
         </div>
     </main>
 
-    <!-- Botón y Modal MediBot (Solo en el portal del paciente o donde desees) -->
-    <button id="medibot-btn" onclick="toggleMediBot()" title="Asistente MediBot">🤖</button>
-    <div id="medibot-modal">
+    <button id="medibot-btn" type="button" title="Abrir MediBot" aria-label="Abrir MediBot" aria-controls="medibot-modal" aria-expanded="false">🤖</button>
+    <section id="medibot-modal" role="dialog" aria-label="Asistente MediBot" aria-hidden="true">
         <div class="bot-header">
             <span>🤖 MediBot Asistente</span>
-            <span onclick="toggleMediBot()" style="cursor:pointer; font-size: 1.2rem;">✕</span>
+            <button id="medibot-close" type="button" aria-label="Cerrar MediBot">✕</button>
         </div>
-        <div class="bot-body" id="bot-mensajes">
-            <div class="bot-msg-received">¡Hola! Soy tu asistente MediBot. Pregúntame sobre recetas, citas o sucursales.</div>
+        <div class="bot-body" id="bot-mensajes" role="log" aria-live="polite" aria-relevant="additions text">
+            <div class="bot-msg-received">¡Hola! Soy MediBot. Puedo orientarte sobre MediSync y sus funciones.</div>
         </div>
         <div class="bot-footer">
-            <input type="text" id="bot-input" placeholder="Escribe tu consulta...">
-            <button>➤</button>
+            <form id="medibot-form">
+                <input type="text" id="bot-input" maxlength="1000" autocomplete="off" placeholder="Escribe tu consulta…" aria-label="Escribe tu consulta" required>
+                <button id="medibot-send" type="submit" aria-label="Enviar mensaje">➤</button>
+            </form>
+            <p id="medibot-status" role="status" aria-live="polite">Conectando con MediBot…</p>
+            <p class="bot-privacy">MediBot usa la información de MediSync para responder y no conserva mensajes anteriores. No compartas datos personales ni información médica sensible. No diagnostica ni receta.</p>
         </div>
-    </div>
+    </section>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([-17.9647, -67.106], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
         L.marker([-17.9647, -67.106]).addTo(map).bindPopup("<b>Farmacia Central MediSync</b>").openPopup();
-
-        function toggleMediBot() {
-            const modal = document.getElementById("medibot-modal");
-            modal.style.display = modal.style.display === "flex" ? "none" : "flex";
-        }
-        function cerrarSesion() { window.location.href = "/"; }
     </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/medibot.js') }}"></script>
+    <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>
 </html>

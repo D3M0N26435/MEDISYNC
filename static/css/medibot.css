@@ -41,6 +41,8 @@
     border: 1px solid #e2e8f0;
 }
 
+#medibot-modal.is-open { display: flex; }
+
 .bot-header { 
     background: #147d83;
     color: white; 
@@ -49,6 +51,17 @@
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
+}
+
+.bot-header button {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .14);
+    color: inherit;
+    font-size: 1.1rem;
+    cursor: pointer;
 }
 
 .bot-body { 
@@ -66,12 +79,18 @@
     padding: 15px; 
     background: white; 
     border-top: 1px solid #e2e8f0; 
-    display: flex; 
-    gap: 10px; 
+    display: grid;
+    gap: 8px;
+}
+
+.bot-footer form {
+    display: flex;
+    gap: 10px;
 }
 
 .bot-footer input { 
     flex: 1; 
+    min-width: 0;
     padding: 10px 14px; 
     border: 1px solid #e2e8f0; 
     border-radius: 25px; 
@@ -90,6 +109,10 @@
     align-items: center; 
     justify-content: center; 
 }
+
+.bot-footer button:disabled { opacity: .55; cursor: wait; }
+.bot-footer #medibot-status { color: #64748b; font-size: .75rem; }
+.bot-privacy { color: #64748b; font-size: .68rem; line-height: 1.4; }
 
 .bot-msg-received {
     background: white; 
@@ -114,3 +137,5 @@ html[data-theme="dark"] .bot-body { background: #091e20; color: #e2eeee; }
 html[data-theme="dark"] .bot-footer { background: #102a2d; border-color: #1e484c; }
 html[data-theme="dark"] .bot-footer input { color: #e2eeee; background: #0b2225; border-color: #285256; }
 html[data-theme="dark"] .bot-msg-received { color: #e2eeee; background: #17373a; }
+html[data-theme="dark"] .bot-footer #medibot-status,
+html[data-theme="dark"] .bot-privacy { color: #a1b8ba; }

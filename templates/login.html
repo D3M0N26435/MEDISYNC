@@ -14,107 +14,24 @@
         <h1>MediSync</h1>
         <p class="subtitle">Plataforma Médica Inteligente</p>
         
-        <div class="input-group">
-            <label for="correo">Correo Electrónico</label>
-            <input type="email" id="correo" placeholder="nombre@medisync.com" autocomplete="off">
-        </div>
-        
-        <div class="input-group">
-            <label for="password">Contraseña</label>
-            <input type="password" id="password" placeholder="••••••••">
-        </div>
-        
-        <button class="btn-login" onclick="iniciarSesion()">Acceder al Sistema</button>
-        <p id="resultado"></p>
+        <form id="login-form">
+            <div class="input-group">
+                <label for="correo">Correo Electrónico</label>
+                <input type="email" id="correo" placeholder="nombre@medisync.com" autocomplete="username" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+            </div>
+
+            <button class="btn-login" id="login-submit" type="submit">Acceder al Sistema</button>
+        </form>
+        <p id="resultado" role="status" aria-live="polite"></p>
     </div>
 
-    <!-- Script de Firebase Authentication y Firestore -->
-    <!-- Script de Firebase Authentication y Firestore -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-        
-        const firebaseConfig = {
-            apiKey: "{{apiKey}}",
-            authDomain: "{{authDomain}}",
-            projectId: "{{projectId}}",
-            storageBucket: "{{storageBucket}}",
-            messagingSenderId: "{{messagingSenderId}}",
-            appId: "{{appId}}"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.iniciarSesion = async function() {
-            const correo = document.getElementById("correo").value.trim();
-            const password = document.getElementById("password").value;
-            const resultado = document.getElementById("resultado");
-            const btn = document.querySelector('button');
-            
-            resultado.innerText = "";
-            if (!correo || !password) {
-                resultado.innerText = "Por favor, completa todos los campos.";
-                return;
-            }
-
-            try {
-                btn.innerText = "Verificando...";
-                const userCredential = await signInWithEmailAndPassword(auth, correo, password);
-                const user = userCredential.user;
-
-                let rol = "patient"; // Rol por defecto
-
-                try {
-                    // Consultar rol en Firestore (colección "users", documento con el UID del usuario)
-                    const userRef = doc(db, "users", user.uid);
-                    const userSnap = await getDoc(userRef);
-
-                    if (userSnap.exists()) {
-                        const perfil = userSnap.data();
-                        if (perfil.active === false) {
-                            await signOut(auth);
-                            btn.innerText = "Acceder al Sistema";
-                            resultado.innerText = "Tu cuenta está inactiva. Contacta al administrador.";
-                            return;
-                        }
-                        rol = perfil.role || "patient";
-                    }
-                } catch (firestoreError) {
-                    console.warn("No se pudo leer el rol de Firestore, usando rol por defecto (patient):", firestoreError);
-                }
-
-                resultado.style.color = "#16a34a";
-                resultado.innerText = "¡Acceso concedido! Redirigiendo...";
-                
-                // Redirección dinámica según el rol detectado
-                setTimeout(() => {
-                    if (rol === 'admin') {
-                        window.location.href = "/admin";
-                    } else if (rol === 'doctor') {
-                        window.location.href = "/doctor";
-                    } else if (rol === 'pharmacist') {
-                        window.location.href = "/pharmacist";
-                    } else {
-                        window.location.href = "/patient";
-                    }
-                }, 800);
-
-            } catch (error) {
-                console.error(error);
-                btn.innerText = "Acceder al Sistema";
-                resultado.style.color = "#dc2626";
-                resultado.innerText = "Correo o contraseña incorrectos.";
-            }
-        };
-
-        document.getElementById("password").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") iniciarSesion();
-        });
-    </script>
-
+    <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
 
 </body>
 </html>

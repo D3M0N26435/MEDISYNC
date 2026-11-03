@@ -13,7 +13,7 @@
         <ul class="nav-links">
             <li><a href="/pharmacist" class="active">💊 Inventario Farmacia</a></li>
         </ul>
-        <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
+        <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
     <main>
         <header>
@@ -33,6 +33,7 @@
             <button class="btn-action" onclick="alert('Inventario actualizado')">Actualizar Inventario</button>
         </div>
     </main>
-    <script>function cerrarSesion() { window.location.href = "/"; }</script>
+    <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>
 </html>
