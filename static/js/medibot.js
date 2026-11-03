@@ -1,5 +1,4 @@
 (() => {
-    const socket = io({ autoConnect: false });
     const button = document.getElementById('medibot-btn');
     const closeButton = document.getElementById('medibot-close');
     const modal = document.getElementById('medibot-modal');
@@ -9,6 +8,11 @@
     const messages = document.getElementById('bot-mensajes');
     const status = document.getElementById('medibot-status');
 
+    if (!button || !closeButton || !modal || !form || !input || !sendButton || !messages || !status) {
+        return;
+    }
+
+    let socket = null;
     let pendingQuestion = '';
     let pendingReply = null;
 
@@ -38,14 +42,74 @@
         sendButton.disabled = waiting;
     }
 
+    function failPendingQuestion(message) {
+        setStatus(message);
+        if (pendingReply) {
+            pendingReply.textContent = message;
+            pendingReply = null;
+        }
+        pendingQuestion = '';
+        setWaiting(false);
+    }
+
     function sendPendingQuestion() {
-        if (!pendingQuestion || !socket.connected) return;
+        if (!pendingQuestion || !socket?.connected) return;
         const question = pendingQuestion;
         pendingQuestion = '';
         setStatus('MediBot está preparando una respuesta…');
         socket.emit('medibot_query', { pregunta: question });
     }
 
+    function connectSocket() {
+        try {
+            if (!socket) {
+                if (typeof window.io !== 'function') {
+                    setStatus('El chat no está disponible ahora. Inténtalo más tarde.');
+                    return false;
+                }
+
+                socket = window.io({ autoConnect: false });
+                socket.on('connect', () => {
+                    setStatus('Conectado');
+                    sendPendingQuestion();
+                });
+
+                socket.on('disconnect', () => {
+                    setStatus('Se perdió la conexión. Intentando reconectar…');
+                });
+
+                socket.on('connect_error', () => {
+                    failPendingQuestion('No pude conectar con MediBot. Vuelve a iniciar sesión o inténtalo más tarde.');
+                });
+
+                socket.on('medibot_respuesta', (payload) => {
+                    const answer = typeof payload?.respuesta === 'string'
+                        ? payload.respuesta
+                        : 'No recibí una respuesta válida. Inténtalo de nuevo.';
+                    if (pendingReply) {
+                        pendingReply.textContent = answer;
+                        pendingReply = null;
+                    } else {
+                        addMessage(answer, 'received');
+                    }
+                    messages.scrollTop = messages.scrollHeight;
+                    setWaiting(false);
+                    setStatus(socket.connected ? 'Conectado' : 'Desconectado');
+                    input.focus();
+                });
+            }
+
+            if (!socket.connected) socket.connect();
+            return true;
+        } catch (error) {
+            socket = null;
+            setStatus('El chat no está disponible ahora. Inténtalo más tarde.');
+            return false;
+        }
+    }
+
+    // Register the chat controls before initializing Socket.IO, so a connection
+    // problem cannot leave the floating button without a click handler.
     button.addEventListener('click', () => setOpen(!modal.classList.contains('is-open')));
     closeButton.addEventListener('click', () => setOpen(false));
 
@@ -60,54 +124,20 @@
         input.value = '';
         setWaiting(true);
 
-        if (socket.connected) {
+        if (!connectSocket()) {
+            failPendingQuestion('No pude conectar con MediBot. Inténtalo de nuevo más tarde.');
+        } else if (socket.connected) {
             sendPendingQuestion();
         } else {
             setStatus('Conectando con MediBot…');
-            socket.connect();
         }
     });
 
-    socket.on('connect', () => {
-        setStatus('Conectado');
-        sendPendingQuestion();
-    });
-
-    socket.on('disconnect', () => {
-        setStatus('Se perdió la conexión. Intentando reconectar…');
-    });
-
     window.addEventListener('firebase-session-renewed', () => {
-        if (!socket.connected) return;
+        if (!socket?.connected) return;
         socket.disconnect();
         socket.connect();
     });
 
-    socket.on('connect_error', () => {
-        setStatus('No pude conectar con MediBot. Vuelve a iniciar sesión o inténtalo más tarde.');
-        if (pendingReply) {
-            pendingReply.textContent = 'No pude conectar. Inténtalo de nuevo más tarde.';
-            pendingReply = null;
-            pendingQuestion = '';
-            setWaiting(false);
-        }
-    });
-
-    socket.on('medibot_respuesta', (payload) => {
-        const answer = typeof payload?.respuesta === 'string'
-            ? payload.respuesta
-            : 'No recibí una respuesta válida. Inténtalo de nuevo.';
-        if (pendingReply) {
-            pendingReply.textContent = answer;
-            pendingReply = null;
-        } else {
-            addMessage(answer, 'received');
-        }
-        messages.scrollTop = messages.scrollHeight;
-        setWaiting(false);
-        setStatus(socket.connected ? 'Conectado' : 'Desconectado');
-        input.focus();
-    });
-
-    socket.connect();
+    connectSocket();
 })();
