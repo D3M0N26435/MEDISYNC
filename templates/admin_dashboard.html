@@ -57,6 +57,12 @@
                         <div class="form-group"><label for="staff-role">Rol</label><select id="staff-role" required><option value="doctor">Médico</option><option value="pharmacist">Farmacéutico</option><option value="admin">Administrador</option></select></div>
                         <div class="form-group"><label for="staff-location">Centro o farmacia</label><select id="staff-location"><option value="">Sin asignar</option></select></div>
                     </div>
+                    <fieldset id="doctor-settings" class="doctor-settings" hidden>
+                        <legend>Especialidades y agenda médica</legend>
+                        <div class="form-group"><label for="doctor-specialties">Especialidades</label><input id="doctor-specialties" maxlength="300" placeholder="Medicina general, Pediatría"><small>Separa las especialidades con comas.</small></div>
+                        <div class="doctor-schedule-heading"><div><strong>Disponibilidad semanal</strong><small>Solo se ofrecerán los horarios que configures aquí.</small></div><button class="btn-action secondary" type="button" id="add-doctor-schedule">＋ Añadir horario</button></div>
+                        <div id="doctor-schedule-rows" class="doctor-schedule-rows"></div>
+                    </fieldset>
                     <fieldset class="vacation-fieldset"><legend>Periodos de vacaciones</legend><div id="vacation-periods"></div><button class="btn-action secondary" type="button" id="add-vacation-button">＋ Añadir periodo</button></fieldset>
                     <div class="editor-actions"><button class="btn-action" id="save-staff-button" type="submit">Crear perfil</button><button class="btn-action secondary" id="cancel-staff-button-bottom" type="button">Cancelar</button></div>
                 </form>
@@ -72,13 +78,13 @@
                 <div class="card location-map-card"><div class="card-heading-row"><div><h3>Mapa de sedes</h3><p>Selecciona una sede para ver su equipo.</p></div><span class="map-hint">Haz clic en el mapa para fijar ubicación</span></div><div id="admin-map" aria-label="Mapa de centros de salud y farmacias"></div></div>
                 <div class="card location-team-card"><div class="card-heading-row"><div><h3 id="selected-location-title">Personal de la sede</h3><p id="selected-location-subtitle">Selecciona una sede del listado o del mapa.</p></div></div><div id="location-team" class="location-team-list"><p class="empty-state">No hay una sede seleccionada.</p></div></div>
             </div>
-            <div class="card admin-card location-list-card"><div class="card-heading-row"><div><h3>Sedes registradas</h3><p>Dirección, tipo y equipo asignado.</p></div><div class="location-filters"><button class="filter-chip active" type="button" data-location-filter="all">Todas</button><button class="filter-chip" type="button" data-location-filter="health_center">Centros de salud</button><button class="filter-chip" type="button" data-location-filter="pharmacy">Farmacias</button></div></div><div id="locations-list" class="locations-list"><p class="empty-state">Cargando sedes…</p></div></div>
+            <div class="card admin-card location-list-card"><div class="card-heading-row"><div><h3>Sedes registradas</h3><p>Dirección, tipo y equipo asignado.</p></div><div class="location-filters"><button class="filter-chip active" type="button" data-location-filter="all">Todas</button><button class="filter-chip" type="button" data-location-filter="health_center">Centros y hospitales</button><button class="filter-chip" type="button" data-location-filter="pharmacy">Farmacias</button></div></div><div id="locations-list" class="locations-list"><p class="empty-state">Cargando sedes…</p></div></div>
             <div class="card location-editor" id="location-editor-card" hidden>
                 <div class="editor-heading"><div><p class="eyebrow" id="location-form-eyebrow">NUEVA SEDE</p><h2 id="location-form-title">Añadir centro o farmacia</h2></div><button class="icon-button" type="button" id="cancel-location-button" aria-label="Cerrar formulario">✕</button></div>
                 <form id="location-form"><input type="hidden" id="location-id">
                     <div class="admin-form-grid">
                         <div class="form-group"><label for="location-name">Nombre de la sede</label><input id="location-name" required maxlength="120" placeholder="Centro de Salud Central"></div>
-                        <div class="form-group"><label for="location-type">Tipo de sede</label><select id="location-type"><option value="health_center">Centro de salud</option><option value="pharmacy">Farmacia</option></select></div>
+                        <div class="form-group"><label for="location-type">Tipo de sede</label><select id="location-type"><option value="health_center">Centro de salud</option><option value="hospital">Hospital</option><option value="pharmacy">Farmacia</option></select></div>
                         <div class="form-group form-grid-wide"><label for="location-address">Dirección</label><input id="location-address" required maxlength="220" placeholder="Calle, número, zona y ciudad"></div>
                         <div class="form-group"><label for="location-lat">Latitud</label><input id="location-lat" type="number" step="any" required placeholder="-17.9647"></div>
                         <div class="form-group"><label for="location-lng">Longitud</label><input id="location-lng" type="number" step="any" required placeholder="-67.1060"></div>

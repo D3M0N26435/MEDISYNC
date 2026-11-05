@@ -1,15 +1,17 @@
-"""Bot independiente de Telegram para MediSync."""
-
-import asyncio
-import logging
-import os
-import time
 from multiprocessing import Process
+import time
+import asyncio
+import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-from google import genai
-import requests
+try:
+    from dotenv import load_dotenv
+except ModuleNotFoundError as error:
+    raise SystemExit(
+        "Faltan las dependencias del bot. Instálalas con: "
+        "python -m pip install -r requirements-bot.txt"
+    ) from error
+
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -18,82 +20,71 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+from google import genai
+import requests
 
 
 BASE_DIR = Path(__file__).resolve().parent
-KNOWLEDGE_FILE = BASE_DIR / "chat" / "informacion.txt"
-MODEL = "gemini-3.5-flash-lite"
-MAX_QUESTION_LENGTH = 1000
-MAX_REPLY_LENGTH = 2000
-GEMINI_SEMAPHORE = asyncio.Semaphore(3)
-
-logging.basicConfig(
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    level=logging.INFO,
-)
-logger = logging.getLogger(__name__)
-
 load_dotenv(BASE_DIR / ".env")
 
+apiGoogle = os.getenv("apiGoogle") or os.getenv("GEMINI_API_KEY")
+if not apiGoogle:
+    raise SystemExit("Falta apiGoogle en el archivo .env.")
 
-def cargar_informacion():
-    """Carga la base de conocimiento del bot."""
+# Paso 1. Configurar Gemini
+cliente = genai.Client(api_key=apiGoogle)
+modelo = "gemini-3.5-flash-lite"
+optimizacionGemini = asyncio.Semaphore(3)
+
+
+# Paso 2. Cargar la información de conocimiento
+def cargarInformacion():
     try:
-        return KNOWLEDGE_FILE.read_text(encoding="utf-8")
-    except OSError:
-        logger.exception("No se pudo leer %s", KNOWLEDGE_FILE)
+        with (BASE_DIR / "chat" / "informacion.txt").open(
+            "r", encoding="utf-8"
+        ) as archivo:
+            return archivo.read()
+    except FileNotFoundError:
         return ""
 
 
-CONTEXTO = cargar_informacion()
+contexto = cargarInformacion()  # Contexto cargado una sola vez
 
 
-def obtener_cliente_gemini():
-    api_key = os.getenv("apiGoogle") or os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise SystemExit(
-            "Falta apiGoogle en .env (también se acepta GEMINI_API_KEY)."
-        )
-    return genai.Client(api_key=api_key)
+def reenviarRespuestaSoporte(update: Update):
+    """Reenvía al chat web las respuestas del grupo de soporte."""
+    mensaje = update.effective_message
+    chatTelegram = update.effective_chat
+    chatSoporte = os.getenv("chatIdTelegram") or os.getenv("TELEGRAM_CHAT_ID", "")
 
-
-cliente = obtener_cliente_gemini()
-
-
-def reenviar_respuesta_de_soporte(update: Update):
-    """Envía al portal una respuesta de Telegram al mensaje reenviado."""
-    message = update.effective_message
-    telegram_chat = update.effective_chat
-    support_chat_id = os.getenv("chatIdTelegram") or os.getenv("TELEGRAM_CHAT_ID", "")
-
-    if not message or not telegram_chat or str(telegram_chat.id) != str(support_chat_id):
+    if not mensaje or not chatTelegram or str(chatTelegram.id) != str(chatSoporte):
         return False
 
-    # En el chat de soporte, solo se reenvían respuestas hechas con la opción
-    # "Responder" sobre un mensaje originado desde el portal.
-    if not message.reply_to_message or not message.text:
+    # En soporte, el agente responde usando Telegram > Responder.
+    if not mensaje.reply_to_message or not mensaje.text:
         return True
 
-    bridge_secret = os.getenv("CHAT_BRIDGE_SECRET", "").strip()
-    if not bridge_secret:
-        logger.error("Falta CHAT_BRIDGE_SECRET; no se puede reenviar la respuesta web.")
+    secreto = os.getenv("CHAT_BRIDGE_SECRET", "").strip()
+    if not secreto:
+        print("Falta CHAT_BRIDGE_SECRET; no se pudo reenviar la respuesta.")
         return True
 
-    app_base_url = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000").rstrip("/")
+    urlApp = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000").rstrip("/")
     try:
-        response = requests.post(
-            f"{app_base_url}/internal/telegram-reply",
-            headers={"X-Chat-Bridge-Secret": bridge_secret},
+        respuesta = requests.post(
+            f"{urlApp}/internal/telegram-reply",
+            headers={"X-Chat-Bridge-Secret": secreto},
             json={
-                "chat_id": telegram_chat.id,
-                "reply_to_message_id": message.reply_to_message.message_id,
-                "texto": message.text.strip(),
+                "chat_id": chatTelegram.id,
+                "reply_to_message_id": mensaje.reply_to_message.message_id,
+                "texto": mensaje.text.strip(),
             },
             timeout=10,
         )
-        response.raise_for_status()
-    except requests.RequestException:
-        logger.error("No se pudo reenviar la respuesta de Telegram al portal.")
+        respuesta.raise_for_status()
+    except requests.RequestException as error:
+        print("Error al reenviar la respuesta de Telegram al portal:", error)
+
     return True
 
 
@@ -101,85 +92,80 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
 
-    if reenviar_respuesta_de_soporte(update):
+    # El grupo de soporte responde a mensajes web; no los procesa Gemini.
+    if reenviarRespuestaSoporte(update):
         return
 
-    pregunta = update.message.text.strip()[:MAX_QUESTION_LENGTH]
-    if not CONTEXTO.strip():
-        await update.message.reply_text(
-            "No pude cargar la información del bot. Inténtalo más tarde."
-        )
+    pregunta = update.message.text
+    if not contexto.strip():
+        await update.message.reply_text("Error al activar la base de conocimiento...")
         return
 
-    indicacion = f"""Debes responder cordialmente las consultas de los usuarios.
-Usa como fuente principal la siguiente información:
-<informacion>
-{CONTEXTO}
-</informacion>
-
-Reglas:
-1. Basa la respuesta en el material proporcionado. Si falta información, dilo con claridad.
-2. Responde de forma breve y natural, como asistente de atención al cliente.
-3. No solicites ni repitas datos personales o médicos sensibles.
-4. No diagnostiques, no prescribas ni recomiendes dosis o cambios de medicamentos.
-5. Usa texto plano y agrega como máximo uno o dos emojis.
-
-Pregunta del usuario: {pregunta}
-"""
-
+    pregunta = pregunta[:1000]
     try:
-        async with GEMINI_SEMAPHORE:
+        indicacion = f"""
+            Debes responder de forma cordial las consultas de los usuarios
+            Solo debes utilizar como fuente principal el siguiente archivo:
+            {contexto}
+
+            Reglas:
+            1. Responde solo basandote en el material proporcianado
+            2. Si no tienes informacion suficiente puedes buscarlo en tu base de datos
+            pero sin salir del tema especifico para tu busqueda
+            3. Usa mensajes cortos, respondiendo los mas humano posible como un asistente de atencion al cliente
+            4. recepciona y solicita datos para registro de los interesados puedes ser persuasvio
+            5. No utilizar ** para el uso de negrita, usar un texto plano
+            6. Agrega empojis en tus respuestas. solo uno o dos por mensaje
+
+            Pregunta del usuario: {pregunta}
+        """
+
+        async with optimizacionGemini:
             respuesta = await asyncio.to_thread(
                 cliente.models.generate_content,
-                model=MODEL,
+                model=modelo,
                 contents=indicacion,
             )
 
-        texto = (respuesta.text or "No pude preparar una respuesta.").strip()
-        for inicio in range(0, len(texto), MAX_REPLY_LENGTH):
-            await update.message.reply_text(texto[inicio : inicio + MAX_REPLY_LENGTH])
-    except Exception:
-        logger.exception("Error al generar una respuesta de Gemini.")
-        await update.message.reply_text(
-            "No pude responder ahora. Inténtalo de nuevo en un momento."
-        )
+        texto = respuesta.text or "Error al procesar"
+        for inicio in range(0, len(texto), 2000):
+            await update.message.reply_text(texto[inicio : inicio + 2000])
+    except Exception as error:
+        print("Error al conectar", error)
+        await update.message.reply_text("No pude responder ahora. Inténtalo de nuevo.")
 
 
-async def enviar_archivo(update: Update, nombre_archivo: str, tipo: str):
-    ruta = BASE_DIR / nombre_archivo
+async def imagenEnviar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    ruta = BASE_DIR / "telegram.jpg"
     if not ruta.is_file():
-        await update.message.reply_text(f"El archivo {nombre_archivo} no está disponible.")
+        await update.message.reply_text("No se encontró telegram.jpg.")
         return
-
-    try:
-        with ruta.open("rb") as archivo:
-            if tipo == "foto":
-                await update.message.reply_photo(photo=archivo)
-            elif tipo == "documento":
-                await update.message.reply_document(document=archivo)
-            else:
-                await update.message.reply_audio(audio=archivo)
-    except Exception:
-        logger.exception("No se pudo enviar el archivo %s.", nombre_archivo)
-        await update.message.reply_text("No pude enviar el archivo. Inténtalo más tarde.")
+    with ruta.open("rb") as imagen:
+        await update.message.reply_photo(photo=imagen)
 
 
-async def imagen_enviar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await enviar_archivo(update, "telegram.jpg", "foto")
+async def pdfEnviar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    ruta = BASE_DIR / "practica.pdf"
+    if not ruta.is_file():
+        await update.message.reply_text("No se encontró practica.pdf.")
+        return
+    with ruta.open("rb") as pdf:
+        await update.message.reply_document(document=pdf)
 
 
-async def pdf_enviar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await enviar_archivo(update, "practica.pdf", "documento")
-
-
-async def audio_enviar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await enviar_archivo(update, "musica.mp3", "audio")
+async def audioEnviar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    ruta = BASE_DIR / "musica.mp3"
+    if not ruta.is_file():
+        await update.message.reply_text("No se encontró musica.mp3.")
+        return
+    with ruta.open("rb") as musica:
+        await update.message.reply_audio(audio=musica)
 
 
 def simulacion():
     print("Proceso iniciado...")
-    for numero in range(1, 11):
-        print(f"Proceso {numero} iniciado")
+    for i in range(1, 11):
+        print(f"Proceso {i} iniciado")
         time.sleep(1)
     print("Proceso finalizado")
 
@@ -199,9 +185,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Comandos disponibles:\n"
         "/procesar - Iniciar un proceso\n"
         "/productos - Ver productos\n"
-        "/imagen - Recibir una imagen\n"
-        "/practica - Recibir un PDF\n"
-        "/musica - Recibir un audio"
+        "/imagen - Enviar una imagen\n"
+        "/practica - Enviar un PDF\n"
+        "/musica - Enviar un audio"
     )
 
 
@@ -218,23 +204,20 @@ async def productos(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     token = os.getenv("tokenTelegram") or os.getenv("TELEGRAM_BOT_TOKEN")
     if not token:
-        raise SystemExit(
-            "Falta tokenTelegram en .env (también se acepta TELEGRAM_BOT_TOKEN)."
-        )
+        raise SystemExit("Falta tokenTelegram en el archivo .env.")
 
-    application = ApplicationBuilder().token(token).build()
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("procesar", procesar))
-    application.add_handler(CommandHandler("productos", productos))
-    application.add_handler(CommandHandler("imagen", imagen_enviar))
-    application.add_handler(CommandHandler("practica", pdf_enviar))
-    application.add_handler(CommandHandler("musica", audio_enviar))
-    application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, responder)
-    )
+    app = ApplicationBuilder().token(token).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("procesar", procesar))
+    app.add_handler(CommandHandler("productos", productos))
+    app.add_handler(CommandHandler("imagen", imagenEnviar))
+    app.add_handler(CommandHandler("practica", pdfEnviar))
+    app.add_handler(CommandHandler("musica", audioEnviar))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
 
-    logger.info("Bot de Telegram iniciado; esperando mensajes.")
-    application.run_polling()
+    print("Bot iniciado...")
+    print("Esperando comandos...")
+    app.run_polling()
 
 
 if __name__ == "__main__":

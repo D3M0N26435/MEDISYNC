@@ -43,14 +43,14 @@ APP_BASE_URL=http://127.0.0.1:5000
 Para el bot de atención Gemini también configura `apiGoogle` (o `GEMINI_API_KEY`). El bot usa la información de `chat/informacion.txt`. No incluyas datos de identidad ni información médica sensible en el chat.
 
 ```sh
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python app.py
 ```
 
 En otra terminal:
 
 ```sh
-pip install -r requirements-bot.txt
+python -m pip install -r requirements-bot.txt
 python bot.py
 ```
 

@@ -7,6 +7,7 @@ const staffCollection = collection(db, 'users');
 const locationsCollection = collection(db, 'locations');
 const staffById = new Map();
 const locationsById = new Map();
+const doctorDirectoryById = new Map();
 let activeLocationFilter = 'all';
 let selectedLocationId = '';
 let adminMap;
@@ -28,6 +29,12 @@ function escapeHtml(value = '') {
 
 function roleName(role) {
     return ({ admin: 'Administrador', doctor: 'Médico', pharmacist: 'Farmacéutico' })[role] || role || 'Sin rol';
+}
+
+function locationTypeName(type) {
+    if (type === 'pharmacy') return 'Farmacia';
+    if (type === 'hospital') return 'Hospital';
+    return 'Centro de salud';
 }
 
 function dateLabel(value) {
@@ -77,7 +84,7 @@ function renderStaff() {
         return `<tr>
             <td><strong>${escapeHtml(user.name || 'Sin nombre')}</strong><small>${escapeHtml(user.email || uid)}</small></td>
             <td><span class="role-pill">${escapeHtml(roleName(user.role))}</span></td>
-            <td>${location ? `<span class="location-type-label">${location.type === 'pharmacy' ? 'Farmacia' : 'Centro de salud'}</span><strong>${escapeHtml(location.name)}</strong>` : '<span class="muted">Sin asignar</span>'}</td>
+            <td>${location ? `<span class="location-type-label">${escapeHtml(locationTypeName(location.type))}</span><strong>${escapeHtml(location.name)}</strong>` : '<span class="muted">Sin asignar</span>'}</td>
             <td>${staffAvailability(user)}</td>
             <td><span class="status-pill ${disabled ? 'disabled' : 'enabled'}">${disabled ? 'Inactivo' : 'Activo'}</span></td>
             <td><div class="row-actions"><button type="button" class="table-action" data-staff-action="edit" data-id="${escapeHtml(uid)}">Editar</button>${disabled ? `<button type="button" class="table-action restore" data-staff-action="restore" data-id="${escapeHtml(uid)}">Reactivar</button>` : `<button type="button" class="table-action danger" data-staff-action="deactivate" data-id="${escapeHtml(uid)}">Dar de baja</button>`}<button type="button" class="table-action" data-staff-action="reset" data-id="${escapeHtml(uid)}">Restablecer acceso</button></div></td>
@@ -99,9 +106,76 @@ function readVacationPeriods() {
     })).filter((period) => period.start || period.end);
 }
 
+function addDoctorScheduleRow(schedule = {}) {
+    const row = document.createElement('div');
+    row.className = 'doctor-schedule-row';
+    row.innerHTML = `<label>Día<select data-schedule-weekday><option value="">Selecciona</option><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="0">Domingo</option></select></label><label>Desde<input type="time" data-schedule-start></label><label>Hasta<input type="time" data-schedule-end></label><label>Duración<select data-schedule-slot><option value="15">15 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option></select></label><button class="icon-button remove-doctor-schedule" type="button" aria-label="Quitar horario">−</button>`;
+    if (schedule.weekday !== undefined) row.querySelector('[data-schedule-weekday]').value = String(schedule.weekday);
+    row.querySelector('[data-schedule-start]').value = schedule.start || '';
+    row.querySelector('[data-schedule-end]').value = schedule.end || '';
+    row.querySelector('[data-schedule-slot]').value = String(schedule.slotMinutes || 30);
+    $('doctor-schedule-rows').appendChild(row);
+}
+
+function readDoctorSchedule() {
+    return [...document.querySelectorAll('.doctor-schedule-row')].map((row) => {
+        const weekday = row.querySelector('[data-schedule-weekday]').value;
+        const start = row.querySelector('[data-schedule-start]').value;
+        const end = row.querySelector('[data-schedule-end]').value;
+        const slotMinutes = Number(row.querySelector('[data-schedule-slot]').value);
+        const toMinutes = (value) => {
+            const [hour, minute] = value.split(':').map(Number);
+            return hour * 60 + minute;
+        };
+        const startMinute = start ? toMinutes(start) : 0;
+        const endMinute = end ? toMinutes(end) : 0;
+        const slots = [];
+        if (start && end && slotMinutes > 0) {
+            for (let minute = startMinute; minute + slotMinutes <= endMinute; minute += slotMinutes) {
+                slots.push(`${String(Math.floor(minute / 60)).padStart(2, '0')}${String(minute % 60).padStart(2, '0')}`);
+            }
+        }
+        return {
+            weekday: weekday === '' ? '' : Number(weekday),
+            start,
+            end,
+            startMinute,
+            endMinute,
+            slotMinutes,
+            slots
+        };
+    }).filter((entry) => entry.weekday !== '' || entry.start || entry.end);
+}
+
+function validateDoctorSchedule(schedules) {
+    if (!schedules.length) return 'Añade al menos un horario semanal para el médico.';
+    if (schedules.some((entry) => entry.weekday === '' || !entry.start || !entry.end || entry.start >= entry.end)) {
+        return 'Completa cada día y un rango horario válido.';
+    }
+    if (schedules.some((entry) => !entry.slots.length)) return 'El rango horario debe incluir al menos un turno completo.';
+    const byDay = new Map();
+    schedules.forEach((entry) => {
+        const intervals = byDay.get(entry.weekday) || [];
+        intervals.push(entry);
+        byDay.set(entry.weekday, intervals);
+    });
+    for (const intervals of byDay.values()) {
+        intervals.sort((a, b) => a.start.localeCompare(b.start));
+        for (let index = 1; index < intervals.length; index += 1) {
+            if (intervals[index].start < intervals[index - 1].end) return 'Los horarios del mismo día no pueden superponerse.';
+        }
+    }
+    return '';
+}
+
+function syncDoctorSettings() {
+    $('doctor-settings').hidden = $('staff-role').value !== 'doctor';
+}
+
 function openStaffForm(uid = '') {
     $('staff-form').reset();
     $('vacation-periods').replaceChildren();
+    $('doctor-schedule-rows').replaceChildren();
     $('staff-uid').value = uid;
     const editing = Boolean(uid);
     const user = editing ? staffById.get(uid) : null;
@@ -115,6 +189,10 @@ function openStaffForm(uid = '') {
     $('staff-role').value = user?.role || 'doctor';
     $('staff-role').disabled = editing && uid === auth.currentUser?.uid;
     $('staff-location').value = user?.locationId || '';
+    const doctorDirectory = doctorDirectoryById.get(uid) || user || {};
+    $('doctor-specialties').value = (doctorDirectory.specialties || []).join(', ');
+    (doctorDirectory.weeklyAvailability || []).forEach(addDoctorScheduleRow);
+    syncDoctorSettings();
     $('staff-password-group').hidden = editing;
     $('staff-password').required = !editing;
     (user?.vacationPeriods || []).forEach(addVacationRow);
@@ -129,23 +207,65 @@ async function saveStaff(event) {
     const email = $('staff-email').value.trim().toLowerCase();
     const password = $('staff-password').value;
     const vacationPeriods = readVacationPeriods();
+    const role = uid === auth.currentUser?.uid ? staffById.get(uid).role : $('staff-role').value;
+    const specialties = $('doctor-specialties').value.split(',').map((value) => value.trim()).filter(Boolean);
+    const weeklyAvailability = readDoctorSchedule();
     if (vacationPeriods.some((period) => !period.start || !period.end || period.start > period.end)) {
         showFeedback('Revisa los periodos: cada fecha de inicio debe tener una fecha final igual o posterior.', 'error');
         return;
     }
+    if (role === 'doctor') {
+        const selectedLocation = locationsById.get($('staff-location').value);
+        if (!selectedLocation || !['health_center', 'hospital'].includes(selectedLocation.type)) {
+            showFeedback('Asigna al médico a un centro de salud o hospital.', 'error');
+            return;
+        }
+        if (!specialties.length) {
+            showFeedback('Añade al menos una especialidad para el médico.', 'error');
+            return;
+        }
+        const scheduleError = validateDoctorSchedule(weeklyAvailability);
+        if (scheduleError) {
+            showFeedback(scheduleError, 'error');
+            return;
+        }
+    } else if (role === 'pharmacist') {
+        const selectedLocation = locationsById.get($('staff-location').value);
+        if (!selectedLocation || selectedLocation.type !== 'pharmacy') {
+            showFeedback('Asigna al farmacéutico a una farmacia.', 'error');
+            return;
+        }
+    }
     const profile = {
         name: $('staff-name').value.trim(),
         email,
-        role: uid === auth.currentUser?.uid ? staffById.get(uid).role : $('staff-role').value,
+        role,
         locationId: $('staff-location').value || '',
         vacationPeriods,
         updatedAt: serverTimestamp()
     };
+    if (role === 'doctor') {
+        profile.specialties = specialties;
+        profile.weeklyAvailability = weeklyAvailability;
+    }
     const saveButton = $('save-staff-button');
     saveButton.disabled = true;
     try {
         if (uid) {
             await updateDoc(doc(db, 'users', uid), profile);
+            if (role === 'doctor') {
+                await setDoc(doc(db, 'doctorDirectory', uid), {
+                    name: profile.name,
+                    locationId: profile.locationId,
+                    specialties,
+                    weeklyAvailability,
+                    vacationPeriods,
+                    active: staffById.get(uid)?.active !== false,
+                    updatedAt: serverTimestamp()
+                });
+            } else {
+                await deleteDoc(doc(db, 'doctorDirectory', uid));
+            }
             showFeedback('Perfil actualizado.');
         } else {
             if (password.length < 6) throw new Error('La contraseña inicial debe tener al menos 6 caracteres.');
@@ -155,6 +275,17 @@ async function saveStaff(event) {
                 const credential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
                 try {
                     await setDoc(doc(db, 'users', credential.user.uid), { ...profile, active: true, createdAt: serverTimestamp() });
+                    if (role === 'doctor') {
+                        await setDoc(doc(db, 'doctorDirectory', credential.user.uid), {
+                            name: profile.name,
+                            locationId: profile.locationId,
+                            specialties,
+                            weeklyAvailability,
+                            vacationPeriods,
+                            active: true,
+                            createdAt: serverTimestamp()
+                        });
+                    }
                 } catch (error) {
                     await deleteUser(credential.user).catch(() => {});
                     throw error;
@@ -209,6 +340,9 @@ async function handleStaffAction(event) {
             const actionText = active ? 'reactivar' : 'dar de baja';
             if (!window.confirm(`¿Quieres ${actionText} a ${user.name || user.email}?`)) return;
             await updateDoc(doc(db, 'users', id), { active, updatedAt: serverTimestamp() });
+            if (user.role === 'doctor') {
+                await updateDoc(doc(db, 'doctorDirectory', id), { active, updatedAt: serverTimestamp() });
+            }
             showFeedback(active ? 'Perfil reactivado.' : 'Personal dado de baja. El acceso quedará bloqueado al siguiente inicio de sesión.');
             await loadData();
         }
@@ -221,7 +355,7 @@ async function handleStaffAction(event) {
 function syncLocationSelect() {
     const select = $('staff-location');
     const selected = select.value;
-    select.innerHTML = '<option value="">Sin asignar</option>' + [...locationsById.entries()].map(([id, location]) => `<option value="${escapeHtml(id)}">${escapeHtml(location.name)} · ${location.type === 'pharmacy' ? 'Farmacia' : 'Centro de salud'}</option>`).join('');
+    select.innerHTML = '<option value="">Sin asignar</option>' + [...locationsById.entries()].map(([id, location]) => `<option value="${escapeHtml(id)}">${escapeHtml(location.name)} · ${escapeHtml(locationTypeName(location.type))}</option>`).join('');
     select.value = locationsById.has(selected) ? selected : '';
 }
 
@@ -243,7 +377,7 @@ function selectLocation(id, pan = true) {
     if (!location) return;
     selectedLocationId = id;
     $('selected-location-title').textContent = location.name;
-    $('selected-location-subtitle').textContent = `${location.type === 'pharmacy' ? 'Farmacia' : 'Centro de salud'} · ${location.address}`;
+    $('selected-location-subtitle').textContent = `${locationTypeName(location.type)} · ${location.address}`;
     if (adminMap && pan) adminMap.setView([Number(location.lat), Number(location.lng)], 15);
     renderLocationTeam();
     renderLocations();
@@ -264,7 +398,7 @@ function renderLocationTeam() {
 }
 
 function renderLocations() {
-    const locations = [...locationsById.entries()].filter(([, location]) => activeLocationFilter === 'all' || location.type === activeLocationFilter);
+    const locations = [...locationsById.entries()].filter(([, location]) => activeLocationFilter === 'all' || (activeLocationFilter === 'health_center' ? ['health_center', 'hospital'].includes(location.type) : location.type === activeLocationFilter));
     const container = $('locations-list');
     if (!locations.length) {
         container.innerHTML = '<p class="empty-state">No hay sedes registradas en esta categoría. Añade una nueva sede.</p>';
@@ -284,7 +418,7 @@ function renderLocations() {
             const lat = Number(location.lat), lng = Number(location.lng);
             if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
             const marker = L.marker([lat, lng]).addTo(markersLayer);
-            marker.bindPopup(`<strong>${escapeHtml(location.name)}</strong><br>${escapeHtml(location.address)}<br>${location.type === 'pharmacy' ? 'Farmacia' : 'Centro de salud'}`);
+            marker.bindPopup(`<strong>${escapeHtml(location.name)}</strong><br>${escapeHtml(location.address)}<br>${escapeHtml(locationTypeName(location.type))}`);
             marker.on('click', () => selectLocation(id, false));
         });
     }
@@ -316,7 +450,17 @@ async function saveLocation(event) {
         showFeedback('Las coordenadas no son válidas. Selecciona el punto en el mapa.', 'error');
         return;
     }
-    const location = { name: $('location-name').value.trim(), type: $('location-type').value, address: $('location-address').value.trim(), lat, lng, updatedAt: serverTimestamp() };
+    const type = $('location-type').value;
+    const assignedStaff = [...staffById.values()].filter((user) => user.locationId === id);
+    if (assignedStaff.some((user) => user.role === 'doctor') && !['health_center', 'hospital'].includes(type)) {
+        showFeedback('Reasigna a los médicos antes de cambiar esta sede a farmacia.', 'error');
+        return;
+    }
+    if (assignedStaff.some((user) => user.role === 'pharmacist') && type !== 'pharmacy') {
+        showFeedback('Reasigna a los farmacéuticos antes de cambiar el tipo de sede.', 'error');
+        return;
+    }
+    const location = { name: $('location-name').value.trim(), type, address: $('location-address').value.trim(), lat, lng, updatedAt: serverTimestamp() };
     try {
         if (id) {
             await updateDoc(doc(db, 'locations', id), location);
@@ -364,11 +508,17 @@ async function handleLocationClick(event) {
 }
 
 async function loadData() {
-    const [usersSnapshot, locationsSnapshot] = await Promise.all([getDocs(staffCollection), getDocs(locationsCollection)]);
+    const [usersSnapshot, locationsSnapshot, doctorDirectorySnapshot] = await Promise.all([
+        getDocs(staffCollection),
+        getDocs(locationsCollection),
+        getDocs(collection(db, 'doctorDirectory'))
+    ]);
     staffById.clear();
     locationsById.clear();
+    doctorDirectoryById.clear();
     usersSnapshot.forEach((item) => staffById.set(item.id, item.data()));
     locationsSnapshot.forEach((item) => locationsById.set(item.id, item.data()));
+    doctorDirectorySnapshot.forEach((item) => doctorDirectoryById.set(item.id, item.data()));
     syncLocationSelect();
     renderStaff();
     renderLocations();
@@ -398,6 +548,9 @@ function bindEvents() {
     initMap();
     $('new-staff-button').addEventListener('click', () => openStaffForm());
     $('staff-form').addEventListener('submit', saveStaff);
+    $('staff-role').addEventListener('change', syncDoctorSettings);
+    $('add-doctor-schedule').addEventListener('click', () => addDoctorScheduleRow());
+    $('doctor-schedule-rows').addEventListener('click', (event) => event.target.closest('.remove-doctor-schedule')?.closest('.doctor-schedule-row')?.remove());
     $('staff-table-body').addEventListener('click', handleStaffAction);
     $('staff-search').addEventListener('input', renderStaff);
     $('staff-role-filter').addEventListener('change', renderStaff);

@@ -1,0 +1,72 @@
+.patient-tabs { gap: 6px; }
+
+.patient-panel { display: none; animation: fadeIn 220ms ease-out; }
+.patient-panel.active { display: block; }
+.patient-section-heading { margin: 0 0 20px; }
+.patient-section-heading h2 { margin-bottom: 6px; }
+.patient-section-heading p:not(.eyebrow) { color: var(--text-muted); line-height: 1.5; }
+.eyebrow { margin-bottom: 5px; color: var(--primary); font-size: .72rem; font-weight: 700; letter-spacing: .1em; }
+
+.patient-booking-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, .8fr) minmax(360px, 1.2fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.patient-form-card, .patient-map-card, .patient-list-card, .medibot-card { padding: clamp(18px, 3vw, 28px); }
+.patient-form-card .form-group { margin-bottom: 16px; }
+.patient-form-card label, .patient-map-card > label { display: block; margin-bottom: 7px; color: var(--heading); font-size: .88rem; font-weight: 600; }
+.patient-form-card select, .patient-form-card input, .patient-map-card select {
+    width: 100%; min-height: 44px; padding: 10px 12px;
+    border: 1px solid var(--border-strong); border-radius: var(--radius);
+    color: var(--text); background: var(--surface);
+}
+.patient-form-card select:disabled, .patient-form-card input:disabled { opacity: .58; cursor: not-allowed; }
+.patient-map-card select { margin: 0 0 12px; }
+.patient-map { min-height: 300px; border: 1px solid var(--border); border-radius: var(--radius-lg); z-index: 1; }
+.patient-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.patient-card-heading h3 { color: var(--heading); font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; font-size: 1.1rem; }
+.patient-card-heading p { margin-top: 4px; color: var(--text-muted); font-size: .86rem; line-height: 1.4; }
+.patient-list-card { margin-top: 20px; }
+.patient-record-list { display: grid; gap: 12px; }
+.patient-record { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.patient-record-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 8px; }
+.patient-record-heading h4 { color: var(--heading); font-size: 1rem; }
+.patient-record p, .patient-record li { color: var(--text-muted); font-size: .9rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.patient-record ul { margin: 8px 0 0 18px; }
+.patient-feedback { min-height: 1.3em; margin-top: 12px; color: var(--text-muted); font-size: .88rem; }
+.patient-feedback.error { color: #b42318; }
+.record-status { flex-shrink: 0; padding: 4px 9px; border-radius: 999px; color: var(--primary); background: var(--primary-light); font-size: .75rem; font-weight: 700; text-transform: capitalize; }
+.record-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.record-actions .btn-action { min-height: 38px; padding: 8px 12px; font-size: .82rem; }
+.empty-state { padding: 16px; color: var(--text-muted); line-height: 1.5; }
+
+.medibot-card { max-width: 900px; }
+.chat-privacy { margin-bottom: 14px; color: var(--text-muted); font-size: .88rem; line-height: 1.5; }
+.medibot-messages { display: flex; flex-direction: column; gap: 10px; min-height: 280px; max-height: 55vh; overflow-y: auto; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); }
+.medibot-message { max-width: min(82%, 650px); padding: 10px 14px; border-radius: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.medibot-question { align-self: flex-end; color: #fff; background: var(--primary); }
+.medibot-reply { align-self: flex-start; color: var(--text); background: var(--surface); border: 1px solid var(--border); }
+.chat-form { display: flex; gap: 10px; margin-top: 14px; }
+.chat-form textarea { flex: 1; min-width: 0; resize: vertical; padding: 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); color: var(--text); background: var(--surface); font: inherit; }
+.chat-form button:disabled { opacity: .6; cursor: wait; }
+.chat-status { min-height: 1.2em; margin-top: 8px; color: var(--text-muted); font-size: .85rem; }
+.support-link { display: inline-block; margin-top: 10px; color: var(--primary); font-weight: 600; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+html[data-theme="dark"] .patient-record { background: #102a2d; }
+html[data-theme="dark"] .medibot-reply { color: #e5f0f1; background: #244449; border-color: #31565b; }
+html[data-theme="dark"] .medibot-messages { background: #102a2d; border-color: #31565b; }
+html[data-theme="dark"] .chat-form textarea { color: #e5f0f1; background: #102a2d; border-color: #31565b; }
+
+@media (max-width: 900px) {
+    .patient-booking-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .patient-record-heading { flex-direction: column; }
+    .chat-form { flex-direction: column; }
+    .patient-map { min-height: 250px; }
+    .medibot-message { max-width: 94%; }
+}

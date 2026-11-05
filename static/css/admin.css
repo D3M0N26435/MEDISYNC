@@ -53,6 +53,15 @@
 .vacation-row label { display: grid; gap: 6px; color: var(--text-muted); font-size: .76rem; font-weight: 600; }
 .vacation-row input { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
 .remove-vacation { color: #b23b32; font-size: 1.15rem; }
+.doctor-settings { margin: 14px 0 20px; padding: 16px; border: 1px solid var(--border); border-radius: 11px; }
+.doctor-settings legend { padding: 0 7px; color: var(--heading); font-size: .84rem; font-weight: 700; }
+.doctor-schedule-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 14px 0 10px; }
+.doctor-schedule-heading > div { display: grid; gap: 4px; }
+.doctor-schedule-heading small { color: var(--text-muted); font-size: .75rem; }
+.doctor-schedule-row { display: grid; grid-template-columns: 1.1fr 1fr 1fr .9fr auto; align-items: end; gap: 10px; margin-bottom: 10px; }
+.doctor-schedule-row label { display: grid; gap: 6px; color: var(--text-muted); font-size: .76rem; font-weight: 600; }
+.doctor-schedule-row select, .doctor-schedule-row input { width: 100%; min-height: 38px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+.remove-doctor-schedule { color: #b23b32; font-size: 1.15rem; }
 .editor-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .location-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(275px, .9fr); align-items: stretch; gap: 18px; }
 .card-heading-row { margin-bottom: 16px; }
@@ -109,6 +118,9 @@ html[data-theme="dark"] .leaflet-popup-content-wrapper, html[data-theme="dark"] 
     .admin-form-grid { grid-template-columns: 1fr; }
     .form-grid-wide { grid-column: auto; }
     .vacation-row { grid-template-columns: 1fr 1fr auto; gap: 6px; }
+    .doctor-schedule-heading { align-items: flex-start; flex-direction: column; }
+    .doctor-schedule-row { grid-template-columns: 1fr 1fr; }
+    .doctor-schedule-row .remove-doctor-schedule { justify-self: start; }
     .card-heading-row { flex-direction: column; }
     .location-filters { align-self: stretch; }
     .filter-chip { flex: 1; padding-inline: 7px; }

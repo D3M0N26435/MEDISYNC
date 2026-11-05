@@ -9,12 +9,59 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(uid);
     }
 
-    function isAdmin() {
+    function profile(uid) {
+      return get(profilePath(uid)).data;
+    }
+
+    function activeAccount() {
       return signedIn()
         && exists(profilePath(request.auth.uid))
-        && get(profilePath(request.auth.uid)).data.role == 'admin'
-        && (!('active' in get(profilePath(request.auth.uid)).data)
-          || get(profilePath(request.auth.uid)).data.active == true);
+        && (!('active' in profile(request.auth.uid)) || profile(request.auth.uid).active == true);
+    }
+
+    function isAdmin() {
+      return activeAccount() && profile(request.auth.uid).role == 'admin';
+    }
+
+    function isPatient() {
+      return activeAccount() && profile(request.auth.uid).role == 'patient';
+    }
+
+    function isDoctor() {
+      return activeAccount() && profile(request.auth.uid).role == 'doctor';
+    }
+
+    function isPharmacist() {
+      return activeAccount() && profile(request.auth.uid).role == 'pharmacist';
+    }
+
+    function doctorDirectoryPath(doctorId) {
+      return /databases/$(database)/documents/doctorDirectory/$(doctorId);
+    }
+
+    function appointmentPath(appointmentId) {
+      return /databases/$(database)/documents/appointments/$(appointmentId);
+    }
+
+    function slotPath(slotId) {
+      return /databases/$(database)/documents/appointmentSlots/$(slotId);
+    }
+
+    function prescriptionPath(prescriptionId) {
+      return /databases/$(database)/documents/prescriptions/$(prescriptionId);
+    }
+
+    function pharmacyOrderPath(prescriptionId, patientId, pharmacyId) {
+      return /databases/$(database)/documents/prescriptionOrders/$(prescriptionId + '_' + patientId + '_' + pharmacyId);
+    }
+
+    function pharmacistHasPrescriptionOrder(prescriptionId, patientId) {
+      let pharmacyId = profile(request.auth.uid).locationId;
+      let orderPath = pharmacyOrderPath(prescriptionId, patientId, pharmacyId);
+      return isPharmacist()
+        && pharmacyId is string
+        && exists(orderPath)
+        && get(orderPath).data.pharmacyId == pharmacyId;
     }
 
     match /users/{userId} {
@@ -24,8 +71,136 @@ service cloud.firestore {
     }
 
     match /locations/{locationId} {
-      allow read: if signedIn();
+      allow get, list: if signedIn();
       allow create, update, delete: if isAdmin();
+    }
+
+    // Contiene solo nombre público, sede, especialidades y horarios del médico.
+    match /doctorDirectory/{doctorId} {
+      allow get, list: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // La reserva pública solo expone si un horario está ocupado, nunca datos del paciente.
+    match /appointmentSlots/{slotId} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if isPatient()
+        && request.resource.data.keys().hasOnly(['doctorId', 'date', 'time', 'status'])
+        && request.resource.data.status == 'booked'
+        && existsAfter(appointmentPath(slotId))
+        && getAfter(appointmentPath(slotId)).data.patientId == request.auth.uid
+        && getAfter(appointmentPath(slotId)).data.slotId == slotId
+        && getAfter(appointmentPath(slotId)).data.doctorId == request.resource.data.doctorId
+        && getAfter(appointmentPath(slotId)).data.date == request.resource.data.date
+        && getAfter(appointmentPath(slotId)).data.time == request.resource.data.time;
+      allow update, delete: if false;
+    }
+
+    match /appointments/{appointmentId} {
+      allow get, list: if isAdmin()
+        || (isPatient() && resource.data.patientId == request.auth.uid)
+        || (isDoctor() && resource.data.doctorId == request.auth.uid);
+
+      allow create: if isPatient()
+        && request.resource.data.keys().hasAll([
+          'slotId', 'patientId', 'patientName', 'doctorId', 'doctorName',
+          'centerId', 'centerName', 'specialty', 'date', 'time', 'timeKey',
+          'weekday', 'scheduleEntry', 'slotMinute', 'startAt', 'status', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'slotId', 'patientId', 'patientName', 'doctorId', 'doctorName',
+          'centerId', 'centerName', 'specialty', 'date', 'time', 'timeKey',
+          'weekday', 'scheduleEntry', 'slotMinute', 'startAt', 'status', 'createdAt'
+        ])
+        && request.resource.data.slotId == appointmentId
+        && appointmentId == request.resource.data.doctorId + '_' + request.resource.data.date + '_' + request.resource.data.timeKey
+        && request.resource.data.patientId == request.auth.uid
+        && request.resource.data.status == 'scheduled'
+        && request.resource.data.startAt is timestamp
+        && request.resource.data.startAt > request.time
+        && exists(doctorDirectoryPath(request.resource.data.doctorId))
+        && get(doctorDirectoryPath(request.resource.data.doctorId)).data.active == true
+        && get(doctorDirectoryPath(request.resource.data.doctorId)).data.locationId == request.resource.data.centerId
+        && get(doctorDirectoryPath(request.resource.data.doctorId)).data.specialties.hasAny([request.resource.data.specialty])
+        && get(doctorDirectoryPath(request.resource.data.doctorId)).data.weeklyAvailability.hasAny([request.resource.data.scheduleEntry])
+        && request.resource.data.scheduleEntry.weekday == request.resource.data.weekday
+        && request.resource.data.scheduleEntry.startMinute <= request.resource.data.slotMinute
+        && request.resource.data.slotMinute + request.resource.data.scheduleEntry.slotMinutes <= request.resource.data.scheduleEntry.endMinute
+        && request.resource.data.scheduleEntry.slots.hasAny([request.resource.data.timeKey])
+        && existsAfter(slotPath(appointmentId))
+        && getAfter(slotPath(appointmentId)).data.status == 'booked';
+
+      allow update: if isDoctor()
+        && resource.data.doctorId == request.auth.uid
+        && resource.data.status == 'scheduled'
+        && request.resource.data.status == 'completed'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    match /medicalRecords/{recordId} {
+      allow get, list: if (isPatient() && resource.data.patientId == request.auth.uid)
+        || (isDoctor() && resource.data.doctorId == request.auth.uid);
+      allow create: if isDoctor()
+        && request.resource.data.keys().hasAll([
+          'appointmentId', 'patientId', 'patientName', 'doctorId', 'doctorName',
+          'centerId', 'centerName', 'date', 'diagnosis', 'notes', 'treatmentPlan', 'createdAt'
+        ])
+        && request.resource.data.doctorId == request.auth.uid
+        && existsAfter(appointmentPath(request.resource.data.appointmentId))
+        && getAfter(appointmentPath(request.resource.data.appointmentId)).data.doctorId == request.auth.uid
+        && getAfter(appointmentPath(request.resource.data.appointmentId)).data.patientId == request.resource.data.patientId
+        && getAfter(appointmentPath(request.resource.data.appointmentId)).data.status == 'completed';
+      allow update, delete: if false;
+    }
+
+    match /prescriptions/{prescriptionId} {
+      allow get: if (isPatient() && resource.data.patientId == request.auth.uid)
+        || (isDoctor() && resource.data.doctorId == request.auth.uid)
+        || pharmacistHasPrescriptionOrder(prescriptionId, resource.data.patientId);
+      allow list: if (isPatient() && resource.data.patientId == request.auth.uid)
+        || (isDoctor() && resource.data.doctorId == request.auth.uid);
+      allow create: if isDoctor()
+        && request.resource.data.keys().hasAll([
+          'appointmentId', 'patientId', 'patientName', 'doctorId', 'doctorName',
+          'centerId', 'centerName', 'specialty', 'items', 'notes', 'status', 'issuedAt', 'expiresAt'
+        ])
+        && request.resource.data.doctorId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && existsAfter(appointmentPath(request.resource.data.appointmentId))
+        && getAfter(appointmentPath(request.resource.data.appointmentId)).data.doctorId == request.auth.uid
+        && getAfter(appointmentPath(request.resource.data.appointmentId)).data.patientId == request.resource.data.patientId
+        && getAfter(appointmentPath(request.resource.data.appointmentId)).data.status == 'completed';
+      allow update, delete: if false;
+    }
+
+    match /prescriptionOrders/{orderId} {
+      allow get, list: if (isPatient() && resource.data.patientId == request.auth.uid)
+        || (isPharmacist() && resource.data.pharmacyId == profile(request.auth.uid).locationId);
+      allow create: if isPatient()
+        && request.resource.data.keys().hasAll(['patientId', 'prescriptionId', 'pharmacyId', 'status', 'createdAt', 'updatedAt'])
+        && request.resource.data.patientId == request.auth.uid
+        && request.resource.data.status == 'requested'
+        && orderId == request.resource.data.prescriptionId + '_' + request.auth.uid + '_' + request.resource.data.pharmacyId
+        && exists(prescriptionPath(request.resource.data.prescriptionId))
+        && get(prescriptionPath(request.resource.data.prescriptionId)).data.patientId == request.auth.uid
+        && get(prescriptionPath(request.resource.data.prescriptionId)).data.status == 'active'
+        && exists(/databases/$(database)/documents/locations/$(request.resource.data.pharmacyId))
+        && get(/databases/$(database)/documents/locations/$(request.resource.data.pharmacyId)).data.type == 'pharmacy'
+        && (!('active' in get(/databases/$(database)/documents/locations/$(request.resource.data.pharmacyId)).data)
+          || get(/databases/$(database)/documents/locations/$(request.resource.data.pharmacyId)).data.active == true);
+      allow update: if isPharmacist()
+        && resource.data.pharmacyId == profile(request.auth.uid).locationId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && (
+          (resource.data.status == 'requested' && request.resource.data.status in ['preparing', 'rejected'])
+          || (resource.data.status == 'preparing' && request.resource.data.status in ['ready', 'rejected'])
+          || (resource.data.status == 'ready' && request.resource.data.status == 'picked_up')
+        );
+      allow delete: if false;
     }
   }
 }

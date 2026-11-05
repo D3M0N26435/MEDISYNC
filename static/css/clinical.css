@@ -1,0 +1,43 @@
+.clinical-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.clinical-heading h2 { color: var(--heading); font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; font-size: 1.3rem; }
+.clinical-heading p:not(.eyebrow) { margin-top: 5px; color: var(--text-muted); line-height: 1.5; }
+.clinical-feedback { min-height: 1.2em; margin: 8px 0 14px; color: var(--text-muted); font-size: .88rem; }
+.clinical-feedback.error { color: #b42318; }
+.clinical-list { display: grid; gap: 12px; }
+.clinical-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-sm); }
+.clinical-card-copy { display: grid; gap: 5px; min-width: 0; }
+.clinical-card-copy h3 { color: var(--heading); font-size: 1rem; }
+.clinical-card-copy p { color: var(--text-muted); font-size: .86rem; line-height: 1.45; overflow-wrap: anywhere; }
+.clinical-editor { margin-top: 22px; padding: clamp(18px, 3vw, 28px); }
+.clinical-editor .clinical-heading { align-items: flex-start; }
+.clinical-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; }
+.clinical-form-grid .form-group { display: grid; gap: 7px; }
+.clinical-form-grid label, .medicine-fieldset label { color: var(--heading); font-size: .86rem; font-weight: 600; }
+.clinical-form-grid input, .clinical-form-grid textarea, .medicine-fieldset input { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); color: var(--text); background: var(--surface); font: inherit; }
+.clinical-form-grid textarea { resize: vertical; }
+.clinical-wide { grid-column: 1 / -1; }
+.medicine-fieldset { margin: 18px 0 20px; padding: 16px; border: 1px solid var(--border); border-radius: 11px; }
+.medicine-fieldset legend { padding: 0 7px; color: var(--heading); font-size: .9rem; font-weight: 700; }
+.doctor-medicine-row { display: grid; grid-template-columns: 1fr 1.3fr auto; align-items: end; gap: 10px; margin-bottom: 10px; }
+.doctor-medicine-row label { display: grid; gap: 6px; }
+.remove-medicine { color: #b23b32; font-size: 1.15rem; }
+.expiry-field { display: grid; max-width: 300px; gap: 6px; margin: 14px 0 0; }
+.expiry-field label { color: var(--heading); font-size: .85rem; font-weight: 600; }
+.expiry-field input { min-height: 40px; padding: 9px; border: 1px solid var(--border-strong); border-radius: 8px; color: var(--text); background: var(--surface); }
+.editor-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.order-items { margin: 8px 0 0 20px; color: var(--text-muted); line-height: 1.55; }
+.order-status { display: inline-flex; width: fit-content; padding: 5px 9px; border-radius: 999px; color: var(--primary); background: var(--primary-light); font-size: .75rem; font-weight: 700; }
+html[data-theme="dark"] .clinical-card { background: #102a2d; }
+html[data-theme="dark"] .clinical-form-grid input, html[data-theme="dark"] .clinical-form-grid textarea, html[data-theme="dark"] .medicine-fieldset input, html[data-theme="dark"] .expiry-field input { color: #e5f0f1; background: #102a2d; border-color: #31565b; }
+
+@media (max-width: 720px) {
+    .clinical-card { align-items: flex-start; flex-direction: column; }
+    .clinical-form-grid { grid-template-columns: 1fr; }
+    .clinical-wide { grid-column: auto; }
+    .doctor-medicine-row { grid-template-columns: 1fr 1fr auto; }
+}
+
+@media (max-width: 480px) {
+    .doctor-medicine-row { grid-template-columns: 1fr; }
+    .doctor-medicine-row .remove-medicine { justify-self: start; }
+}

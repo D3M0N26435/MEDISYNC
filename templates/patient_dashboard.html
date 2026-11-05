@@ -5,44 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediSync - Portal del Paciente</title>
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
 </head>
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
-        <ul class="nav-links">
-            <li><a href="/patient" class="active">📅 Mis Citas & Mapa</a></li>
-            <li><a href="/chat">💬 Chat con soporte</a></li>
+        <ul class="nav-links patient-tabs" role="tablist" aria-label="Apartados del paciente">
+            <li><a id="patient-tab-agendar" class="active" href="#agendar" role="tab" aria-selected="true" aria-controls="patient-panel-agendar" data-patient-tab="agendar">📅 Agendar</a></li>
+            <li><a id="patient-tab-recetas" href="#recetas" role="tab" aria-selected="false" aria-controls="patient-panel-recetas" data-patient-tab="recetas">💊 Recetas</a></li>
+            <li><a id="patient-tab-historial" href="#historial" role="tab" aria-selected="false" aria-controls="patient-panel-historial" data-patient-tab="historial">🩺 Historial</a></li>
+            <li><a id="patient-tab-medibot" href="#medibot" role="tab" aria-selected="false" aria-controls="patient-panel-medibot" data-patient-tab="medibot">🤖 MediBot</a></li>
         </ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
+
     <main>
         <header>
-            <h1>Portal del Paciente</h1>
-            <div class="header-actions"><span class="role-badge">PACIENTE</span><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
-        </header>
-        <div class="card">
-            <h2>Agendar Consulta & Ubicar Farmacias</h2>
-            <div class="form-group">
-                <label>Seleccionar Horario Disponible</label>
-                <select>
-                    <option>Dr. Pérez - Lunes 09:00 AM</option>
-                    <option>Dra. Gómez - Miércoles 03:00 PM</option>
-                </select>
+            <h1 id="patient-page-title">Agendar una consulta</h1>
+            <div class="header-actions">
+                <span class="role-badge">PACIENTE</span>
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button>
             </div>
-            <button class="btn-action" onclick="alert('Cita agendada')">Confirmar Cita</button>
-            <div id="map" style="width: 100%; height: 320px; border-radius: 12px; margin-top: 25px;"></div>
-        </div>
+        </header>
+
+        <section id="patient-panel-agendar" class="patient-panel active" role="tabpanel" aria-labelledby="patient-tab-agendar">
+            <div class="patient-section-heading">
+                <div><p class="eyebrow">ATENCIÓN MÉDICA</p><h2>Agenda con el centro y profesional que elijas</h2><p>Los horarios se muestran según la disponibilidad registrada por cada médico.</p></div>
+            </div>
+            <div class="patient-booking-layout">
+                <div class="card patient-form-card">
+                    <form id="appointment-form">
+                        <div class="form-group"><label for="appointment-center">Centro de salud u hospital</label><select id="appointment-center" required><option value="">Selecciona un centro</option></select></div>
+                        <div class="form-group"><label for="appointment-specialty">Especialidad</label><select id="appointment-specialty" required disabled><option value="">Primero selecciona un centro</option></select></div>
+                        <div class="form-group"><label for="appointment-doctor">Doctor</label><select id="appointment-doctor" required disabled><option value="">Primero selecciona una especialidad</option></select></div>
+                        <div class="form-group"><label for="appointment-date">Fecha</label><input id="appointment-date" type="date" required disabled></div>
+                        <div class="form-group"><label for="appointment-time">Horario disponible</label><select id="appointment-time" required disabled><option value="">Selecciona fecha y doctor</option></select></div>
+                        <button class="btn-action" id="appointment-submit" type="submit" disabled>Confirmar cita</button>
+                        <p id="appointment-feedback" class="patient-feedback" role="status" aria-live="polite"></p>
+                    </form>
+                </div>
+                <div class="card patient-map-card">
+                    <div class="patient-card-heading"><div><h3>Centros disponibles</h3><p>Selecciona un marcador para elegir el centro.</p></div></div>
+                    <div id="appointment-map" class="patient-map" aria-label="Mapa de centros de salud y hospitales"></div>
+                    <div id="appointment-centers-empty" class="empty-state" hidden>No hay centros de salud registrados con ubicación.</div>
+                </div>
+            </div>
+            <div class="card patient-list-card">
+                <div class="patient-card-heading"><div><h3>Mis citas</h3><p>Consultas que has reservado.</p></div></div>
+                <div id="appointments-list" class="patient-record-list"><p class="empty-state">Cargando tus citas…</p></div>
+            </div>
+        </section>
+
+        <section id="patient-panel-recetas" class="patient-panel" role="tabpanel" aria-labelledby="patient-tab-recetas" hidden>
+            <div class="patient-section-heading">
+                <div><p class="eyebrow">MEDICAMENTOS</p><h2>Mis recetas</h2><p>Solicita la preparación de una receta en cualquiera de las farmacias autorizadas.</p></div>
+            </div>
+            <div class="patient-booking-layout">
+                <div class="card patient-list-card">
+                    <div class="patient-card-heading"><div><h3>Recetas vigentes</h3><p>Indicaciones emitidas por tu profesional de salud.</p></div></div>
+                    <div id="prescriptions-list" class="patient-record-list"><p class="empty-state">Cargando tus recetas…</p></div>
+                </div>
+                <div class="card patient-map-card">
+                    <div class="patient-card-heading"><div><h3>Farmacias autorizadas</h3><p>Elige dónde quieres recoger tus medicamentos.</p></div></div>
+                    <label class="visually-hidden" for="prescription-pharmacy">Farmacia para recoger la receta</label>
+                    <select id="prescription-pharmacy"><option value="">Selecciona una farmacia</option></select>
+                    <div id="pharmacy-map" class="patient-map" aria-label="Mapa de farmacias autorizadas"></div>
+                    <div id="pharmacies-empty" class="empty-state" hidden>No hay farmacias autorizadas con ubicación registradas.</div>
+                </div>
+            </div>
+            <div class="card patient-list-card">
+                <div class="patient-card-heading"><div><h3>Solicitudes de recogida</h3><p>Estado de tus solicitudes en farmacia.</p></div></div>
+                <div id="prescription-orders-list" class="patient-record-list"><p class="empty-state">Cargando solicitudes…</p></div>
+            </div>
+            <p id="prescription-feedback" class="patient-feedback" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="patient-panel-historial" class="patient-panel" role="tabpanel" aria-labelledby="patient-tab-historial" hidden>
+            <div class="patient-section-heading">
+                <div><p class="eyebrow">INFORMACIÓN PRIVADA</p><h2>Historial clínico</h2><p>Notas de atención registradas por tus profesionales de salud.</p></div>
+            </div>
+            <div class="card patient-list-card">
+                <div id="medical-history-list" class="patient-record-list"><p class="empty-state">Cargando tu historial…</p></div>
+            </div>
+        </section>
+
+        <section id="patient-panel-medibot" class="patient-panel" role="tabpanel" aria-labelledby="patient-tab-medibot" hidden>
+            <div class="patient-section-heading">
+                <div><p class="eyebrow">ASISTENTE DE INFORMACIÓN</p><h2>MediBot</h2><p>Consulta información general de MediSync. No reemplaza la atención de un profesional.</p></div>
+            </div>
+            <div class="card medibot-card">
+                <p class="chat-privacy">No compartas contraseñas, datos de identidad ni información médica personal. MediBot no diagnostica ni receta.</p>
+                <div id="medibot-messages" class="medibot-messages" role="log" aria-live="polite" aria-relevant="additions text">
+                    <div class="medibot-message medibot-reply">Hola. Puedo orientarte sobre MediSync y sus servicios.</div>
+                </div>
+                <form id="medibot-form" class="chat-form">
+                    <textarea id="medibot-input" maxlength="1000" rows="2" placeholder="Escribe tu consulta…" aria-label="Escribe tu consulta para MediBot" required></textarea>
+                    <button class="btn-action" id="medibot-send" type="submit">Enviar</button>
+                </form>
+                <p id="medibot-status" class="chat-status" role="status" aria-live="polite"></p>
+                <a class="support-link" href="/chat">Contactar al equipo de soporte</a>
+            </div>
+        </section>
     </main>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const map = L.map('map').setView([-17.9647, -67.106], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
-        L.marker([-17.9647, -67.106]).addTo(map).bindPopup("<b>Farmacia Central MediSync</b>").openPopup();
-    </script>
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/patient.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>
 </html>
