@@ -27,19 +27,31 @@ Las cuentas creadas desde el panel reciben acceso por correo y contraseña. El p
 
 Las reglas requieren que los documentos de personal estén en `users` y que el documento del usuario autenticado tenga `role: "admin"`. Revisa las reglas si el proyecto ya tiene políticas para otras colecciones antes de desplegarlas.
 
-## MediBot
+## Chat de soporte con Telegram
 
-El chat web de MediBot toma su referencia de `chat/informacion.txt`, que se vuelve a leer en cada consulta. El proveedor y el modelo se configuran por separado en `.env` mediante `AI_PROVIDER` y `AI_MODEL`.
+El chat está en `/chat` y requiere una sesión activa de paciente. Los mensajes llegan al chat de Telegram configurado y el equipo puede responder usando la opción **Responder** sobre el mensaje reenviado. El puente usa `bot.py` como único proceso que recibe actualizaciones de Telegram.
 
-Para usar Gemini API con una clave de Google AI Studio, configura estas variables en `.env` y reinicia el servidor:
+Configura estas variables en `.env` para ambos procesos:
 
 ```env
-AI_PROVIDER=openai_compatible
-AI_MODEL=gemini-3.8-flash
-AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
-AI_API_KEY=tu_clave_de_google_ai_studio
+tokenTelegram=token_del_bot
+chatIdTelegram=id_del_chat_de_soporte
+CHAT_BRIDGE_SECRET=un_secreto_compartido_largo
+APP_BASE_URL=http://127.0.0.1:5000
 ```
 
-La clave se usa solo desde el servidor y `.env` está excluido de Git. No la pongas en el frontend ni la compartas en el chat. Puedes crearla en la sección **API Keys** de Google AI Studio. Esta integración usa la interfaz compatible con OpenAI de Gemini y no requiere desplegar un modelo en Vertex AI. También se mantiene disponible la configuración de Vertex AI con MedGemma: completa `AI_PROJECT_ID`, `AI_LOCATION` y `AI_ENDPOINT_ID`, y configura credenciales de Google Cloud con el permiso `aiplatform.endpoints.predict`. No se guarda historial entre consultas.
+Para el bot de atención Gemini también configura `apiGoogle` (o `GEMINI_API_KEY`). El bot usa la información de `chat/informacion.txt`. No incluyas datos de identidad ni información médica sensible en el chat.
 
-Las consultas se envían al proveedor seleccionado y pueden estar sujetas a sus cuotas y condiciones de uso. No ingreses datos personales ni información médica sensible. MediBot ofrece orientación general sobre el prototipo; no diagnostica ni receta. La integración con Telegram queda pendiente.
+```sh
+pip install -r requirements.txt
+python app.py
+```
+
+En otra terminal:
+
+```sh
+pip install -r requirements-bot.txt
+python bot.py
+```
+
+En producción, configura la URL pública de la aplicación en `APP_BASE_URL` y usa un servidor con soporte Socket.IO, por ejemplo `gunicorn -w 1 --threads 100 app:app`. El servidor web y el bot se ejecutan por separado.

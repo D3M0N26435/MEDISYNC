@@ -7,13 +7,13 @@
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/medibot.css') }}">
 </head>
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
         <ul class="nav-links">
             <li><a href="/patient" class="active">📅 Mis Citas & Mapa</a></li>
+            <li><a href="/chat">💬 Chat con soporte</a></li>
         </ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
@@ -36,33 +36,12 @@
         </div>
     </main>
 
-    <button id="medibot-btn" type="button" title="Abrir MediBot" aria-label="Abrir MediBot" aria-controls="medibot-modal" aria-expanded="false">🤖</button>
-    <section id="medibot-modal" role="dialog" aria-label="Asistente MediBot" aria-hidden="true">
-        <div class="bot-header">
-            <span>🤖 MediBot Asistente</span>
-            <button id="medibot-close" type="button" aria-label="Cerrar MediBot">✕</button>
-        </div>
-        <div class="bot-body" id="bot-mensajes" role="log" aria-live="polite" aria-relevant="additions text">
-            <div class="bot-msg-received">¡Hola! Soy MediBot. Puedo orientarte sobre MediSync y sus funciones.</div>
-        </div>
-        <div class="bot-footer">
-            <form id="medibot-form">
-                <input type="text" id="bot-input" maxlength="1000" autocomplete="off" placeholder="Escribe tu consulta…" aria-label="Escribe tu consulta" required>
-                <button id="medibot-send" type="submit" aria-label="Enviar mensaje">➤</button>
-            </form>
-            <p id="medibot-status" role="status" aria-live="polite">Conectando con MediBot…</p>
-            <p class="bot-privacy">MediBot usa la información de MediSync para responder y no conserva mensajes anteriores. No compartas datos personales ni información médica sensible. No diagnostica ni receta.</p>
-        </div>
-    </section>
-
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([-17.9647, -67.106], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
         L.marker([-17.9647, -67.106]).addTo(map).bindPopup("<b>Farmacia Central MediSync</b>").openPopup();
     </script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="{{ url_for('static', filename='js/medibot.js') }}"></script>
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>

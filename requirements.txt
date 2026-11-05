@@ -1,7 +1,7 @@
 Flask
 Flask-SocketIO
 gunicorn
-eventlet
 requests
 python-dotenv
 google-auth
+simple-websocket

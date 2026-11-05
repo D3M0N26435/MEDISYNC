@@ -459,14 +459,6 @@ table tr:hover td {
         align-items: flex-start;
         gap: var(--space-3);
     }
-    
-    #medibot-modal { 
-        width: 90% !important; 
-        right: 5% !important; 
-        left: 5% !important; 
-        height: 70vh;
-        bottom: 80px;
-    }
 }
 
 @media (max-width: 520px) {

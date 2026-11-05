@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSync - Chat con soporte</title>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+<body>
+    <aside>
+        <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
+        <ul class="nav-links">
+            <li><a href="/patient">📅 Mis Citas & Mapa</a></li>
+            <li><a href="/chat" class="active">💬 Chat con soporte</a></li>
+        </ul>
+        <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
+    </aside>
+    <main>
+        <header>
+            <h1>Chat con soporte</h1>
+            <div class="header-actions">
+                <span class="role-badge">PACIENTE</span>
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button>
+            </div>
+        </header>
+        <section class="card support-chat" aria-label="Conversación con soporte">
+            <p class="chat-privacy">Tus mensajes se envían al equipo de soporte por Telegram para que pueda responderte. No compartas contraseñas, datos de identidad ni información médica sensible.</p>
+            <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions text">
+                <div class="chat-message support-message">Hola. Escribe aquí tu consulta y el equipo de soporte te responderá.</div>
+            </div>
+            <form id="chat-form" class="chat-form">
+                <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Escribe tu mensaje…" aria-label="Escribe tu mensaje" required></textarea>
+                <button id="chat-send" class="btn-action" type="submit">Enviar</button>
+            </form>
+            <p id="chat-status" class="chat-status" role="status" aria-live="polite">Conectando…</p>
+        </section>
+    </main>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/support-chat.js') }}"></script>
+    <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
+</body>
+</html>
