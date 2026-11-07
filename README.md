@@ -27,6 +27,19 @@ Las cuentas creadas desde el panel reciben acceso por correo y contraseña. El p
 
 Las reglas requieren que los documentos de personal estén en `users` y que el documento del usuario autenticado tenga `role: "admin"`. Revisa las reglas si el proyecto ya tiene políticas para otras colecciones antes de desplegarlas.
 
+## Panel farmacéutico
+
+El panel tiene dos pestañas:
+
+- **Venta directa**: registra ventas de mostrador para personas que no están registradas como pacientes. Cada venta se guarda en `pharmacySales` con productos, cantidades, precios, total, forma de pago y datos opcionales del cliente. No descuenta inventario porque el proyecto todavía no tiene una colección de existencias.
+- **Asegurados**: busca pacientes registrados por nombre completo, correo o carnet para entregar las recetas que solicitaron en esa farmacia. El buscador usa el campo `carnet` de `users/{uid}`; si no existe, también puede encontrar al paciente por nombre o correo.
+
+Para que la búsqueda por carnet funcione, agrega el campo `carnet` al documento `users/{uid}` de cada paciente (por ejemplo, `"carnet": "12345678"`). La búsqueda por correo usa el campo `email` y la búsqueda por nombre usa `name`; conviene mantener ambos datos en el perfil del paciente. Las reglas permiten que un farmacéutico activo lea únicamente perfiles con `role: "patient"`; no puede leer perfiles de otro personal. Despliega las reglas después de actualizarlas:
+
+```sh
+firebase deploy --only firestore:rules
+```
+
 ## Chat de soporte con Telegram
 
 El chat está en `/chat` y requiere una sesión activa de paciente. Los mensajes llegan al chat de Telegram configurado y el equipo puede responder usando la opción **Responder** sobre el mensaje reenviado. El puente usa `bot.py` como único proceso que recibe actualizaciones de Telegram.

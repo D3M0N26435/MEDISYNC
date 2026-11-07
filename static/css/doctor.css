@@ -1,0 +1,156 @@
+.doctor-appointment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.doctor-appointment-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition), border-color var(--transition);
+    position: relative;
+}
+
+.doctor-appointment-card:hover {
+    box-shadow: var(--shadow);
+    border-color: var(--border-strong);
+}
+
+.doctor-appointment-card.status-no-show {
+    opacity: 0.7;
+}
+
+.doctor-appointment-card.status-attended {
+    border-left: 4px solid #16704c;
+}
+
+.doctor-appointment-card.status-no-show {
+    border-left: 4px solid #b23b32;
+}
+
+.doctor-appointment-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.doctor-appointment-card h3 {
+    color: var(--heading);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.doctor-appointment-card .patient-time {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.doctor-appointment-card .patient-center {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-top: 2px;
+}
+
+.doctor-appointment-card .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.scheduled {
+    color: #95580e;
+    background: #fff4df;
+}
+
+.status-badge.attended {
+    color: #16704c;
+    background: #e8f6ee;
+}
+
+.status-badge.no-show {
+    color: #b23b32;
+    background: #fdf0ec;
+}
+
+.doctor-appointment-card .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.doctor-appointment-card .btn-action {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.doctor-appointment-card .btn-action.secondary {
+    flex: 1;
+}
+
+.doctor-status-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.doctor-status-actions .btn-action {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 16px;
+    font-weight: 600;
+}
+
+.doctor-status-actions .btn-action.secondary {
+    flex: 1;
+}
+
+.icon-button {
+    width: 34px;
+    height: 34px;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.icon-button:hover { border-color: var(--primary); color: var(--primary); }
+
+html[data-theme="dark"] .doctor-appointment-card {
+    background: #102a2d;
+    border-color: #31565b;
+}
+
+@media (max-width: 640px) {
+    .doctor-appointment-grid {
+        grid-template-columns: 1fr;
+    }
+    .doctor-status-actions {
+        flex-direction: column;
+    }
+}

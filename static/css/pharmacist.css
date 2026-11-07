@@ -1,0 +1,161 @@
+.pharmacist-tabs { gap: 6px; }
+
+.pharmacist-panel { display: none; animation: fadeIn 220ms ease-out; }
+.pharmacist-panel.active { display: block; }
+
+.pharmacist-location { margin: -6px 0 8px; color: var(--text-muted); font-size: .88rem; }
+
+.pharmacist-sale-layout {
+    display: grid;
+    grid-template-columns: minmax(340px, 1.05fr) minmax(320px, .95fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.pharmacist-sale-card,
+.pharmacist-list-card,
+.pharmacist-search-card,
+.pharmacist-orders-card { padding: clamp(18px, 3vw, 28px); }
+
+.pharmacist-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.pharmacist-card-heading h3 { color: var(--heading); font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; font-size: 1.1rem; }
+.pharmacist-card-heading p { margin-top: 4px; color: var(--text-muted); font-size: .86rem; line-height: 1.4; }
+
+.pharmacist-sale-card .form-group { margin-bottom: 12px; }
+.pharmacist-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }
+.pharmacist-form-grid .form-group { display: grid; gap: 6px; }
+.pharmacist-form-grid label { color: var(--heading); font-size: .86rem; font-weight: 600; }
+.pharmacist-form-grid input,
+.pharmacist-form-grid select {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    background: var(--surface);
+}
+
+.sale-items-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin: 18px 0 10px; }
+.sale-items-heading strong { display: block; color: var(--heading); font-size: .95rem; }
+.sale-items-heading small { display: block; margin-top: 3px; color: var(--text-muted); font-size: .8rem; }
+.sale-items { display: flex; flex-direction: column; gap: 10px; }
+
+.sale-item-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 2fr) minmax(70px, .65fr) minmax(100px, .9fr) minmax(84px, .7fr) auto;
+    align-items: end;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+}
+
+.sale-item-row label { display: grid; gap: 5px; min-width: 0; color: var(--heading); font-size: .74rem; font-weight: 600; }
+.sale-item-row input {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    color: var(--text);
+    background: var(--surface);
+}
+.sale-item-subtotal { padding-bottom: 9px; color: var(--heading); font-size: .84rem; font-weight: 700; white-space: nowrap; }
+
+.sale-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 700;
+}
+.sale-summary strong { font-size: 1.2rem; }
+.pharmacist-form-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+.sale-record-total { flex-shrink: 0; color: var(--primary); font-size: 1.05rem; white-space: nowrap; }
+
+.pharmacist-search-label { display: block; margin-bottom: 7px; color: var(--heading); font-size: .9rem; font-weight: 600; }
+#patient-search {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    background: var(--surface);
+    font-size: .95rem;
+}
+
+.pharmacist-patient-results { display: grid; gap: 10px; margin-top: 10px; }
+.pharmacist-patient-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+}
+.pharmacist-patient-result .btn-action { flex-shrink: 0; }
+
+.pharmacist-orders-card { margin-top: 20px; }
+.pharmacist-order-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pharmacist-order-actions .btn-action { min-height: 38px; padding: 8px 12px; font-size: .82rem; }
+
+.order-status.requested { color: #95580e; background: #fff4df; }
+.order-status.preparing { color: #1d4ed8; background: #e8efff; }
+.order-status.ready { color: #16704c; background: #e8f6ee; }
+.order-status.picked_up { color: #64748b; background: #edf2f4; }
+.order-status.rejected { color: #b23b32; background: #fdf0ec; }
+
+.icon-button {
+    width: 34px;
+    height: 34px;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+.icon-button:hover { border-color: var(--primary); color: var(--primary); }
+.remove-sale-item { color: #b23b32; font-size: 1.15rem; }
+
+html[data-theme="dark"] .sale-item-row,
+html[data-theme="dark"] .pharmacist-patient-result { background: #0b2225; border-color: var(--border); }
+html[data-theme="dark"] .sale-item-row input,
+html[data-theme="dark"] #patient-search,
+html[data-theme="dark"] .pharmacist-form-grid input,
+html[data-theme="dark"] .pharmacist-form-grid select { background: #0b2225; color: var(--text); border-color: var(--border); }
+html[data-theme="dark"] .sale-summary { background: #123b3d; color: #5eead4; }
+html[data-theme="dark"] .order-status.requested { color: #fcd34d; background: #3a2c0c; }
+html[data-theme="dark"] .order-status.preparing { color: #93c5fd; background: #14294d; }
+html[data-theme="dark"] .order-status.ready { color: #6ee7b7; background: #0f3a2b; }
+html[data-theme="dark"] .order-status.picked_up { color: #cbd5e1; background: #24373a; }
+html[data-theme="dark"] .order-status.rejected { color: #fca5a5; background: #3d1c1c; }
+
+@media (max-width: 1050px) {
+    .pharmacist-sale-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+    .sale-item-row { grid-template-columns: 1fr 1fr; }
+    .sale-item-row label:first-child { grid-column: 1 / -1; }
+    .sale-item-subtotal { padding-bottom: 0; align-self: center; }
+    .pharmacist-patient-result { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 520px) {
+    .pharmacist-form-grid { grid-template-columns: 1fr; }
+    .sale-item-row { grid-template-columns: 1fr; }
+    .sale-item-row label:first-child { grid-column: auto; }
+}

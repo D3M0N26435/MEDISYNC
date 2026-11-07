@@ -7,6 +7,7 @@
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
 </head>
 <body>
     <aside>
@@ -19,15 +20,19 @@
             <h1>Panel del Médico</h1>
             <div class="header-actions"><span class="role-badge">MÉDICO</span><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
         </header>
+
+        <div id="doctor-feedback" class="clinical-feedback" role="status" aria-live="polite"></div>
+
         <section>
-            <div class="clinical-heading"><div><p class="eyebrow">AGENDA</p><h2>Consultas reservadas</h2><p>Al registrar la atención, puedes guardar la nota clínica y emitir una receta.</p></div></div>
-            <div id="doctor-feedback" class="clinical-feedback" role="status" aria-live="polite"></div>
-            <div id="doctor-appointments" class="clinical-list"><p class="empty-state">Cargando consultas…</p></div>
+            <div class="clinical-heading"><div><p class="eyebrow">AGENDA</p><h2>Citas del día</h2><p>Selecciona un paciente para registrar la atención.</p></div></div>
+            <div id="doctor-appointments" class="doctor-appointment-grid"><p class="empty-state">Cargando citas…</p></div>
         </section>
+
         <section id="record-editor" class="card clinical-editor" hidden>
-            <div class="clinical-heading"><div><p class="eyebrow">ATENCIÓN</p><h2>Registrar consulta</h2><p id="record-appointment-summary"></p></div><button id="close-record-editor" type="button" class="icon-button" aria-label="Cerrar formulario">✕</button></div>
+            <div class="clinical-heading"><div><p class="eyebrow">ATENCIÓN</p><h2 id="record-appointment-title">Registrar consulta</h2><p id="record-patient-summary"></p></div><button id="close-record-editor" type="button" class="icon-button" aria-label="Cerrar formulario">✕</button></div>
             <form id="record-form">
                 <input id="record-appointment-id" type="hidden">
+                <input id="record-patient-id" type="hidden">
                 <div class="clinical-form-grid">
                     <div class="form-group"><label for="record-diagnosis">Diagnóstico o motivo de atención</label><textarea id="record-diagnosis" rows="2" maxlength="1000" required></textarea></div>
                     <div class="form-group"><label for="record-notes">Nota clínica</label><textarea id="record-notes" rows="3" maxlength="4000" required></textarea></div>
@@ -39,10 +44,20 @@
                     <button id="add-prescription-item" class="btn-action secondary" type="button">＋ Añadir medicamento</button>
                     <div class="form-group expiry-field"><label for="prescription-expiry">Vigente hasta (opcional)</label><input id="prescription-expiry" type="date"></div>
                 </fieldset>
-                <div class="editor-actions"><button id="save-record" class="btn-action" type="submit">Guardar atención</button><button class="btn-action secondary" id="cancel-record" type="button">Cancelar</button></div>
+                <div class="doctor-status-actions">
+                    <button id="save-record-save" class="btn-action" type="submit">Guardar atención</button>
+                    <button class="btn-action secondary" id="cancel-record" type="button">Cancelar</button>
+                </div>
             </form>
         </section>
+
+        <section id="patient-history" class="card clinical-editor" hidden>
+            <div class="clinical-heading"><div><p class="eyebrow">HISTORIAL</p><h2 id="history-patient-name">Historial clínico</h2><p id="history-patient-info"></p></div><button id="close-history" type="button" class="icon-button" aria-label="Cerrar historial">✕</button></div>
+            <div id="history-list" class="clinical-list"><p class="empty-state">Sin registros clínicos previos.</p></div>
+            <div id="history-prescriptions" class="clinical-list" style="margin-top:24px;"></div>
+        </section>
     </main>
+
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script type="module" src="{{ url_for('static', filename='js/doctor.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>

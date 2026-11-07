@@ -26,6 +26,7 @@
 .expiry-field input { min-height: 40px; padding: 9px; border: 1px solid var(--border-strong); border-radius: 8px; color: var(--text); background: var(--surface); }
 .editor-actions { display: flex; flex-wrap: wrap; gap: 9px; }
 .order-items { margin: 8px 0 0 20px; color: var(--text-muted); line-height: 1.55; }
+.empty-state { padding: 16px; color: var(--text-muted); line-height: 1.5; }
 .order-status { display: inline-flex; width: fit-content; padding: 5px 9px; border-radius: 999px; color: var(--primary); background: var(--primary-light); font-size: .75rem; font-weight: 700; }
 html[data-theme="dark"] .clinical-card { background: #102a2d; }
 html[data-theme="dark"] .clinical-form-grid input, html[data-theme="dark"] .clinical-form-grid textarea, html[data-theme="dark"] .medicine-fieldset input, html[data-theme="dark"] .expiry-field input { color: #e5f0f1; background: #102a2d; border-color: #31565b; }

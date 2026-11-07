@@ -65,8 +65,12 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get: if signedIn() && (request.auth.uid == userId || isAdmin());
-      allow list: if isAdmin();
+      allow get: if signedIn()
+        && (request.auth.uid == userId
+          || isAdmin()
+          || (isPharmacist() && resource.data.role == 'patient'));
+      allow list: if isAdmin()
+        || (isPharmacist() && resource.data.role == 'patient');
       allow create, update, delete: if isAdmin();
     }
 
@@ -134,7 +138,7 @@ service cloud.firestore {
       allow update: if isDoctor()
         && resource.data.doctorId == request.auth.uid
         && resource.data.status == 'scheduled'
-        && request.resource.data.status == 'completed'
+        && request.resource.data.status in ['completed', 'no_show']
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']);
       allow delete: if false;
     }
@@ -201,6 +205,49 @@ service cloud.firestore {
           || (resource.data.status == 'ready' && request.resource.data.status == 'picked_up')
         );
       allow delete: if false;
+    }
+
+    // Ventas de mostrador a personas que no están registradas como pacientes.
+    match /pharmacySales/{saleId} {
+      allow get, list: if isAdmin()
+        || (isPharmacist() && resource.data.pharmacyId == profile(request.auth.uid).locationId);
+      allow create: if isPharmacist()
+        && request.resource.data.keys().hasAll([
+          'pharmacyId', 'pharmacistId', 'pharmacistName', 'customerName',
+          'customerDocument', 'items', 'total', 'paymentMethod', 'notes', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'pharmacyId', 'pharmacistId', 'pharmacistName', 'customerName',
+          'customerDocument', 'items', 'total', 'paymentMethod', 'notes', 'createdAt'
+        ])
+        && request.resource.data.pharmacyId is string
+        && request.resource.data.pharmacyId == profile(request.auth.uid).locationId
+        && request.resource.data.pharmacistId == request.auth.uid
+        && request.resource.data.pharmacistName is string
+        && request.resource.data.customerName is string
+        && request.resource.data.customerDocument is string
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && request.resource.data.items.all(item,
+          item.keys().hasOnly(['name', 'quantity', 'unitPrice', 'subtotal'])
+          && item.name is string
+          && item.name.size() > 0
+          && item.quantity is int
+          && item.quantity > 0
+          && (item.unitPrice is int || item.unitPrice is float)
+          && item.unitPrice >= 0
+          && (item.subtotal is int || item.subtotal is float)
+          && item.subtotal >= 0
+        )
+        && (request.resource.data.total is int || request.resource.data.total is float)
+        && request.resource.data.total >= 0
+        && request.resource.data.paymentMethod in ['cash', 'card', 'qr', 'other']
+        && request.resource.data.notes is string
+        && exists(/databases/$(database)/documents/locations/$(request.resource.data.pharmacyId))
+        && get(/databases/$(database)/documents/locations/$(request.resource.data.pharmacyId)).data.type == 'pharmacy'
+        && (!('active' in get(/databases/$(database)/documents/locations/$(request.resource.data.pharmacyId)).data)
+          || get(/databases/$(database)/documents/locations/$(request.resource.data.pharmacyId)).data.active == true);
+      allow update, delete: if false;
     }
   }
 }

@@ -7,24 +7,86 @@
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pharmacist.css') }}">
 </head>
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
-        <ul class="nav-links"><li><a href="/pharmacist" class="active">💊 Solicitudes de receta</a></li></ul>
+        <ul class="nav-links pharmacist-tabs" role="tablist" aria-label="Apartados de la farmacia">
+            <li><a id="pharmacist-tab-venta" class="active" href="#venta" role="tab" aria-selected="true" aria-controls="pharmacist-panel-venta" data-pharmacist-tab="venta">🧾 Venta directa</a></li>
+            <li><a id="pharmacist-tab-asegurados" href="#asegurados" role="tab" aria-selected="false" aria-controls="pharmacist-panel-asegurados" data-pharmacist-tab="asegurados">🪪 Asegurados</a></li>
+        </ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
     <main>
         <header>
-            <h1>Solicitudes de farmacia</h1>
+            <h1 id="pharmacist-page-title">Venta directa</h1>
             <div class="header-actions"><span class="role-badge">FARMACÉUTICO</span><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
         </header>
-        <section>
-            <div class="clinical-heading"><div><p class="eyebrow">RECOGIDA</p><h2>Recetas solicitadas en tu farmacia</h2><p id="pharmacy-location-label">Cargando sede…</p></div></div>
-            <p id="pharmacist-feedback" class="clinical-feedback" role="status" aria-live="polite"></p>
-            <div id="pharmacy-orders" class="clinical-list"><p class="empty-state">Cargando solicitudes…</p></div>
+
+        <p id="pharmacy-location-label" class="pharmacist-location">Cargando sede…</p>
+        <p id="pharmacist-feedback" class="clinical-feedback" role="status" aria-live="polite"></p>
+
+        <section id="pharmacist-panel-venta" class="pharmacist-panel active" role="tabpanel" aria-labelledby="pharmacist-tab-venta">
+            <div class="clinical-heading">
+                <div><p class="eyebrow">MOSTRADOR</p><h2>Ventas a clientes no registrados</h2><p>Registra compras directas de personas que no necesitan estar registradas como pacientes.</p></div>
+            </div>
+
+            <div class="pharmacist-sale-layout">
+                <div class="card pharmacist-sale-card">
+                    <div class="pharmacist-card-heading"><div><h3>Nueva venta</h3><p>El total se calcula automáticamente.</p></div></div>
+                    <form id="sale-form">
+                        <div class="pharmacist-form-grid">
+                            <div class="form-group"><label for="sale-customer-name">Cliente (opcional)</label><input id="sale-customer-name" maxlength="120" placeholder="Consumidor final"></div>
+                            <div class="form-group"><label for="sale-customer-document">Carnet o documento (opcional)</label><input id="sale-customer-document" maxlength="40" placeholder="Sin documento"></div>
+                        </div>
+
+                        <div class="sale-items-heading">
+                            <div><strong>Productos</strong><small>Nombre, cantidad y precio unitario.</small></div>
+                            <button id="add-sale-item" class="btn-action secondary" type="button">＋ Añadir producto</button>
+                        </div>
+                        <div id="sale-items" class="sale-items"></div>
+
+                        <div class="sale-summary"><span>Total</span><strong id="sale-total">Bs 0.00</strong></div>
+
+                        <div class="pharmacist-form-grid">
+                            <div class="form-group"><label for="sale-payment">Forma de pago</label><select id="sale-payment"><option value="cash">Efectivo</option><option value="card">Tarjeta</option><option value="qr">QR</option><option value="other">Otro</option></select></div>
+                            <div class="form-group"><label for="sale-notes">Nota (opcional)</label><input id="sale-notes" maxlength="300" placeholder="Observaciones de la venta"></div>
+                        </div>
+
+                        <div class="pharmacist-form-actions"><button id="sale-submit" class="btn-action" type="submit">Registrar venta</button></div>
+                    </form>
+                </div>
+
+                <div class="card pharmacist-list-card">
+                    <div class="pharmacist-card-heading"><div><h3>Ventas recientes</h3><p>Últimos movimientos registrados en esta farmacia.</p></div></div>
+                    <div id="sales-list" class="clinical-list"><p class="empty-state">Cargando ventas…</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pharmacist-panel-asegurados" class="pharmacist-panel" role="tabpanel" aria-labelledby="pharmacist-tab-asegurados" hidden>
+            <div class="clinical-heading">
+                <div><p class="eyebrow">PACIENTES REGISTRADOS</p><h2>Retiro de recetas de asegurados</h2><p>Busca por carnet, correo o nombre completo y entrega las recetas solicitadas en esta farmacia.</p></div>
+            </div>
+
+            <div class="card pharmacist-search-card">
+                <label class="pharmacist-search-label" for="patient-search">Buscar asegurado</label>
+                <input id="patient-search" type="search" placeholder="Carnet, correo o nombre completo" autocomplete="off">
+                <p id="patient-search-status" class="clinical-feedback" role="status" aria-live="polite">Escribe al menos 2 caracteres para buscar.</p>
+                <div id="patient-search-results" class="pharmacist-patient-results"></div>
+            </div>
+
+            <div id="patient-orders-section" class="card pharmacist-orders-card" hidden>
+                <div class="clinical-heading">
+                    <div><p class="eyebrow">SOLICITUDES</p><h2 id="selected-patient-name">Paciente</h2><p id="selected-patient-info"></p></div>
+                    <button id="clear-patient-selection" type="button" class="icon-button" aria-label="Cerrar paciente seleccionado">✕</button>
+                </div>
+                <div id="pharmacy-orders" class="clinical-list"><p class="empty-state">Cargando solicitudes…</p></div>
+            </div>
         </section>
     </main>
+
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script type="module" src="{{ url_for('static', filename='js/pharmacist.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
