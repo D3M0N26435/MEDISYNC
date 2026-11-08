@@ -46,6 +46,7 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 ## Estructura y convenciones del frontend
 
 - Sin bundler: ES modules nativos importados desde `https://www.gstatic.com/firebasejs/12.19.0/...`; Leaflet 1.9.4 desde unpkg.
+- `static/js/map-utils.js` centraliza «Mi ubicación» y «Cómo llegar» para los mapas de admin y paciente. Usa `attachMapTools({ map, getDestination })`; la geolocalización es bajo demanda y las rutas usan el servicio público OSRM sin clave, por lo que puede fallar o limitarse.
 - Cada panel es una plantilla Jinja que inyecta la config pública en `<script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>`. Si creas un panel, replica eso + `theme.js` en `<head>` + `logout.js` al final.
 - El login real es `static/js/login.js`; ignora `js/login.js` en la raíz (archivo vacío heredado).
 - Usa `textContent` o el patrón `textElement()` para datos de usuario. En HTML generado por plantillas string (p. ej. `admin.js`), pasa todo por `escapeHtml()`.

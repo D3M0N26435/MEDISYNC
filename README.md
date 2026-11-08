@@ -29,6 +29,10 @@ La pestaña **Pacientes** permite crear la cuenta de un paciente con su carnet d
 
 Las reglas requieren que los documentos de personal y pacientes estén en `users` y que el documento del usuario autenticado tenga `role: "admin"`. Revisa las reglas si el proyecto ya tiene políticas para otras colecciones antes de desplegarlas.
 
+## Mapas y rutas
+
+Los mapas del panel de administración y del paciente incluyen los botones **Mi ubicación** y **Cómo llegar**. La ubicación se obtiene con la API de geolocalización del navegador (requiere HTTPS o `localhost`) y solo se solicita al pulsar el botón; no se guarda en Firestore. La ruta se calcula con el servicio público de OSRM y se dibuja en el mapa con distancia, duración y pasos. Selecciona primero una sede, centro o farmacia como destino. OSRM no requiere clave, pero es un servicio público de uso moderado y puede no estar disponible.
+
 ## Panel farmacéutico
 
 El panel tiene dos pestañas:

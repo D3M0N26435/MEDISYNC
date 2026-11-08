@@ -12,6 +12,7 @@ import {
     writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
+import { attachMapTools } from './map-utils.js';
 
 const $ = (id) => document.getElementById(id);
 const state = {
@@ -25,6 +26,8 @@ const state = {
     records: [],
     appointmentMap: null,
     pharmacyMap: null,
+    appointmentMapTools: null,
+    pharmacyMapTools: null,
     appointmentMarkers: null,
     pharmacyMarkers: null
 };
@@ -91,7 +94,7 @@ function mapPopup(location, buttonText, onSelect) {
     return content;
 }
 
-function createMap(elementId, locations, selectLocation, layerKey) {
+function createMap(elementId, locations, selectLocation, layerKey, getDestination) {
     if (!window.L || !$(elementId)) return;
     const center = locations.find(validCoordinates);
     const initialView = center
@@ -109,7 +112,8 @@ function createMap(elementId, locations, selectLocation, layerKey) {
         marker.on('click', () => selectLocation(location.id));
     });
     state[layerKey] = markers;
-    return map;
+    const tools = attachMapTools({ map, getDestination });
+    return { map, tools };
 }
 
 function populateCenters() {
@@ -118,15 +122,21 @@ function populateCenters() {
     );
     setSelectOptions($('appointment-center'), 'Selecciona un centro', centers, (item) => item.name);
     $('appointment-centers-empty').hidden = centers.some(validCoordinates);
-    state.appointmentMap = createMap(
+    const appointmentMap = createMap(
         'appointment-map',
         centers,
         (id) => {
             $('appointment-center').value = id;
             handleCenterChange();
         },
-        'appointmentMarkers'
+        'appointmentMarkers',
+        () => {
+            const center = state.locations.find((item) => item.id === $('appointment-center').value);
+            return center ? { lat: center.lat, lng: center.lng, name: center.name } : null;
+        }
     );
+    state.appointmentMap = appointmentMap?.map || null;
+    state.appointmentMapTools = appointmentMap?.tools || null;
     if (!centers.length) $('appointment-center').disabled = true;
 }
 
@@ -136,12 +146,21 @@ function populatePharmacies() {
     );
     setSelectOptions($('prescription-pharmacy'), 'Selecciona una farmacia', pharmacies, (item) => item.name);
     $('pharmacies-empty').hidden = pharmacies.some(validCoordinates);
-    state.pharmacyMap = createMap(
+    const pharmacyMap = createMap(
         'pharmacy-map',
         pharmacies,
-        (id) => { $('prescription-pharmacy').value = id; },
-        'pharmacyMarkers'
+        (id) => {
+            state.pharmacyMapTools?.clearRoute();
+            $('prescription-pharmacy').value = id;
+        },
+        'pharmacyMarkers',
+        () => {
+            const pharmacy = state.locations.find((item) => item.id === $('prescription-pharmacy').value);
+            return pharmacy ? { lat: pharmacy.lat, lng: pharmacy.lng, name: pharmacy.name } : null;
+        }
     );
+    state.pharmacyMap = pharmacyMap?.map || null;
+    state.pharmacyMapTools = pharmacyMap?.tools || null;
 }
 
 function activeDoctorsAt(centerId) {
@@ -154,6 +173,7 @@ function activeDoctorsAt(centerId) {
 }
 
 function handleCenterChange() {
+    state.appointmentMapTools?.clearRoute();
     const centerId = $('appointment-center').value;
     const specialtySelect = $('appointment-specialty');
     const doctorSelect = $('appointment-doctor');
@@ -618,7 +638,10 @@ function bindEvents() {
         $('appointment-submit').disabled = !$('appointment-time').value;
     });
     $('appointment-form').addEventListener('submit', bookAppointment);
-    $('prescription-pharmacy').addEventListener('change', renderPrescriptions);
+    $('prescription-pharmacy').addEventListener('change', () => {
+        state.pharmacyMapTools?.clearRoute();
+        renderPrescriptions();
+    });
     $('prescriptions-list').addEventListener('click', requestPrescription);
     $('medibot-form').addEventListener('submit', askMedibot);
     window.addEventListener('hashchange', () => activateTab(location.hash.slice(1)));

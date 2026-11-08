@@ -8,6 +8,10 @@ ROLES Y PANELES
 - Farmacéutico: tiene dos apartados. En Venta directa registra compras de personas que no están registradas como pacientes. En Asegurados busca pacientes registrados por carnet, correo o nombre completo para entregar las recetas solicitadas en su farmacia.
 - Paciente: agenda citas con los centros y médicos disponibles, consulta sus recetas e historial, solicita la preparación de recetas en farmacias autorizadas y puede usar MediBot.
 
+MAPAS Y UBICACIÓN
+- Los mapas del panel de administración y del paciente tienen «Mi ubicación» y «Cómo llegar». La ubicación se pide al navegador solo cuando se pulsa el botón y no se guarda en MediSync.
+- Para calcular la ruta primero hay que elegir una sede, centro o farmacia como destino. La ruta es aproximada y se calcula con un servicio público de mapas.
+
 CITAS, RECETAS Y FARMACIAS
 - Las citas se reservan según la disponibilidad semanal que cada médico configura en su agenda.
 - Las recetas se generan cuando el médico registra una atención.

@@ -2,6 +2,7 @@ import { initializeApp, deleteApp } from 'https://www.gstatic.com/firebasejs/12.
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, deleteUser } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { firebaseConfig, auth, db } from './firebase.js';
+import { attachMapTools } from './map-utils.js';
 
 const staffCollection = collection(db, 'users');
 const locationsCollection = collection(db, 'locations');
@@ -11,6 +12,7 @@ const doctorDirectoryById = new Map();
 let activeLocationFilter = 'all';
 let selectedLocationId = '';
 let adminMap;
+let adminMapTools;
 let markersLayer;
 
 const $ = (id) => document.getElementById(id);
@@ -513,11 +515,20 @@ function initMap() {
         $('location-lng').value = event.latlng.lng.toFixed(6);
         $('location-editor-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    adminMapTools = attachMapTools({
+        map: adminMap,
+        getDestination: () => {
+            const location = locationsById.get(selectedLocationId);
+            if (!location) return null;
+            return { lat: location.lat, lng: location.lng, name: location.name };
+        }
+    });
 }
 
 function selectLocation(id, pan = true) {
     const location = locationsById.get(id);
     if (!location) return;
+    adminMapTools?.clearRoute();
     selectedLocationId = id;
     $('selected-location-title').textContent = location.name;
     $('selected-location-subtitle').textContent = `${locationTypeName(location.type)} · ${location.address}`;
