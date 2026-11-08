@@ -1,6 +1,6 @@
 # MEDISYNC
 
-## Administración de personal y sedes
+## Administración de personal, pacientes y sedes
 
 El panel de administración usa Firebase Authentication y Cloud Firestore. Copia `.env.example` a `.env`, completa la configuración web de Firebase y habilita el proveedor **Correo electrónico/contraseña** en Firebase Authentication.
 
@@ -23,9 +23,11 @@ Despliega las reglas incluidas desde la raíz del proyecto con Firebase CLI:
 firebase deploy --only firestore:rules
 ```
 
-Las cuentas creadas desde el panel reciben acceso por correo y contraseña. El personal se desactiva con baja lógica: el acceso al panel se bloquea en la siguiente solicitud y el perfil se conserva para el historial. Las sedes se guardan en `locations`; las coordenadas se eligen con un clic en el mapa. La disponibilidad se calcula a partir de los periodos de vacaciones del perfil.
+Las cuentas creadas desde el panel reciben acceso por correo y contraseña. El personal y los pacientes se desactivan con baja lógica: el acceso se bloquea en la siguiente solicitud y el perfil se conserva para el historial. Las sedes se guardan en `locations`; las coordenadas se eligen con un clic en el mapa. La disponibilidad se calcula a partir de los periodos de vacaciones del perfil.
 
-Las reglas requieren que los documentos de personal estén en `users` y que el documento del usuario autenticado tenga `role: "admin"`. Revisa las reglas si el proyecto ya tiene políticas para otras colecciones antes de desplegarlas.
+La pestaña **Pacientes** permite crear la cuenta de un paciente con su carnet de identidad, nombre completo, correo y contraseña inicial. El carnet se guarda en `users/{uid}.carnet` como identificador visible y el panel comprueba que no se repita; el UID interno de Firebase Authentication se mantiene como ID del documento porque las citas, recetas e historial se vinculan con `patientId`. Al crear la cuenta se usa un segundo cliente de Firebase para no cerrar la sesión del administrador. Si la escritura en Firestore falla, la cuenta de Authentication se elimina para no dejar accesos huérfanos. El historial clínico empieza vacío y se llena cuando un médico completa una atención.
+
+Las reglas requieren que los documentos de personal y pacientes estén en `users` y que el documento del usuario autenticado tenga `role: "admin"`. Revisa las reglas si el proyecto ya tiene políticas para otras colecciones antes de desplegarlas.
 
 ## Panel farmacéutico
 
@@ -34,7 +36,7 @@ El panel tiene dos pestañas:
 - **Venta directa**: registra ventas de mostrador para personas que no están registradas como pacientes. Cada venta se guarda en `pharmacySales` con productos, cantidades, precios, total, forma de pago y datos opcionales del cliente. No descuenta inventario porque el proyecto todavía no tiene una colección de existencias.
 - **Asegurados**: busca pacientes registrados por nombre completo, correo o carnet para entregar las recetas que solicitaron en esa farmacia. El buscador usa el campo `carnet` de `users/{uid}`; si no existe, también puede encontrar al paciente por nombre o correo.
 
-Para que la búsqueda por carnet funcione, agrega el campo `carnet` al documento `users/{uid}` de cada paciente (por ejemplo, `"carnet": "12345678"`). La búsqueda por correo usa el campo `email` y la búsqueda por nombre usa `name`; conviene mantener ambos datos en el perfil del paciente. Las reglas permiten que un farmacéutico activo lea únicamente perfiles con `role: "patient"`; no puede leer perfiles de otro personal. Despliega las reglas después de actualizarlas:
+El panel de administración rellena `carnet`, `name` y `email` al crear pacientes. Para pacientes antiguos creados a mano, agrega el campo `carnet` a `users/{uid}` (por ejemplo, `"carnet": "12345678"`). La búsqueda por correo usa `email` y la búsqueda por nombre usa `name`. Las reglas permiten que un farmacéutico activo lea únicamente perfiles con `role: "patient"`; no puede leer perfiles de otro personal. Despliega las reglas después de actualizarlas:
 
 ```sh
 firebase deploy --only firestore:rules

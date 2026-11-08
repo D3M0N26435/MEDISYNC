@@ -39,7 +39,7 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 - El médico solo puede pasar una cita de `scheduled` a `completed` o `no_show`. `completed` exige crear `medicalRecords` y, si hay receta, `prescriptions` en el mismo batch. `no_show` no crea historial.
 - `pharmacySales` es inmutable: el farmacéutico crea la venta y nadie la actualiza ni la borra. Valida claves exactas, productos (`name`, `quantity`, `unitPrice`, `subtotal`), total, pago y que `pharmacyId` coincida con su `locationId`.
 - Las reglas permiten al farmacéutico listar `users` **solo** con `where('role', '==', 'patient')`. No cambies esa consulta a una lista sin filtro: Firestore rechazará la lectura y expondrías perfiles de personal.
-- El buscador de asegurados usa `users/{uid}.carnet`; el campo es opcional y se crea a mano en Firestore. También busca por `email` y `name`.
+- El buscador de asegurados usa `users/{uid}.carnet`; el panel de admin lo rellena al crear pacientes. También busca por `email` y `name`. El carnet es el identificador visible, pero el ID del documento sigue siendo el UID de Firebase Auth: cambiarlo rompería `role_required`, citas, recetas e historial. La unicidad del carnet se comprueba en el navegador; no hay restricción nativa en Firestore.
 - `active` ausente se interpreta como activo. La baja es lógica (`active: false`), nunca borrar `users`.
 - Despliega reglas tras cambiarlas; no hay emulador configurado.
 
@@ -52,7 +52,7 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 - El cierre de sesión siempre vía `closeSession()` de `static/js/firebase.js` (hace signOut + POST `/auth/logout`).
 - Los paneles con pestañas (paciente y farmacéutico) usan `data-*-tab`, `aria-selected` y paneles con `hidden`/`.active`. Replica `patient.js` o `pharmacist.js`; no inventes otro patrón de navegación.
 - El farmacéutico tiene dos flujos separados: `Venta directa` (`pharmacySales`, clientes no registrados) y `Asegurados` (búsqueda de pacientes + `prescriptionOrders` de su farmacia). No mezcles ventas con recetas.
-- No hay endpoint de alta de pacientes: el admin solo crea `doctor`, `pharmacist` y `admin`. Los pacientes se crean manualmente en la consola de Firebase.
+- El admin crea `doctor`, `pharmacist`, `admin` y `patient` desde `admin.js`. Para pacientes pide carnet, nombre, correo y contraseña, crea la cuenta con un segundo `initializeApp` para no cerrar la sesión del admin y guarda `users/{uid}` con `role: 'patient'`, `carnet`, `name`, `email`, `active: true` y timestamps. Si falla la escritura en Firestore, elimina la cuenta de Authentication recién creada.
 
 ## Chat y bots
 

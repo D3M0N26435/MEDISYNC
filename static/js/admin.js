@@ -28,7 +28,7 @@ function escapeHtml(value = '') {
 }
 
 function roleName(role) {
-    return ({ admin: 'Administrador', doctor: 'Médico', pharmacist: 'Farmacéutico' })[role] || role || 'Sin rol';
+    return ({ admin: 'Administrador', doctor: 'Médico', pharmacist: 'Farmacéutico', patient: 'Paciente' })[role] || role || 'Sin rol';
 }
 
 function locationTypeName(type) {
@@ -352,6 +352,149 @@ async function handleStaffAction(event) {
     }
 }
 
+// El carnet es el identificador visible; el documento sigue usando el UID de Firebase Auth.
+function patientEntries() {
+    return [...staffById.entries()].filter(([, user]) => user.role === 'patient');
+}
+
+function renderPatients() {
+    const search = $('patient-search').value.trim().toLowerCase();
+    const rows = patientEntries().sort((a, b) => (a[1].name || '').localeCompare(b[1].name || '', 'es'));
+    const filtered = rows.filter(([, user]) => {
+        const text = `${user.carnet || ''} ${user.name || ''} ${user.email || ''}`.toLowerCase();
+        return !search || text.includes(search);
+    });
+    const tbody = $('patients-table-body');
+    if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">${rows.length ? 'No hay pacientes que coincidan con la búsqueda.' : 'Todavía no hay pacientes registrados.'}</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = filtered.map(([uid, user]) => {
+        const disabled = user.active === false;
+        return `<tr>
+            <td><strong>${escapeHtml(user.carnet || 'Sin carnet')}</strong></td>
+            <td><strong>${escapeHtml(user.name || 'Sin nombre')}</strong></td>
+            <td>${escapeHtml(user.email || 'Sin correo')}</td>
+            <td><span class="status-pill ${disabled ? 'disabled' : 'enabled'}">${disabled ? 'Inactivo' : 'Activo'}</span></td>
+            <td><div class="row-actions"><button type="button" class="table-action" data-patient-action="edit" data-id="${escapeHtml(uid)}">Editar</button>${disabled ? `<button type="button" class="table-action restore" data-patient-action="restore" data-id="${escapeHtml(uid)}">Reactivar</button>` : `<button type="button" class="table-action danger" data-patient-action="deactivate" data-id="${escapeHtml(uid)}">Dar de baja</button>`}<button type="button" class="table-action" data-patient-action="reset" data-id="${escapeHtml(uid)}">Restablecer acceso</button></div></td>
+        </tr>`;
+    }).join('');
+}
+
+function openPatientForm(uid = '') {
+    $('patient-form').reset();
+    $('patient-uid').value = uid;
+    const editing = Boolean(uid);
+    const user = editing ? staffById.get(uid) : null;
+    if (editing && !user) return;
+    $('patient-form-eyebrow').textContent = editing ? 'EDITAR PACIENTE' : 'NUEVO PACIENTE';
+    $('patient-form-title').textContent = editing ? 'Editar paciente' : 'Añadir paciente';
+    $('save-patient-button').textContent = editing ? 'Guardar cambios' : 'Crear paciente';
+    $('patient-carnet').value = user?.carnet || '';
+    $('patient-name').value = user?.name || '';
+    $('patient-email').value = user?.email || '';
+    $('patient-email').readOnly = editing;
+    $('patient-email').required = !editing;
+    $('patient-password-group').hidden = editing;
+    $('patient-password').required = !editing;
+    $('patient-editor-card').hidden = false;
+    $('patient-editor-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function savePatient(event) {
+    event.preventDefault();
+    const uid = $('patient-uid').value;
+    const carnet = $('patient-carnet').value.trim();
+    const name = $('patient-name').value.trim();
+    const email = $('patient-email').value.trim().toLowerCase();
+    const password = $('patient-password').value;
+    if (!carnet) {
+        showFeedback('El carnet de identidad es obligatorio.', 'error');
+        return;
+    }
+    const duplicateCarnet = patientEntries().some(([id, user]) => id !== uid
+        && String(user.carnet || '').trim().toLowerCase() === carnet.toLowerCase());
+    if (duplicateCarnet) {
+        showFeedback('Ya existe un paciente con ese carnet de identidad.', 'error');
+        return;
+    }
+    const saveButton = $('save-patient-button');
+    saveButton.disabled = true;
+    try {
+        if (uid) {
+            await updateDoc(doc(db, 'users', uid), {
+                carnet,
+                name,
+                role: 'patient',
+                updatedAt: serverTimestamp()
+            });
+            showFeedback('Paciente actualizado.');
+        } else {
+            if (password.length < 6) throw new Error('La contraseña inicial debe tener al menos 6 caracteres.');
+            const secondaryApp = initializeApp(firebaseConfig, `patient-creation-${Date.now()}`);
+            try {
+                const secondaryAuth = getAuth(secondaryApp);
+                const credential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+                try {
+                    await setDoc(doc(db, 'users', credential.user.uid), {
+                        carnet,
+                        name,
+                        email,
+                        role: 'patient',
+                        active: true,
+                        createdAt: serverTimestamp()
+                    });
+                } catch (error) {
+                    await deleteUser(credential.user).catch(() => {});
+                    throw error;
+                }
+                await signOut(secondaryAuth);
+            } finally {
+                await deleteApp(secondaryApp);
+            }
+            showFeedback('Paciente creado. Ya puede iniciar sesión con su correo y contraseña.');
+        }
+        $('patient-editor-card').hidden = true;
+        await loadData();
+    } catch (error) {
+        console.error(error);
+        showFeedback(friendlyError(error, 'No se pudo guardar el paciente.'), 'error');
+    } finally {
+        saveButton.disabled = false;
+    }
+}
+
+async function handlePatientAction(event) {
+    const button = event.target.closest('[data-patient-action]');
+    if (!button) return;
+    const { id, patientAction } = button.dataset;
+    const user = staffById.get(id);
+    if (!user) return;
+    try {
+        if (patientAction === 'edit') return openPatientForm(id);
+        if (patientAction === 'reset') {
+            if (!user.email) {
+                showFeedback('Este paciente no tiene un correo registrado.', 'error');
+                return;
+            }
+            await sendPasswordResetEmail(auth, user.email);
+            showFeedback(`Se envió un enlace para restablecer el acceso a ${user.email}.`);
+            return;
+        }
+        if (patientAction === 'deactivate' || patientAction === 'restore') {
+            const active = patientAction === 'restore';
+            const actionText = active ? 'reactivar' : 'dar de baja';
+            if (!window.confirm(`¿Quieres ${actionText} a ${user.name || user.carnet || user.email}?`)) return;
+            await updateDoc(doc(db, 'users', id), { active, updatedAt: serverTimestamp() });
+            showFeedback(active ? 'Paciente reactivado.' : 'Paciente dado de baja. Su acceso quedará bloqueado al siguiente inicio de sesión.');
+            await loadData();
+        }
+    } catch (error) {
+        console.error(error);
+        showFeedback(friendlyError(error, 'No se pudo completar la acción.'), 'error');
+    }
+}
+
 function syncLocationSelect() {
     const select = $('staff-location');
     const selected = select.value;
@@ -521,6 +664,7 @@ async function loadData() {
     doctorDirectorySnapshot.forEach((item) => doctorDirectoryById.set(item.id, item.data()));
     syncLocationSelect();
     renderStaff();
+    renderPatients();
     renderLocations();
     renderLocationTeam();
 }
@@ -558,6 +702,12 @@ function bindEvents() {
     $('vacation-periods').addEventListener('click', (event) => event.target.closest('.remove-vacation')?.closest('.vacation-row')?.remove());
     $('cancel-staff-button').addEventListener('click', () => $('staff-editor-card').hidden = true);
     $('cancel-staff-button-bottom').addEventListener('click', () => $('staff-editor-card').hidden = true);
+    $('new-patient-button').addEventListener('click', () => openPatientForm());
+    $('patient-form').addEventListener('submit', savePatient);
+    $('patient-search').addEventListener('input', renderPatients);
+    $('patients-table-body').addEventListener('click', handlePatientAction);
+    $('cancel-patient-button').addEventListener('click', () => $('patient-editor-card').hidden = true);
+    $('cancel-patient-button-bottom').addEventListener('click', () => $('patient-editor-card').hidden = true);
     $('new-location-button').addEventListener('click', () => openLocationForm());
     $('location-form').addEventListener('submit', saveLocation);
     $('locations-list').addEventListener('click', handleLocationClick);

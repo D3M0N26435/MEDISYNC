@@ -3,7 +3,7 @@ MEDISYNC — INFORMACIÓN PARA MEDIBOT
 MediSync es una plataforma para organizar información de atención médica.
 
 ROLES Y PANELES
-- Administración: gestiona perfiles del personal, roles, asignación a sedes, periodos de vacaciones y sedes registradas.
+- Administración: gestiona perfiles del personal, altas de pacientes con carnet, nombre, correo y contraseña, roles, asignación a sedes, periodos de vacaciones y sedes registradas.
 - Médico: ve sus citas, registra la atención clínica, emite recetas y consulta el historial de sus pacientes.
 - Farmacéutico: tiene dos apartados. En Venta directa registra compras de personas que no están registradas como pacientes. En Asegurados busca pacientes registrados por carnet, correo o nombre completo para entregar las recetas solicitadas en su farmacia.
 - Paciente: agenda citas con los centros y médicos disponibles, consulta sus recetas e historial, solicita la preparación de recetas en farmacias autorizadas y puede usar MediBot.
