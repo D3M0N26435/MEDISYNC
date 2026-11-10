@@ -12,6 +12,7 @@ import {
     where
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
+import { attachMedicationAutocomplete, medicationDisplayName } from './medication-autocomplete.js';
 
 const $ = (id) => document.getElementById(id);
 const tabTitles = {
@@ -123,21 +124,6 @@ function activeMedications() {
     return medications.filter((medication) => medication.active !== false);
 }
 
-function filterMedications(term, limit = 8) {
-    const terms = normalize(term).split(/\s+/).filter(Boolean);
-    return activeMedications()
-        .filter((medication) => {
-            if (!terms.length) return true;
-            const haystack = normalize(`${medication.name || ''} ${medication.presentation || ''}`);
-            return terms.every((part) => haystack.includes(part));
-        })
-        .slice(0, limit);
-}
-
-function medicationSaleName(medication) {
-    return [medication.name, medication.presentation].filter(Boolean).join(' · ');
-}
-
 function addSaleItemRow(item = {}) {
     const row = document.createElement('div');
     row.className = 'sale-item-row';
@@ -148,8 +134,6 @@ function addSaleItemRow(item = {}) {
     const nameLabel = document.createElement('label');
     nameLabel.textContent = 'Producto';
     nameLabel.htmlFor = `sale-product-name-${rowId}`;
-    const picker = document.createElement('div');
-    picker.className = 'sale-product-picker';
     const name = document.createElement('input');
     name.type = 'text';
     name.id = `sale-product-name-${rowId}`;
@@ -157,21 +141,7 @@ function addSaleItemRow(item = {}) {
     name.placeholder = 'Escribe o elige un producto';
     name.dataset.saleName = '';
     name.value = item.name || '';
-    name.autocomplete = 'off';
-    const suggestionId = `sale-product-suggestions-${rowId}`;
-    name.setAttribute('role', 'combobox');
-    name.setAttribute('aria-autocomplete', 'list');
-    name.setAttribute('aria-haspopup', 'listbox');
-    name.setAttribute('aria-expanded', 'false');
-    name.setAttribute('aria-controls', suggestionId);
-    const suggestions = document.createElement('div');
-    suggestions.id = suggestionId;
-    suggestions.className = 'sale-product-suggestions';
-    suggestions.setAttribute('role', 'listbox');
-    suggestions.setAttribute('aria-label', 'Sugerencias de productos');
-    suggestions.hidden = true;
-    picker.append(name, suggestions);
-    nameField.append(nameLabel, picker);
+    nameField.append(nameLabel, name);
 
     const quantityLabel = document.createElement('label');
     quantityLabel.textContent = 'Cantidad';
@@ -201,114 +171,32 @@ function addSaleItemRow(item = {}) {
     remove.type = 'button';
     remove.setAttribute('aria-label', 'Quitar producto');
 
-    let activeIndex = -1;
-    let visibleMedications = [];
-    let hideTimer = null;
-
-    function hideSuggestions() {
-        window.clearTimeout(hideTimer);
-        suggestions.hidden = true;
-        suggestions.replaceChildren();
-        visibleMedications = [];
-        activeIndex = -1;
-        name.setAttribute('aria-expanded', 'false');
-        name.removeAttribute('aria-activedescendant');
-    }
-
-    function chooseMedication(medication) {
-        name.value = medicationSaleName(medication);
-        price.value = medication.unitPrice ?? '';
-        row.dataset.medicationId = medication.id;
-        hideSuggestions();
-        updateSaleTotals();
-    }
-
-    function setActiveOption(index) {
-        if (!visibleMedications.length) return;
-        activeIndex = (index + visibleMedications.length) % visibleMedications.length;
-        suggestions.querySelectorAll('.sale-product-option').forEach((option, optionIndex) => {
-            const selected = optionIndex === activeIndex;
-            option.classList.toggle('active', selected);
-            option.setAttribute('aria-selected', String(selected));
-            if (selected) {
-                name.setAttribute('aria-activedescendant', option.id);
-                option.scrollIntoView({ block: 'nearest' });
+    attachMedicationAutocomplete({
+        input: name,
+        getMedications: activeMedications,
+        onSelect: (medication) => {
+            name.value = medicationDisplayName(medication);
+            price.value = medication.unitPrice ?? '';
+            row.dataset.medicationId = medication.id;
+            updateSaleTotals();
+        },
+        onInput: () => {
+            const hadMedication = Boolean(row.dataset.medicationId);
+            row.dataset.medicationId = '';
+            const typed = normalize(name.value);
+            const candidates = activeMedications();
+            const byName = candidates.filter((medication) => normalize(medication.name) === typed);
+            const exact = candidates.find((medication) => normalize(medicationDisplayName(medication)) === typed)
+                || (byName.length === 1 ? byName[0] : null);
+            if (exact) {
+                price.value = exact.unitPrice ?? '';
+                row.dataset.medicationId = exact.id;
+            } else if (hadMedication) {
+                price.value = '';
             }
-        });
-    }
-
-    function renderSuggestions() {
-        const matches = filterMedications(name.value, 8);
-        visibleMedications = matches;
-        activeIndex = -1;
-        name.removeAttribute('aria-activedescendant');
-        suggestions.replaceChildren();
-        if (!matches.length) {
-            hideSuggestions();
-            return;
-        }
-        matches.forEach((medication, index) => {
-            const option = document.createElement('button');
-            option.type = 'button';
-            option.id = `${suggestionId}-option-${index}`;
-            option.className = 'sale-product-option';
-            option.tabIndex = -1;
-            option.setAttribute('role', 'option');
-            option.setAttribute('aria-selected', 'false');
-            option.dataset.medicationId = medication.id;
-            option.append(
-                textElement('strong', medication.name || 'Medicamento'),
-                textElement('span', [medication.presentation || '', formatMoney(medication.unitPrice)].filter(Boolean).join(' · '))
-            );
-            option.addEventListener('pointerdown', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                chooseMedication(medication);
-            });
-            suggestions.append(option);
-        });
-        suggestions.hidden = false;
-        name.setAttribute('aria-expanded', 'true');
-    }
-
-    name.addEventListener('input', () => {
-        const hadMedication = Boolean(row.dataset.medicationId);
-        row.dataset.medicationId = '';
-        const typed = normalize(name.value);
-        const candidates = activeMedications();
-        const byName = candidates.filter((medication) => normalize(medication.name) === typed);
-        const exact = candidates.find((medication) => normalize(medicationSaleName(medication)) === typed)
-            || (byName.length === 1 ? byName[0] : null);
-        if (exact) {
-            price.value = exact.unitPrice ?? '';
-            row.dataset.medicationId = exact.id;
-        } else if (hadMedication) {
-            price.value = '';
-        }
-        renderSuggestions();
-    });
-    name.addEventListener('focus', () => {
-        window.clearTimeout(hideTimer);
-        renderSuggestions();
-    });
-    name.addEventListener('blur', () => {
-        hideTimer = window.setTimeout(hideSuggestions, 120);
-    });
-    name.addEventListener('keydown', (event) => {
-        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-            if (suggestions.hidden) renderSuggestions();
-            if (!visibleMedications.length) return;
-            event.preventDefault();
-            setActiveOption(event.key === 'ArrowDown' ? activeIndex + 1 : activeIndex - 1);
-            return;
-        }
-        if (event.key === 'Enter') {
-            if (suggestions.hidden || !visibleMedications.length) return;
-            event.preventDefault();
-            chooseMedication(visibleMedications[activeIndex >= 0 ? activeIndex : 0]);
-            return;
-        }
-        if (event.key === 'Escape') hideSuggestions();
+        },
+        getMeta: (medication) => [medication.presentation || '', formatMoney(medication.unitPrice)].filter(Boolean).join(' · '),
+        ariaLabel: 'Sugerencias de productos'
     });
 
     row.append(nameField, quantityLabel, priceLabel, subtotal, remove);

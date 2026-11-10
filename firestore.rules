@@ -209,7 +209,10 @@ service cloud.firestore {
 
     // Catálogo de productos de cada farmacia. No controla existencias ni inventario.
     match /medications/{medicationId} {
+      // El médico puede consultar todo el catálogo para elegir el nombre del
+      // medicamento al emitir una receta; no puede crear, editar ni borrar.
       allow get, list: if isAdmin()
+        || isDoctor()
         || (isPharmacist() && resource.data.pharmacyId == profile(request.auth.uid).locationId);
       allow create: if isPharmacist()
         && request.resource.data.keys().hasAll([

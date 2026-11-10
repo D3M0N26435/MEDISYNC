@@ -68,39 +68,6 @@
 }
 .sale-item-subtotal { padding-bottom: 9px; color: var(--heading); font-size: .84rem; font-weight: 700; white-space: nowrap; }
 
-.sale-product-picker { position: relative; min-width: 0; }
-.sale-product-suggestions {
-    position: absolute;
-    z-index: 40;
-    top: calc(100% + 5px);
-    left: 0;
-    right: 0;
-    max-height: 240px;
-    padding: 5px;
-    overflow-y: auto;
-    border: 1px solid var(--border-strong);
-    border-radius: 10px;
-    background: var(--surface);
-    box-shadow: var(--shadow-lg);
-}
-.sale-product-option {
-    width: 100%;
-    display: grid;
-    gap: 2px;
-    padding: 8px 10px;
-    border: 0;
-    border-radius: 7px;
-    background: transparent;
-    color: var(--text);
-    text-align: left;
-    cursor: pointer;
-}
-.sale-product-option + .sale-product-option { border-top: 1px solid var(--border); border-radius: 0; }
-.sale-product-option:hover,
-.sale-product-option.active { background: var(--primary-light); color: var(--primary); }
-.sale-product-option strong { font-size: .82rem; }
-.sale-product-option span { color: var(--text-muted); font-size: .75rem; }
-
 .sale-summary {
     display: flex;
     justify-content: space-between;
@@ -180,10 +147,6 @@ html[data-theme="dark"] #patient-search,
 html[data-theme="dark"] #medication-search,
 html[data-theme="dark"] .pharmacist-form-grid input,
 html[data-theme="dark"] .pharmacist-form-grid select { background: #0b2225; color: var(--text); border-color: var(--border); }
-html[data-theme="dark"] .sale-product-suggestions { background: #102a2d; border-color: #31565b; }
-html[data-theme="dark"] .sale-product-option { color: var(--text); }
-html[data-theme="dark"] .sale-product-option:hover,
-html[data-theme="dark"] .sale-product-option.active { background: #123b3d; color: #5eead4; }
 html[data-theme="dark"] .medication-delete { color: #ffaaa0; border-color: #5d2c2a; }
 html[data-theme="dark"] .medication-delete:hover { background: #3d1c1c; border-color: #8f4741; }
 html[data-theme="dark"] .sale-summary { background: #123b3d; color: #5eead4; }

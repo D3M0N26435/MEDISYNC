@@ -97,12 +97,8 @@ export function attachMapTools({ map, getDestination }) {
     info.setAttribute('aria-live', 'polite');
     container.append(actions, info);
 
-    L.DomEvent.disableClickPropagation(container);
-    L.DomEvent.disableScrollPropagation(container);
-
-    const control = L.control({ position: 'topright' });
-    control.onAdd = () => container;
-    control.addTo(map);
+    // Los controles viven fuera del mapa para no tapar la cartografía.
+    map.getContainer().insertAdjacentElement('afterend', container);
 
     let currentPosition = null;
     let currentMarker = null;
@@ -124,6 +120,8 @@ export function attachMapTools({ map, getDestination }) {
         info.append(createElement('p', 'map-tools-message', `Ruta hacia ${destination.name || 'el destino'}`));
         const steps = route.legs?.[0]?.steps || [];
         if (steps.length) {
+            const details = createElement('details', 'map-tools-directions');
+            details.append(createElement('summary', '', 'Ver indicaciones'));
             const list = createElement('ol', 'map-tools-steps');
             steps.forEach((step) => {
                 const item = document.createElement('li');
@@ -132,7 +130,8 @@ export function attachMapTools({ map, getDestination }) {
                 if (stepDistance) item.append(` · ${stepDistance}`);
                 list.append(item);
             });
-            info.append(list);
+            details.append(list);
+            info.append(details);
         }
     }
 

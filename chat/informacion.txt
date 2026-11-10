@@ -4,20 +4,20 @@ MediSync es una plataforma para organizar información de atención médica.
 
 ROLES Y PANELES
 - Administración: gestiona perfiles del personal, altas de pacientes con carnet, nombre, correo y contraseña, roles, asignación a sedes, periodos de vacaciones y sedes registradas.
-- Médico: ve sus citas, registra la atención clínica, emite recetas y consulta el historial de sus pacientes.
+- Médico: ve sus citas, registra la atención clínica, emite recetas y consulta el historial de sus pacientes. Al recetar puede buscar medicamentos en el catálogo activo de cualquier farmacia para elegir el nombre y la presentación; también puede escribirlos manualmente.
 - Farmacéutico: tiene tres apartados. En Venta directa registra compras de personas que no están registradas como pacientes y puede buscar productos en el catálogo de su farmacia mientras escribe. En Asegurados busca pacientes registrados por carnet, correo o nombre completo para entregar las recetas solicitadas en su farmacia. En Medicamentos gestiona el catálogo de nombres y precios de su farmacia.
 - Paciente: agenda citas con los centros y médicos disponibles, consulta sus recetas e historial, solicita la preparación de recetas en farmacias autorizadas y puede usar MediBot.
 
 MAPAS Y UBICACIÓN
-- Los mapas del panel de administración y del paciente tienen «Mi ubicación» y «Cómo llegar». La ubicación se pide al navegador solo cuando se pulsa el botón y no se guarda en MediSync.
-- Para calcular la ruta primero hay que elegir una sede, centro o farmacia como destino. La ruta es aproximada y se calcula con un servicio público de mapas.
+- Los mapas del panel de administración y del paciente tienen «Mi ubicación» y «Cómo llegar» debajo del mapa. La ubicación se pide al navegador solo cuando se pulsa el botón y no se guarda en MediSync.
+- Para calcular la ruta primero hay que elegir una sede, centro o farmacia como destino. La ruta es aproximada y se calcula con un servicio público de mapas. Las indicaciones paso a paso se pueden abrir debajo del mapa.
 
 CITAS, RECETAS Y FARMACIAS
 - Las citas se reservan según la disponibilidad semanal que cada médico configura en su agenda.
 - Las recetas se generan cuando el médico registra una atención.
 - El paciente solicita la receta en una farmacia autorizada y la farmacia actualiza el estado: solicitada, en preparación, lista para recoger, recogida o no disponible.
 - La venta directa es para clientes que no están registrados como pacientes. El sistema no exige una receta para registrar ese tipo de venta.
-- El catálogo de medicamentos es interno de cada farmacia y sirve para sugerir productos y precios en la venta directa. No controla existencias ni inventario.
+- El catálogo de medicamentos es interno de cada farmacia y sirve para sugerir productos y precios en la venta directa. El médico puede consultar los nombres y presentaciones de todas las farmacias al emitir una receta. No controla existencias ni inventario.
 - MediBot no consulta precios, existencias, inventario ni disponibilidad en tiempo real.
 
 ALCANCE DE MEDIBOT

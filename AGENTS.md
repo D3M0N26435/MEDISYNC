@@ -38,7 +38,7 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 - La reserva de cita es un batch atómico: `appointments` + `appointmentSlots`. No la separes en dos escrituras.
 - El médico solo puede pasar una cita de `scheduled` a `completed` o `no_show`. `completed` exige crear `medicalRecords` y, si hay receta, `prescriptions` en el mismo batch. `no_show` no crea historial.
 - `pharmacySales` es inmutable: el farmacéutico crea la venta y nadie la actualiza ni la borra. Valida claves exactas, productos (`name`, `quantity`, `unitPrice`, `subtotal`), total, pago y que `pharmacyId` coincida con su `locationId`.
-- `medications` es el catálogo editable de cada farmacia (`pharmacyId`, `name`, `presentation`, `unitPrice`, `active`, `createdBy`, timestamps). El farmacéutico solo puede leer/escribir los de su `locationId`; el admin puede leer todos. No hay stock ni inventario. Las ventas guardan una copia del nombre y precio, así que editar o borrar un medicamento no altera ventas pasadas.
+- `medications` es el catálogo editable de cada farmacia (`pharmacyId`, `name`, `presentation`, `unitPrice`, `active`, `createdBy`, timestamps). El farmacéutico solo puede leer/escribir los de su `locationId`; el admin y el médico pueden leer todos (el médico solo para elegir el medicamento al recetar). No hay stock ni inventario. Las ventas guardan una copia del nombre y precio, así que editar o borrar un medicamento no altera ventas pasadas.
 - Las reglas permiten al farmacéutico listar `users` **solo** con `where('role', '==', 'patient')`. No cambies esa consulta a una lista sin filtro: Firestore rechazará la lectura y expondrías perfiles de personal.
 - El buscador de asegurados usa `users/{uid}.carnet`; el panel de admin lo rellena al crear pacientes. También busca por `email` y `name`. El carnet es el identificador visible, pero el ID del documento sigue siendo el UID de Firebase Auth: cambiarlo rompería `role_required`, citas, recetas e historial. La unicidad del carnet se comprueba en el navegador; no hay restricción nativa en Firestore.
 - `active` ausente se interpreta como activo. La baja es lógica (`active: false`), nunca borrar `users`.
@@ -47,13 +47,14 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 ## Estructura y convenciones del frontend
 
 - Sin bundler: ES modules nativos importados desde `https://www.gstatic.com/firebasejs/12.19.0/...`; Leaflet 1.9.4 desde unpkg.
-- `static/js/map-utils.js` centraliza «Mi ubicación» y «Cómo llegar» para los mapas de admin y paciente. Usa `attachMapTools({ map, getDestination })`; la geolocalización es bajo demanda y las rutas usan el servicio público OSRM sin clave, por lo que puede fallar o limitarse.
+- `static/js/map-utils.js` centraliza «Mi ubicación» y «Cómo llegar» para los mapas de admin y paciente. Usa `attachMapTools({ map, getDestination })`; inserta los controles debajo del mapa (nunca como overlay) y muestra las indicaciones plegadas. La geolocalización es bajo demanda y las rutas usan el servicio público OSRM sin clave, por lo que puede fallar o limitarse.
 - Cada panel es una plantilla Jinja que inyecta la config pública en `<script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>`. Si creas un panel, replica eso + `theme.js` en `<head>` + `logout.js` al final.
 - El login real es `static/js/login.js`; ignora `js/login.js` en la raíz (archivo vacío heredado).
 - Usa `textContent` o el patrón `textElement()` para datos de usuario. En HTML generado por plantillas string (p. ej. `admin.js`), pasa todo por `escapeHtml()`.
 - El cierre de sesión siempre vía `closeSession()` de `static/js/firebase.js` (hace signOut + POST `/auth/logout`).
 - Los paneles con pestañas (paciente y farmacéutico) usan `data-*-tab`, `aria-selected` y paneles con `hidden`/`.active`. Replica `patient.js` o `pharmacist.js`; no inventes otro patrón de navegación.
 - El farmacéutico tiene tres flujos separados: `Venta directa` (`pharmacySales`, clientes no registrados con autocompletado desde `medications`), `Asegurados` (búsqueda de pacientes + `prescriptionOrders` de su farmacia) y `Medicamentos` (CRUD del catálogo de su farmacia). No mezcles ventas con recetas ni uses `medications` como inventario.
+- El autocompletado de medicamentos vive en `static/js/medication-autocomplete.js` y lo comparten farmacéutico y médico. El médico consulta todo el catálogo activo y deduplica por nombre/presentación para elegir el medicamento de la receta; no escribe en `medications`.
 - El admin crea `doctor`, `pharmacist`, `admin` y `patient` desde `admin.js`. Para pacientes pide carnet, nombre, correo y contraseña, crea la cuenta con un segundo `initializeApp` para no cerrar la sesión del admin y guarda `users/{uid}` con `role: 'patient'`, `carnet`, `name`, `email`, `active: true` y timestamps. Si falla la escritura en Firestore, elimina la cuenta de Authentication recién creada.
 
 ## Chat y bots

@@ -488,16 +488,22 @@ async function requestPrescription(event) {
         return;
     }
 
+    const orderId = `${prescriptionId}_${state.user.uid}_${pharmacyId}`;
+    // No se hace getDoc antes de crear: las reglas niegan leer un documento
+    // inexistente, aunque luego el setDoc sí esté permitido.
+    const existingOrder = state.orders.find((order) => order.id === orderId);
+    if (existingOrder) {
+        const message = existingOrder.status === 'rejected'
+            ? 'La solicitud anterior en esta farmacia fue rechazada. Elige otra farmacia.'
+            : 'Ya existe una solicitud para esta receta y farmacia.';
+        setFeedback('prescription-feedback', message, true);
+        return;
+    }
+
     button.disabled = true;
     setFeedback('prescription-feedback', 'Enviando solicitud a la farmacia…');
-    const orderId = `${prescriptionId}_${state.user.uid}_${pharmacyId}`;
     try {
         const orderRef = doc(db, 'prescriptionOrders', orderId);
-        const existing = await getDoc(orderRef);
-        if (existing.exists()) {
-            setFeedback('prescription-feedback', 'Ya existe una solicitud para esta receta y farmacia.', true);
-            return;
-        }
         await setDoc(orderRef, {
             patientId: state.user.uid,
             prescriptionId,
@@ -512,7 +518,10 @@ async function requestPrescription(event) {
         setFeedback('prescription-feedback', `Solicitud enviada a ${pharmacy.name}.`);
     } catch (error) {
         console.error(error);
-        setFeedback('prescription-feedback', 'No se pudo solicitar la receta. Actualiza la página e inténtalo de nuevo.', true);
+        const message = error?.code === 'permission-denied'
+            ? 'No se pudo solicitar la receta. Comprueba que siga vigente y que la farmacia esté activa. Si el problema continúa, avisa al administrador.'
+            : 'No se pudo solicitar la receta. Revisa tu conexión e inténtalo de nuevo.';
+        setFeedback('prescription-feedback', message, true);
         button.disabled = false;
     }
 }

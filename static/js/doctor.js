@@ -12,11 +12,14 @@ import {
     writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
+import { attachMedicationAutocomplete, medicationDisplayName, normalizeText } from './medication-autocomplete.js';
 
 const $ = (id) => document.getElementById(id);
 let currentUser = null;
 let appointments = [];
 let selectedAppointment = null;
+let medicationCatalog = [];
+let medicineRowSequence = 0;
 
 function textElement(tag, text, className = '') {
     const element = document.createElement(tag);
@@ -116,15 +119,21 @@ function renderAppointments() {
 function addMedicineRow(item = {}) {
     const row = document.createElement('div');
     row.className = 'doctor-medicine-row';
+
+    const nameField = document.createElement('div');
+    nameField.className = 'doctor-medicine-field';
     const nameLabel = document.createElement('label');
     nameLabel.textContent = 'Medicamento';
     const name = document.createElement('input');
     name.type = 'text';
-    name.maxLength = 160;
-    name.placeholder = 'Nombre y concentración';
+    name.id = `doctor-medicine-name-${++medicineRowSequence}`;
+    name.maxLength = 280;
+    name.placeholder = 'Escribe o elige un medicamento';
     name.dataset.medicineName = '';
     name.value = item.name || '';
-    nameLabel.append(name);
+    nameLabel.htmlFor = name.id;
+    nameField.append(nameLabel, name);
+
     const directionsLabel = document.createElement('label');
     directionsLabel.textContent = 'Dosis e indicaciones';
     const directions = document.createElement('input');
@@ -134,10 +143,26 @@ function addMedicineRow(item = {}) {
     directions.dataset.medicineDirections = '';
     directions.value = item.instructions || '';
     directionsLabel.append(directions);
+
     const remove = textElement('button', '−', 'icon-button remove-medicine');
     remove.type = 'button';
     remove.setAttribute('aria-label', 'Quitar medicamento');
-    row.append(nameLabel, directionsLabel, remove);
+
+    attachMedicationAutocomplete({
+        input: name,
+        getMedications: () => medicationCatalog,
+        onSelect: (medication) => {
+            name.value = medicationDisplayName(medication);
+            row.dataset.medicationId = medication.id;
+            directions.focus();
+        },
+        onInput: () => {
+            row.dataset.medicationId = '';
+        },
+        getMeta: (medication) => medication.presentation || ''
+    });
+
+    row.append(nameField, directionsLabel, remove);
     $('prescription-items').append(row);
 }
 
@@ -278,6 +303,27 @@ async function loadAppointments() {
     renderAppointments();
 }
 
+async function loadMedicationCatalog() {
+    if (!currentUser) return;
+    try {
+        const snapshot = await getDocs(collection(db, 'medications'));
+        const unique = new Map();
+        snapshot.docs.forEach((item) => {
+            const medication = { id: item.id, ...item.data() };
+            if (medication.active === false || !String(medication.name || '').trim()) return;
+            const key = `${normalizeText(medication.name)}|${normalizeText(medication.presentation || '')}`;
+            if (!unique.has(key)) unique.set(key, medication);
+        });
+        medicationCatalog = [...unique.values()]
+            .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'es')
+                || String(a.presentation || '').localeCompare(String(b.presentation || ''), 'es'));
+    } catch (error) {
+        console.error(error);
+        medicationCatalog = [];
+        showFeedback('No se pudo cargar el catálogo de medicamentos. Puedes escribir el nombre manualmente.', true);
+    }
+}
+
 async function saveClinicalRecord(event) {
     event.preventDefault();
     const appointmentId = $('record-appointment-id').value;
@@ -398,4 +444,5 @@ onAuthStateChanged(auth, async (user) => {
         console.error(error);
         showFeedback('No se pudieron cargar tus consultas. Comprueba tu conexión y las reglas de Firestore.', true);
     }
+    await loadMedicationCatalog();
 });

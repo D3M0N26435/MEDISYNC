@@ -31,7 +31,11 @@ Las reglas requieren que los documentos de personal y pacientes estén en `users
 
 ## Mapas y rutas
 
-Los mapas del panel de administración y del paciente incluyen los botones **Mi ubicación** y **Cómo llegar**. La ubicación se obtiene con la API de geolocalización del navegador (requiere HTTPS o `localhost`) y solo se solicita al pulsar el botón; no se guarda en Firestore. La ruta se calcula con el servicio público de OSRM y se dibuja en el mapa con distancia, duración y pasos. Selecciona primero una sede, centro o farmacia como destino. OSRM no requiere clave, pero es un servicio público de uso moderado y puede no estar disponible.
+Los mapas del panel de administración y del paciente incluyen los botones **Mi ubicación** y **Cómo llegar** debajo del mapa, fuera de la cartografía. La ubicación se obtiene con la API de geolocalización del navegador (requiere HTTPS o `localhost`) y solo se solicita al pulsar el botón; no se guarda en Firestore. La ruta se calcula con el servicio público de OSRM y se dibuja en el mapa con distancia y duración; las indicaciones paso a paso quedan plegadas debajo del mapa. Selecciona primero una sede, centro o farmacia como destino. OSRM no requiere clave, pero es un servicio público de uso moderado y puede no estar disponible.
+
+## Panel médico
+
+Al registrar una atención, el campo de medicamento de la receta busca en el catálogo activo de todas las farmacias para elegir el nombre y la presentación. El médico solo puede leer ese catálogo; no crea, edita ni elimina medicamentos. También puede escribir el medicamento manualmente si no está registrado.
 
 ## Panel farmacéutico
 
