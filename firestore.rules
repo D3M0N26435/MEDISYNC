@@ -207,6 +207,50 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Catálogo de productos de cada farmacia. No controla existencias ni inventario.
+    match /medications/{medicationId} {
+      allow get, list: if isAdmin()
+        || (isPharmacist() && resource.data.pharmacyId == profile(request.auth.uid).locationId);
+      allow create: if isPharmacist()
+        && request.resource.data.keys().hasAll([
+          'pharmacyId', 'name', 'presentation', 'unitPrice', 'active',
+          'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'pharmacyId', 'name', 'presentation', 'unitPrice', 'active',
+          'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.pharmacyId is string
+        && request.resource.data.pharmacyId == profile(request.auth.uid).locationId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 160
+        && request.resource.data.presentation is string
+        && request.resource.data.presentation.size() <= 120
+        && (request.resource.data.unitPrice is int || request.resource.data.unitPrice is float)
+        && request.resource.data.unitPrice >= 0
+        && request.resource.data.active is bool
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isPharmacist()
+        && resource.data.pharmacyId == profile(request.auth.uid).locationId
+        && request.resource.data.pharmacyId == resource.data.pharmacyId
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'presentation', 'unitPrice', 'active', 'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 160
+        && request.resource.data.presentation is string
+        && request.resource.data.presentation.size() <= 120
+        && (request.resource.data.unitPrice is int || request.resource.data.unitPrice is float)
+        && request.resource.data.unitPrice >= 0
+        && request.resource.data.active is bool;
+      allow delete: if isPharmacist()
+        && resource.data.pharmacyId == profile(request.auth.uid).locationId;
+    }
+
     // Ventas de mostrador a personas que no están registradas como pacientes.
     match /pharmacySales/{saleId} {
       allow get, list: if isAdmin()

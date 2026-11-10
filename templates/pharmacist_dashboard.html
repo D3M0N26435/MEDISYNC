@@ -15,6 +15,7 @@
         <ul class="nav-links pharmacist-tabs" role="tablist" aria-label="Apartados de la farmacia">
             <li><a id="pharmacist-tab-venta" class="active" href="#venta" role="tab" aria-selected="true" aria-controls="pharmacist-panel-venta" data-pharmacist-tab="venta">🧾 Venta directa</a></li>
             <li><a id="pharmacist-tab-asegurados" href="#asegurados" role="tab" aria-selected="false" aria-controls="pharmacist-panel-asegurados" data-pharmacist-tab="asegurados">🪪 Asegurados</a></li>
+            <li><a id="pharmacist-tab-medicamentos" href="#medicamentos" role="tab" aria-selected="false" aria-controls="pharmacist-panel-medicamentos" data-pharmacist-tab="medicamentos">💊 Medicamentos</a></li>
         </ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
@@ -42,7 +43,7 @@
                         </div>
 
                         <div class="sale-items-heading">
-                            <div><strong>Productos</strong><small>Nombre, cantidad y precio unitario.</small></div>
+                            <div><strong>Productos</strong><small>Escribe el nombre y elige un producto del catálogo; también puedes escribirlo manualmente.</small></div>
                             <button id="add-sale-item" class="btn-action secondary" type="button">＋ Añadir producto</button>
                         </div>
                         <div id="sale-items" class="sale-items"></div>
@@ -83,6 +84,38 @@
                     <button id="clear-patient-selection" type="button" class="icon-button" aria-label="Cerrar paciente seleccionado">✕</button>
                 </div>
                 <div id="pharmacy-orders" class="clinical-list"><p class="empty-state">Cargando solicitudes…</p></div>
+            </div>
+        </section>
+
+        <section id="pharmacist-panel-medicamentos" class="pharmacist-panel" role="tabpanel" aria-labelledby="pharmacist-tab-medicamentos" hidden>
+            <div class="clinical-heading">
+                <div><p class="eyebrow">CATÁLOGO DE LA FARMACIA</p><h2>Medicamentos y precios de venta</h2><p>Gestiona los productos que aparecen como sugerencias en la venta directa. Este catálogo no descuenta existencias ni controla inventario.</p></div>
+            </div>
+
+            <div class="pharmacist-medication-layout">
+                <div class="card pharmacist-medication-form-card">
+                    <div class="pharmacist-card-heading"><div><h3 id="medication-form-title">Nuevo medicamento</h3><p>El precio se usará para completar la venta directa.</p></div></div>
+                    <form id="medication-form">
+                        <div class="pharmacist-form-grid">
+                            <div class="form-group"><label for="medication-name">Nombre</label><input id="medication-name" maxlength="160" placeholder="Ej. Paracetamol" required></div>
+                            <div class="form-group"><label for="medication-presentation">Presentación (opcional)</label><input id="medication-presentation" maxlength="120" placeholder="Ej. Tableta 500 mg"></div>
+                            <div class="form-group"><label for="medication-price">Precio unitario (Bs)</label><input id="medication-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" required></div>
+                            <div class="form-group"><label for="medication-status">Estado</label><select id="medication-status"><option value="active">Disponible para la venta</option><option value="inactive">Inactivo</option></select></div>
+                        </div>
+                        <div class="pharmacist-form-actions">
+                            <button id="medication-cancel" class="btn-action secondary" type="button" hidden>Cancelar edición</button>
+                            <button id="medication-submit" class="btn-action" type="submit">Guardar medicamento</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card pharmacist-list-card">
+                    <div class="pharmacist-card-heading"><div><h3>Medicamentos registrados</h3><p>Los medicamentos inactivos no aparecen en las sugerencias de venta.</p></div></div>
+                    <label class="pharmacist-search-label" for="medication-search">Buscar en el catálogo</label>
+                    <input id="medication-search" type="search" placeholder="Nombre o presentación" autocomplete="off">
+                    <p id="medication-list-status" class="clinical-feedback" role="status" aria-live="polite"></p>
+                    <div id="medications-list" class="clinical-list"><p class="empty-state">Cargando medicamentos…</p></div>
+                </div>
             </div>
         </section>
     </main>

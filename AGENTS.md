@@ -28,7 +28,7 @@ firebase deploy --only firestore:rules
 
 ## Firestore: las reglas son la fuente de verdad
 
-Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointmentSlots`, `medicalRecords`, `prescriptions`, `prescriptionOrders`, `pharmacySales`.
+Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointmentSlots`, `medicalRecords`, `prescriptions`, `prescriptionOrders`, `pharmacySales`, `medications`.
 
 - Antes de cambiar la forma de un `setDoc`/`updateDoc`/`addDoc`, lee la regla correspondiente en `firestore.rules`. Varias reglas exigen **conjuntos exactos de claves** (`hasAll`/`hasOnly`), IDs derivados y transiciones de estado concretas.
 - Los IDs no son aleatorios en varios flujos:
@@ -38,6 +38,7 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 - La reserva de cita es un batch atómico: `appointments` + `appointmentSlots`. No la separes en dos escrituras.
 - El médico solo puede pasar una cita de `scheduled` a `completed` o `no_show`. `completed` exige crear `medicalRecords` y, si hay receta, `prescriptions` en el mismo batch. `no_show` no crea historial.
 - `pharmacySales` es inmutable: el farmacéutico crea la venta y nadie la actualiza ni la borra. Valida claves exactas, productos (`name`, `quantity`, `unitPrice`, `subtotal`), total, pago y que `pharmacyId` coincida con su `locationId`.
+- `medications` es el catálogo editable de cada farmacia (`pharmacyId`, `name`, `presentation`, `unitPrice`, `active`, `createdBy`, timestamps). El farmacéutico solo puede leer/escribir los de su `locationId`; el admin puede leer todos. No hay stock ni inventario. Las ventas guardan una copia del nombre y precio, así que editar o borrar un medicamento no altera ventas pasadas.
 - Las reglas permiten al farmacéutico listar `users` **solo** con `where('role', '==', 'patient')`. No cambies esa consulta a una lista sin filtro: Firestore rechazará la lectura y expondrías perfiles de personal.
 - El buscador de asegurados usa `users/{uid}.carnet`; el panel de admin lo rellena al crear pacientes. También busca por `email` y `name`. El carnet es el identificador visible, pero el ID del documento sigue siendo el UID de Firebase Auth: cambiarlo rompería `role_required`, citas, recetas e historial. La unicidad del carnet se comprueba en el navegador; no hay restricción nativa en Firestore.
 - `active` ausente se interpreta como activo. La baja es lógica (`active: false`), nunca borrar `users`.
@@ -52,7 +53,7 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 - Usa `textContent` o el patrón `textElement()` para datos de usuario. En HTML generado por plantillas string (p. ej. `admin.js`), pasa todo por `escapeHtml()`.
 - El cierre de sesión siempre vía `closeSession()` de `static/js/firebase.js` (hace signOut + POST `/auth/logout`).
 - Los paneles con pestañas (paciente y farmacéutico) usan `data-*-tab`, `aria-selected` y paneles con `hidden`/`.active`. Replica `patient.js` o `pharmacist.js`; no inventes otro patrón de navegación.
-- El farmacéutico tiene dos flujos separados: `Venta directa` (`pharmacySales`, clientes no registrados) y `Asegurados` (búsqueda de pacientes + `prescriptionOrders` de su farmacia). No mezcles ventas con recetas.
+- El farmacéutico tiene tres flujos separados: `Venta directa` (`pharmacySales`, clientes no registrados con autocompletado desde `medications`), `Asegurados` (búsqueda de pacientes + `prescriptionOrders` de su farmacia) y `Medicamentos` (CRUD del catálogo de su farmacia). No mezcles ventas con recetas ni uses `medications` como inventario.
 - El admin crea `doctor`, `pharmacist`, `admin` y `patient` desde `admin.js`. Para pacientes pide carnet, nombre, correo y contraseña, crea la cuenta con un segundo `initializeApp` para no cerrar la sesión del admin y guarda `users/{uid}` con `role: 'patient'`, `carnet`, `name`, `email`, `active: true` y timestamps. Si falla la escritura en Firestore, elimina la cuenta de Authentication recién creada.
 
 ## Chat y bots
@@ -73,7 +74,7 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 
 ## Deuda conocida (no la tomes como comportamiento correcto)
 
-- No hay colección de inventario ni existencias. `pharmacySales` registra la venta pero no descuenta stock; no prometas esa función.
+- No hay inventario ni existencias. `medications` solo guarda catálogo y precio por farmacia; `pharmacySales` registra la venta pero no descuenta stock; no prometas esa función.
 - Los limitadores de `app.py` (`_chat_requests`, `_assistant_requests`) crean entradas por UID que nunca se eliminan.
 - La búsqueda de asegurados carga todos los `users` con rol `patient` y filtra en el navegador. Si la base crece, habrá que moverla a consultas indexadas o a un directorio de pacientes.
 - El historial del médico consulta todos sus `medicalRecords`/`prescriptions` y filtra por paciente en el navegador para no exigir índices compuestos. Si crece, mover a consultas con `doctorId + patientId` e índices.

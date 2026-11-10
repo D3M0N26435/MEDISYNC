@@ -35,10 +35,11 @@ Los mapas del panel de administración y del paciente incluyen los botones **Mi 
 
 ## Panel farmacéutico
 
-El panel tiene dos pestañas:
+El panel tiene tres pestañas:
 
-- **Venta directa**: registra ventas de mostrador para personas que no están registradas como pacientes. Cada venta se guarda en `pharmacySales` con productos, cantidades, precios, total, forma de pago y datos opcionales del cliente. No descuenta inventario porque el proyecto todavía no tiene una colección de existencias.
+- **Venta directa**: registra ventas de mostrador para personas que no están registradas como pacientes. Cada venta se guarda en `pharmacySales` con productos, cantidades, precios, total, forma de pago y datos opcionales del cliente. Al escribir el nombre del producto se sugieren los medicamentos activos del catálogo de la farmacia y se completa el precio; también se puede escribir un producto manualmente. No descuenta inventario: `medications` es un catálogo de nombres y precios, sin existencias.
 - **Asegurados**: busca pacientes registrados por nombre completo, correo o carnet para entregar las recetas que solicitaron en esa farmacia. El buscador usa el campo `carnet` de `users/{uid}`; si no existe, también puede encontrar al paciente por nombre o correo.
+- **Medicamentos**: permite crear, editar, activar/desactivar y eliminar los medicamentos de esa farmacia en `medications`. Cada documento guarda `pharmacyId`, `name`, `presentation`, `unitPrice`, `active`, `createdBy`, `createdAt` y `updatedAt`. El catálogo es independiente por farmacia y no controla stock. Los medicamentos inactivos no aparecen en las sugerencias de venta.
 
 El panel de administración rellena `carnet`, `name` y `email` al crear pacientes. Para pacientes antiguos creados a mano, agrega el campo `carnet` a `users/{uid}` (por ejemplo, `"carnet": "12345678"`). La búsqueda por correo usa `email` y la búsqueda por nombre usa `name`. Las reglas permiten que un farmacéutico activo lea únicamente perfiles con `role: "patient"`; no puede leer perfiles de otro personal. Despliega las reglas después de actualizarlas:
 

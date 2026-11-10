@@ -2,6 +2,7 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.19.0/f
 import {
     addDoc,
     collection,
+    deleteDoc,
     doc,
     getDoc,
     getDocs,
@@ -13,7 +14,11 @@ import {
 import { auth, db } from './firebase.js';
 
 const $ = (id) => document.getElementById(id);
-const tabTitles = { venta: 'Venta directa', asegurados: 'Asegurados' };
+const tabTitles = {
+    venta: 'Venta directa',
+    asegurados: 'Asegurados',
+    medicamentos: 'Medicamentos'
+};
 const orderStatusLabels = {
     requested: 'Solicitada',
     preparing: 'En preparación',
@@ -42,7 +47,10 @@ let locationId = '';
 let orders = [];
 let sales = [];
 let patients = [];
+let medications = [];
 let selectedPatient = null;
+let editingMedicationId = null;
+let saleRowSequence = 0;
 
 function textElement(tag, text, className = '') {
     const element = document.createElement(tag);
@@ -111,19 +119,59 @@ function activateTab(name) {
     history.replaceState(null, '', `#${name}`);
 }
 
+function activeMedications() {
+    return medications.filter((medication) => medication.active !== false);
+}
+
+function filterMedications(term, limit = 8) {
+    const terms = normalize(term).split(/\s+/).filter(Boolean);
+    return activeMedications()
+        .filter((medication) => {
+            if (!terms.length) return true;
+            const haystack = normalize(`${medication.name || ''} ${medication.presentation || ''}`);
+            return terms.every((part) => haystack.includes(part));
+        })
+        .slice(0, limit);
+}
+
+function medicationSaleName(medication) {
+    return [medication.name, medication.presentation].filter(Boolean).join(' · ');
+}
+
 function addSaleItemRow(item = {}) {
     const row = document.createElement('div');
     row.className = 'sale-item-row';
 
+    const rowId = ++saleRowSequence;
+    const nameField = document.createElement('div');
+    nameField.className = 'sale-product-field';
     const nameLabel = document.createElement('label');
     nameLabel.textContent = 'Producto';
+    nameLabel.htmlFor = `sale-product-name-${rowId}`;
+    const picker = document.createElement('div');
+    picker.className = 'sale-product-picker';
     const name = document.createElement('input');
     name.type = 'text';
+    name.id = `sale-product-name-${rowId}`;
     name.maxLength = 160;
-    name.placeholder = 'Nombre del producto';
+    name.placeholder = 'Escribe o elige un producto';
     name.dataset.saleName = '';
     name.value = item.name || '';
-    nameLabel.append(name);
+    name.autocomplete = 'off';
+    const suggestionId = `sale-product-suggestions-${rowId}`;
+    name.setAttribute('role', 'combobox');
+    name.setAttribute('aria-autocomplete', 'list');
+    name.setAttribute('aria-haspopup', 'listbox');
+    name.setAttribute('aria-expanded', 'false');
+    name.setAttribute('aria-controls', suggestionId);
+    const suggestions = document.createElement('div');
+    suggestions.id = suggestionId;
+    suggestions.className = 'sale-product-suggestions';
+    suggestions.setAttribute('role', 'listbox');
+    suggestions.setAttribute('aria-label', 'Sugerencias de productos');
+    suggestions.hidden = true;
+    picker.append(name, suggestions);
+    nameField.append(nameLabel, picker);
 
     const quantityLabel = document.createElement('label');
     quantityLabel.textContent = 'Cantidad';
@@ -153,7 +201,117 @@ function addSaleItemRow(item = {}) {
     remove.type = 'button';
     remove.setAttribute('aria-label', 'Quitar producto');
 
-    row.append(nameLabel, quantityLabel, priceLabel, subtotal, remove);
+    let activeIndex = -1;
+    let visibleMedications = [];
+    let hideTimer = null;
+
+    function hideSuggestions() {
+        window.clearTimeout(hideTimer);
+        suggestions.hidden = true;
+        suggestions.replaceChildren();
+        visibleMedications = [];
+        activeIndex = -1;
+        name.setAttribute('aria-expanded', 'false');
+        name.removeAttribute('aria-activedescendant');
+    }
+
+    function chooseMedication(medication) {
+        name.value = medicationSaleName(medication);
+        price.value = medication.unitPrice ?? '';
+        row.dataset.medicationId = medication.id;
+        hideSuggestions();
+        updateSaleTotals();
+    }
+
+    function setActiveOption(index) {
+        if (!visibleMedications.length) return;
+        activeIndex = (index + visibleMedications.length) % visibleMedications.length;
+        suggestions.querySelectorAll('.sale-product-option').forEach((option, optionIndex) => {
+            const selected = optionIndex === activeIndex;
+            option.classList.toggle('active', selected);
+            option.setAttribute('aria-selected', String(selected));
+            if (selected) {
+                name.setAttribute('aria-activedescendant', option.id);
+                option.scrollIntoView({ block: 'nearest' });
+            }
+        });
+    }
+
+    function renderSuggestions() {
+        const matches = filterMedications(name.value, 8);
+        visibleMedications = matches;
+        activeIndex = -1;
+        name.removeAttribute('aria-activedescendant');
+        suggestions.replaceChildren();
+        if (!matches.length) {
+            hideSuggestions();
+            return;
+        }
+        matches.forEach((medication, index) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.id = `${suggestionId}-option-${index}`;
+            option.className = 'sale-product-option';
+            option.tabIndex = -1;
+            option.setAttribute('role', 'option');
+            option.setAttribute('aria-selected', 'false');
+            option.dataset.medicationId = medication.id;
+            option.append(
+                textElement('strong', medication.name || 'Medicamento'),
+                textElement('span', [medication.presentation || '', formatMoney(medication.unitPrice)].filter(Boolean).join(' · '))
+            );
+            option.addEventListener('pointerdown', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                chooseMedication(medication);
+            });
+            suggestions.append(option);
+        });
+        suggestions.hidden = false;
+        name.setAttribute('aria-expanded', 'true');
+    }
+
+    name.addEventListener('input', () => {
+        const hadMedication = Boolean(row.dataset.medicationId);
+        row.dataset.medicationId = '';
+        const typed = normalize(name.value);
+        const candidates = activeMedications();
+        const byName = candidates.filter((medication) => normalize(medication.name) === typed);
+        const exact = candidates.find((medication) => normalize(medicationSaleName(medication)) === typed)
+            || (byName.length === 1 ? byName[0] : null);
+        if (exact) {
+            price.value = exact.unitPrice ?? '';
+            row.dataset.medicationId = exact.id;
+        } else if (hadMedication) {
+            price.value = '';
+        }
+        renderSuggestions();
+    });
+    name.addEventListener('focus', () => {
+        window.clearTimeout(hideTimer);
+        renderSuggestions();
+    });
+    name.addEventListener('blur', () => {
+        hideTimer = window.setTimeout(hideSuggestions, 120);
+    });
+    name.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            if (suggestions.hidden) renderSuggestions();
+            if (!visibleMedications.length) return;
+            event.preventDefault();
+            setActiveOption(event.key === 'ArrowDown' ? activeIndex + 1 : activeIndex - 1);
+            return;
+        }
+        if (event.key === 'Enter') {
+            if (suggestions.hidden || !visibleMedications.length) return;
+            event.preventDefault();
+            chooseMedication(visibleMedications[activeIndex >= 0 ? activeIndex : 0]);
+            return;
+        }
+        if (event.key === 'Escape') hideSuggestions();
+    });
+
+    row.append(nameField, quantityLabel, priceLabel, subtotal, remove);
     $('sale-items').append(row);
     updateSaleTotals();
 }
@@ -322,6 +480,197 @@ function renderSelectedPatientOrders() {
     });
 }
 
+function renderMedicationList() {
+    const container = $('medications-list');
+    container.replaceChildren();
+    const terms = normalize($('medication-search').value).split(/\s+/).filter(Boolean);
+    const matches = medications.filter((medication) => {
+        if (!terms.length) return true;
+        const haystack = normalize(`${medication.name || ''} ${medication.presentation || ''}`);
+        return terms.every((part) => haystack.includes(part));
+    });
+
+    if (!medications.length) {
+        $('medication-list-status').textContent = 'Todavía no hay medicamentos registrados en esta farmacia.';
+        container.append(textElement('p', 'Usa el formulario para añadir el primero.', 'empty-state'));
+        return;
+    }
+    if (!matches.length) {
+        $('medication-list-status').textContent = 'No se encontraron medicamentos con ese nombre o presentación.';
+        container.append(textElement('p', 'Prueba con otra búsqueda.', 'empty-state'));
+        return;
+    }
+
+    $('medication-list-status').textContent = terms.length
+        ? `${matches.length} de ${medications.length} medicamentos.`
+        : `${medications.length} medicamentos registrados.`;
+
+    matches.forEach((medication) => {
+        const card = document.createElement('article');
+        card.className = 'clinical-card pharmacist-medication-card';
+        const copy = document.createElement('div');
+        copy.className = 'clinical-card-copy';
+        copy.append(textElement('h3', medication.name || 'Medicamento sin nombre'));
+        copy.append(textElement('p', medication.presentation || 'Sin presentación'));
+        copy.append(textElement('p', `Precio unitario: ${formatMoney(medication.unitPrice)}`));
+        const active = medication.active !== false;
+        copy.append(textElement('span', active ? 'Disponible' : 'Inactivo', `order-status ${active ? 'ready' : 'picked_up'}`));
+
+        const actions = document.createElement('div');
+        actions.className = 'pharmacist-medication-actions';
+        const edit = textElement('button', 'Editar', 'btn-action secondary');
+        edit.type = 'button';
+        edit.dataset.editMedication = medication.id;
+        const remove = textElement('button', 'Eliminar', 'btn-action secondary medication-delete');
+        remove.type = 'button';
+        remove.dataset.deleteMedication = medication.id;
+        actions.append(edit, remove);
+
+        card.append(copy, actions);
+        container.append(card);
+    });
+}
+
+function resetMedicationForm() {
+    editingMedicationId = null;
+    $('medication-form').reset();
+    $('medication-status').value = 'active';
+    $('medication-form-title').textContent = 'Nuevo medicamento';
+    $('medication-submit').textContent = 'Guardar medicamento';
+    $('medication-cancel').hidden = true;
+}
+
+function startEditMedication(id) {
+    const medication = medications.find((item) => item.id === id);
+    if (!medication) return;
+    editingMedicationId = id;
+    $('medication-name').value = medication.name || '';
+    $('medication-presentation').value = medication.presentation || '';
+    $('medication-price').value = medication.unitPrice ?? '';
+    $('medication-status').value = medication.active === false ? 'inactive' : 'active';
+    $('medication-form-title').textContent = 'Editar medicamento';
+    $('medication-submit').textContent = 'Guardar cambios';
+    $('medication-cancel').hidden = false;
+    $('medication-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('medication-name').focus();
+}
+
+async function saveMedication(event) {
+    event.preventDefault();
+    if (!currentUser || !locationId) {
+        feedback('Tu cuenta no tiene una farmacia asignada.', true);
+        return;
+    }
+
+    const name = $('medication-name').value.trim();
+    const presentation = $('medication-presentation').value.trim();
+    const unitPrice = Math.round(Number.parseFloat($('medication-price').value) * 100) / 100;
+    const active = $('medication-status').value === 'active';
+
+    if (!name) {
+        feedback('Escribe el nombre del medicamento.', true);
+        $('medication-name').focus();
+        return;
+    }
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        feedback('Escribe un precio válido para el medicamento.', true);
+        $('medication-price').focus();
+        return;
+    }
+
+    const duplicate = medications.some((medication) => medication.id !== editingMedicationId
+        && normalize(medication.name) === normalize(name)
+        && normalize(medication.presentation || '') === normalize(presentation));
+    if (duplicate) {
+        feedback('Ya existe un medicamento con ese nombre y presentación.', true);
+        return;
+    }
+
+    const wasEditing = Boolean(editingMedicationId);
+    const submit = $('medication-submit');
+    submit.disabled = true;
+    feedback(wasEditing ? 'Guardando cambios…' : 'Guardando medicamento…');
+
+    try {
+        if (wasEditing) {
+            await updateDoc(doc(db, 'medications', editingMedicationId), {
+                name,
+                presentation,
+                unitPrice,
+                active,
+                updatedAt: serverTimestamp()
+            });
+        } else {
+            await addDoc(collection(db, 'medications'), {
+                pharmacyId: locationId,
+                name,
+                presentation,
+                unitPrice,
+                active,
+                createdBy: currentUser.uid,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        feedback('No se pudo guardar el medicamento. Comprueba las reglas de Firestore e inténtalo de nuevo.', true);
+        submit.disabled = false;
+        return;
+    }
+
+    resetMedicationForm();
+    feedback(wasEditing ? 'Medicamento actualizado.' : 'Medicamento añadido al catálogo.');
+    try {
+        await loadMedications();
+    } catch (error) {
+        console.error(error);
+        feedback('Medicamento guardado, pero no se pudo actualizar la lista. Recarga la página para verlo.', true);
+    } finally {
+        submit.disabled = false;
+    }
+}
+
+async function removeMedication(id) {
+    const medication = medications.find((item) => item.id === id);
+    if (!medication) return;
+    if (!window.confirm(`¿Eliminar "${medication.name || 'este medicamento'}" del catálogo? Las ventas ya registradas no cambian.`)) return;
+
+    feedback('Eliminando medicamento…');
+    try {
+        await deleteDoc(doc(db, 'medications', id));
+    } catch (error) {
+        console.error(error);
+        feedback('No se pudo eliminar el medicamento. Comprueba las reglas de Firestore e inténtalo de nuevo.', true);
+        return;
+    }
+
+    if (editingMedicationId === id) resetMedicationForm();
+    feedback('Medicamento eliminado del catálogo.');
+    try {
+        await loadMedications();
+    } catch (error) {
+        console.error(error);
+        feedback('Medicamento eliminado, pero no se pudo actualizar la lista. Recarga la página para verlo.', true);
+    }
+}
+
+async function loadMedications() {
+    if (!locationId) {
+        medications = [];
+        renderMedicationList();
+        return;
+    }
+    const snapshot = await getDocs(query(collection(db, 'medications'), where('pharmacyId', '==', locationId)));
+    medications = snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'es'));
+    if (editingMedicationId && !medications.some((medication) => medication.id === editingMedicationId)) {
+        resetMedicationForm();
+    }
+    renderMedicationList();
+}
+
 async function loadOrders() {
     const snapshot = await getDocs(query(collection(db, 'prescriptionOrders'), where('pharmacyId', '==', locationId)));
     orders = await Promise.all(snapshot.docs.map(async (item) => {
@@ -368,9 +717,13 @@ async function loadPharmacistData(user) {
         orders = [];
         sales = [];
         patients = [];
+        medications = [];
         renderSales();
         renderSelectedPatientOrders();
         renderPatientResults();
+        renderMedicationList();
+        $('medication-list-status').textContent = 'Tu cuenta no tiene una farmacia asignada.';
+        $('medications-list').replaceChildren(textElement('p', 'No se puede gestionar el catálogo sin una farmacia asignada.', 'empty-state'));
         return;
     }
 
@@ -381,8 +734,8 @@ async function loadPharmacistData(user) {
         locationData.address || ''
     ].filter(Boolean).join(' · ') || 'Farmacia asignada';
 
-    const results = await Promise.allSettled([loadOrders(), loadSales(), loadPatients()]);
-    const [ordersResult, salesResult, patientsResult] = results;
+    const results = await Promise.allSettled([loadOrders(), loadSales(), loadPatients(), loadMedications()]);
+    const [ordersResult, salesResult, patientsResult, medicationsResult] = results;
     if (ordersResult.status === 'rejected') {
         console.error(ordersResult.reason);
         feedback('No se pudieron cargar las solicitudes de receta.', true);
@@ -396,6 +749,13 @@ async function loadPharmacistData(user) {
         patients = [];
         renderPatientResults();
         feedback('No se pudo cargar el buscador de asegurados. Comprueba que las reglas de Firestore estén desplegadas.', true);
+    }
+    if (medicationsResult.status === 'rejected') {
+        console.error(medicationsResult.reason);
+        medications = [];
+        $('medication-list-status').textContent = 'No se pudo cargar el catálogo de medicamentos.';
+        $('medications-list').replaceChildren(textElement('p', 'Comprueba que las reglas de Firestore estén desplegadas y recarga la página.', 'empty-state'));
+        feedback('No se pudo cargar el catálogo de medicamentos. Comprueba que las reglas de Firestore estén desplegadas.', true);
     }
 }
 
@@ -515,6 +875,18 @@ function bindEvents() {
     });
     $('clear-patient-selection').addEventListener('click', clearPatientSelection);
     $('pharmacy-orders').addEventListener('click', updateOrder);
+    $('medication-form').addEventListener('submit', saveMedication);
+    $('medication-cancel').addEventListener('click', resetMedicationForm);
+    $('medication-search').addEventListener('input', renderMedicationList);
+    $('medications-list').addEventListener('click', (event) => {
+        const edit = event.target.closest('[data-edit-medication]');
+        if (edit) {
+            startEditMedication(edit.dataset.editMedication);
+            return;
+        }
+        const remove = event.target.closest('[data-delete-medication]');
+        if (remove) removeMedication(remove.dataset.deleteMedication);
+    });
     window.addEventListener('hashchange', () => activateTab(location.hash.slice(1)));
 }
 
