@@ -60,18 +60,18 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 ## Chat y bots
 
 - `app.py` **nunca** hace polling de Telegram; `bot.py` es el único que recibe updates y reenvía respuestas al portal vía `POST /internal/telegram-reply` con `X-Chat-Bridge-Secret`.
-- Variables requeridas por el puente: `tokenTelegram`/`TELEGRAM_BOT_TOKEN`, `chatIdTelegram`/`TELEGRAM_CHAT_ID`, `CHAT_BRIDGE_SECRET`, `APP_BASE_URL`.
+- Variables requeridas por el puente: `tokenTelegram`/`TELEGRAM_BOT_TOKEN`/`token_telegram`, `chatIdTelegram`/`TELEGRAM_CHAT_ID`, `CHAT_BRIDGE_SECRET`, `APP_BASE_URL`.
 - El estado del chat (rooms, rate limits, mapa mensaje↔sala) está en memoria. Mantén un solo worker: `gunicorn -w 1 --threads 100 app:app`. Con varios workers las respuestas de Telegram y los límites se rompen.
 - MediBot web: `POST /api/medibot` solo para pacientes, 8 consultas/min, respuesta generada desde `chat/informacion.txt`.
 - `chat/informacion.txt` alimenta a MediBot y a `bot.py`. Si cambias funciones visibles, actualízalo; no describas como demo algo que ya funciona ni prometas inventario/precios que no existen.
-- `bot.py` fija el modelo Gemini en código (`gemini-3.5-flash-lite`), no por env.
+- `bot.py` usa `GEMINI_MODEL` con valor por defecto `gemini-3.5-flash-lite`. Atiende chats privados con Gemini y los comandos `/start`, `/ayuda`, `/funciones`, `/privacidad` y `/soporte`; en el grupo de soporte solo reenvía al portal las respuestas escritas con **Responder**.
 
 ## Configuración no obvia
 
 - Los nombres de variables de Firebase son camelCase y sensibles a mayúsculas: `apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`. `projectId` también acepta `FIREBASE_PROJECT_ID`.
-- MediBot: `AI_PROVIDER` (`vertex` por defecto | `openai_compatible`), `AI_MODEL` (por defecto `google/medgemma-1.5-4b-it`). Vertex exige `AI_PROJECT_ID`, `AI_LOCATION`, `AI_ENDPOINT_ID`; el modo compatible usa `AI_BASE_URL` + `AI_API_KEY`/`apiGoogle`.
+- MediBot: `AI_PROVIDER` (`vertex` por defecto | `openai_compatible`), `AI_MODEL` (por defecto `google/medgemma-1.5-4b-it` en Vertex y `gemini-3.5-flash-lite` en modo compatible). Vertex exige `AI_PROJECT_ID`, `AI_LOCATION`, `AI_ENDPOINT_ID`; el modo compatible usa `AI_BASE_URL` + `AI_API_KEY`/`apiGoogle`/`GEMINI_API_KEY`.
 - `SESSION_COOKIE_SECURE` se fuerza a `true` si existe `RENDER`; en HTTPS fuera de Render hay que ponerla a mano.
-- `.env.example` no lista las variables de Telegram ni `APP_BASE_URL`; están documentadas en `README.md`.
+- `.env.example` incluye las variables de Telegram, `APP_BASE_URL`, la API key de Gemini y un ejemplo de MediBot web; el `.env` real no se versiona.
 
 ## Deuda conocida (no la tomes como comportamiento correcto)
 

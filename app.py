@@ -16,7 +16,8 @@ from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2 import id_token as google_id_token
 import requests
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
 
 app = Flask(__name__)
 app.config["SESSION_COOKIE_SECURE"] = os.getenv(
@@ -31,7 +32,11 @@ ROLE_ENDPOINTS = {
     "patient": "patient_panel",
 }
 _firebase_token_cookie = "firebase_token"
-_telegram_token = os.getenv("tokenTelegram") or os.getenv("TELEGRAM_BOT_TOKEN", "")
+_telegram_token = (
+    os.getenv("tokenTelegram")
+    or os.getenv("TELEGRAM_BOT_TOKEN")
+    or os.getenv("token_telegram", "")
+)
 _telegram_chat_id = os.getenv("chatIdTelegram") or os.getenv("TELEGRAM_CHAT_ID", "")
 _chat_rate_lock = threading.Lock()
 _chat_requests = {}
@@ -46,7 +51,7 @@ _chat_alert_words = {
     "imagen": "Solicitud de imagen",
     "reporte": "Solicitud de reporte",
 }
-_assistant_knowledge_file = Path(__file__).resolve().parent / "chat" / "informacion.txt"
+_assistant_knowledge_file = BASE_DIR / "chat" / "informacion.txt"
 _assistant_rate_lock = threading.Lock()
 _assistant_requests = {}
 _assistant_rate_limit = 8
@@ -133,15 +138,26 @@ def _assistant_auth(provider):
         credentials.refresh(GoogleAuthRequest())
         return f"Bearer {credentials.token}"
 
-    api_key = os.getenv("AI_API_KEY") or os.getenv("apiGoogle")
+    api_key = (
+        os.getenv("AI_API_KEY")
+        or os.getenv("apiGoogle")
+        or os.getenv("GEMINI_API_KEY")
+    )
     if not api_key:
-        raise RuntimeError("Falta AI_API_KEY o apiGoogle para conectar MediBot.")
+        raise RuntimeError(
+            "Falta AI_API_KEY, apiGoogle o GEMINI_API_KEY para conectar MediBot."
+        )
     return f"Bearer {api_key.strip()}"
 
 
 def generate_assistant_reply(question):
     provider = os.getenv("AI_PROVIDER", "vertex").strip().lower()
-    model = os.getenv("AI_MODEL", "google/medgemma-1.5-4b-it").strip()
+    default_model = (
+        "google/medgemma-1.5-4b-it"
+        if provider == "vertex"
+        else "gemini-3.5-flash-lite"
+    )
+    model = (os.getenv("AI_MODEL") or default_model).strip()
     if not model:
         raise RuntimeError("Falta AI_MODEL para conectar MediBot.")
 

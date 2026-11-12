@@ -51,20 +51,38 @@ El panel de administración rellena `carnet`, `name` y `email` al crear paciente
 firebase deploy --only firestore:rules
 ```
 
-## Chat de soporte con Telegram
+## Chat de soporte, MediBot y Telegram
 
-El chat está en `/chat` y requiere una sesión activa de paciente. Los mensajes llegan al chat de Telegram configurado y el equipo puede responder usando la opción **Responder** sobre el mensaje reenviado. El puente usa `bot.py` como único proceso que recibe actualizaciones de Telegram.
+El chat de soporte está en `/chat` y requiere una sesión activa de paciente. Los mensajes llegan al grupo de Telegram configurado y el equipo puede responder usando la opción **Responder** sobre el mensaje reenviado. El puente usa `bot.py` como único proceso que recibe actualizaciones de Telegram. El panel del paciente también incluye **MediBot**, que responde con IA y no pasa por Telegram.
 
-Configura estas variables en `.env` para ambos procesos:
+Configura estas variables en `.env`; las usan `app.py` y `bot.py`:
 
 ```env
 tokenTelegram=token_del_bot
 chatIdTelegram=id_del_chat_de_soporte
 CHAT_BRIDGE_SECRET=un_secreto_compartido_largo
 APP_BASE_URL=http://127.0.0.1:5000
+
+apiGoogle=tu_api_key_de_gemini
+GEMINI_MODEL=gemini-3.5-flash-lite
+
+AI_PROVIDER=openai_compatible
+AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+AI_MODEL=gemini-3.5-flash-lite
 ```
 
-Para el bot de atención Gemini también configura `apiGoogle` (o `GEMINI_API_KEY`). El bot usa la información de `chat/informacion.txt`. No incluyas datos de identidad ni información médica sensible en el chat.
+- `tokenTelegram`: token del bot creado en **@BotFather**; también se acepta `token_telegram`.
+- `chatIdTelegram`: ID numérico del grupo de soporte; los grupos suelen tener un ID negativo.
+- `CHAT_BRIDGE_SECRET`: cadena larga e inventada, idéntica en la web y en el bot.
+- `APP_BASE_URL`: URL de la web que el bot puede alcanzar para devolver la respuesta al portal.
+- `apiGoogle`: API key de Google AI Studio. También se acepta `GEMINI_API_KEY`.
+- `GEMINI_MODEL`: modelo de Gemini para `bot.py`; por defecto `gemini-3.5-flash-lite`.
+- `AI_MODEL`: modelo de MediBot web; en el ejemplo usa el mismo Gemini.
+- `AI_API_KEY` puede quedar vacío: MediBot reutiliza `apiGoogle` o `GEMINI_API_KEY`.
+
+No necesitas Vertex AI, una cuenta de servicio ni configuración adicional de Google Cloud para el bot de Telegram ni para este ejemplo de MediBot. Si prefieres Vertex AI, cambia `AI_PROVIDER` y completa `AI_PROJECT_ID`, `AI_LOCATION` y `AI_ENDPOINT_ID`. No incluyas datos de identidad ni información médica sensible en el chat.
+
+El bot de Telegram responde en chats privados usando `chat/informacion.txt`. Sus comandos son `/start`, `/ayuda`, `/funciones`, `/privacidad` y `/soporte`. En el grupo de soporte no responde con Gemini: solo reenvía al portal las respuestas que el equipo escribe usando **Responder**.
 
 ```sh
 python -m pip install -r requirements.txt

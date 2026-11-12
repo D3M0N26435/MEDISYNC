@@ -1,4 +1,4 @@
-MEDISYNC — INFORMACIÓN PARA MEDIBOT
+MEDISYNC — INFORMACIÓN PARA MEDIBOT Y EL BOT DE TELEGRAM
 
 MediSync es una plataforma para organizar información de atención médica.
 
