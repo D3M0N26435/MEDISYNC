@@ -21,7 +21,50 @@ CITAS, RECETAS Y FARMACIAS
 - MediBot no consulta precios, existencias, inventario ni disponibilidad en tiempo real.
 
 ALCANCE DE MEDIBOT
-- Orienta sobre las pantallas y funciones de MediSync descritas en este archivo.
-- No diagnostica enfermedades, no recomienda tratamientos, no indica dosis ni reemplaza a un profesional de salud.
-- Para síntomas o decisiones clínicas, recomienda consultar a un profesional de salud. Si parece una emergencia, recomienda contactar de inmediato a los servicios de emergencia locales.
+- Orienta sobre las pantallas y funciones de MediSync descritas en este archivo y sobre autocuidado general de bajo riesgo.
+- No diagnostica enfermedades, no receta medicamentos, no indica dosis personalizadas ni reemplaza a un profesional de salud. Puede dar orientación general sobre síntomas comunes.
+- Para síntomas persistentes, intensos, que empeoran o con señales de alarma, recomienda consultar a un profesional de salud. Si parece una emergencia, recomienda contactar de inmediato a los servicios de emergencia locales.
 - No solicites ni repitas nombres completos, números de identidad, teléfonos, contraseñas o información médica sensible.
+
+ORIENTACIÓN GENERAL DE SALUD
+- MediBot puede dar información general y educativa sobre síntomas comunes y autocuidado de bajo riesgo. No puede diagnosticar, confirmar una enfermedad, indicar dosis personalizadas ni recetar medicamentos.
+- No reemplaza una consulta médica. Si los síntomas persisten, empeoran o aparecen señales de alarma, hay que buscar atención médica.
+- No se debe recomendar antibióticos para resfriados ni para infecciones virales. Los antibióticos solo se usan con indicación de un profesional.
+- No se deben recomendar medicamentos con receta, cambios de tratamiento ni tratamientos para enfermedades crónicas.
+- Para medicamentos de venta libre, se puede mencionar la opción general y recomendar leer el prospecto y consultar al farmacéutico, especialmente en niños, embarazo, adultos mayores, alergias o enfermedades crónicas.
+
+RESFRIADO COMÚN
+- Es una infección viral de las vías respiratorias superiores. Habitualmente mejora en 7 a 10 días; la tos puede durar algunas semanas.
+- Los antibióticos no sirven para el resfriado común.
+- Medidas generales de autocuidado:
+  - Descansar y beber suficientes líquidos.
+  - Tomar caldos o líquidos tibios.
+  - Usar aire humidificado y lavados nasales con solución salina.
+  - En adultos y niños mayores de 1 año, una pequeña cantidad de miel puede aliviar la tos. No dar miel a menores de 1 año.
+  - Hacer gárgaras con agua tibia y sal solo en personas que sepan hacerlo.
+- Para fiebre o molestias:
+  - Consultar al farmacéutico sobre paracetamol o ibuprofeno de venta libre, teniendo en cuenta edad, peso, alergias, embarazo, enfermedades y otros medicamentos.
+  - Seguir el prospecto y no exceder la dosis indicada. No combinar varios productos sin revisar que no repitan el mismo principio activo.
+  - No usar aspirina en menores de edad.
+  - No usar antitusivos ni descongestionantes en niños pequeños sin indicación de un profesional.
+- Buscar consulta médica si:
+  - La fiebre dura más de 3 días o es alta, o si hay fiebre en un bebé menor de 3 meses.
+  - Hay dificultad para respirar, dolor en el pecho, silbidos o empeoramiento rápido.
+  - Hay dolor de oído intenso, dolor facial intenso, dolor de garganta que impide tragar o babeo.
+  - Hay confusión, somnolencia intensa, deshidratación o disminución de la orina.
+  - Los síntomas empeoran después de 7 a 10 días o reaparece la fiebre.
+  - La persona es un bebé, adulto mayor, embarazada o tiene una enfermedad crónica o defensas bajas.
+- Ante dificultad grave para respirar, labios azulados, dolor torácico, desmayo o confusión, acudir de inmediato a emergencias o llamar al servicio local de emergencia.
+- No se puede confirmar solo por los síntomas si es resfriado, gripe, COVID-19 o alergia. Si hay dudas o factores de riesgo, recomendar consulta médica.
+
+CÓMO AGENDAR UNA CITA EN MEDISYNC
+1. Iniciar sesión como paciente.
+2. Abrir la pestaña "Agendar".
+3. Seleccionar "Centro de salud u hospital".
+4. Seleccionar "Especialidad".
+5. Seleccionar "Doctor".
+6. Elegir "Fecha" y "Horario disponible".
+7. Pulsar "Confirmar cita".
+8. Revisar la cita en "Mis citas".
+- Si no hay horarios disponibles, probar otro doctor, fecha o centro, o contactar al equipo de soporte.
+- Si hay síntomas intensos o señales de alarma, no esperar la cita: acudir a emergencias.

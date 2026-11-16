@@ -53,7 +53,7 @@ firebase deploy --only firestore:rules
 
 ## Chat de soporte, MediBot y Telegram
 
-El chat de soporte está en `/chat` y requiere una sesión activa de paciente. Los mensajes llegan al grupo de Telegram configurado y el equipo puede responder usando la opción **Responder** sobre el mensaje reenviado. El puente usa `bot.py` como único proceso que recibe actualizaciones de Telegram. El panel del paciente también incluye **MediBot**, que responde con IA y no pasa por Telegram.
+El chat de soporte está en `/chat` y requiere una sesión activa de paciente. Los mensajes llegan al grupo de Telegram configurado y el equipo puede responder usando la opción **Responder** sobre el mensaje reenviado. El puente usa `bot.py` como único proceso que recibe actualizaciones de Telegram. El panel del paciente también incluye **MediBot**, que responde con IA, puede dar orientación general de salud de bajo riesgo y no pasa por Telegram. No diagnostica, no receta ni sustituye una consulta médica.
 
 Configura estas variables en `.env`; las usan `app.py` y `bot.py`:
 
@@ -82,7 +82,7 @@ AI_MODEL=gemini-3.5-flash-lite
 
 No necesitas Vertex AI, una cuenta de servicio ni configuración adicional de Google Cloud para el bot de Telegram ni para este ejemplo de MediBot. Si prefieres Vertex AI, cambia `AI_PROVIDER` y completa `AI_PROJECT_ID`, `AI_LOCATION` y `AI_ENDPOINT_ID`. No incluyas datos de identidad ni información médica sensible en el chat.
 
-El bot de Telegram responde en chats privados usando `chat/informacion.txt`. Sus comandos son `/start`, `/ayuda`, `/funciones`, `/privacidad` y `/soporte`. En el grupo de soporte no responde con Gemini: solo reenvía al portal las respuestas que el equipo escribe usando **Responder**.
+El bot de Telegram responde en chats privados usando `chat/informacion.txt`. Sus comandos son `/start`, `/ayuda`, `/cita`, `/salud`, `/funciones`, `/privacidad` y `/soporte`. Puede explicar cómo agendar una cita y dar orientación general sobre síntomas comunes, sin diagnosticar ni recetar. En el grupo de soporte no responde con Gemini: solo reenvía al portal las respuestas que el equipo escribe usando **Responder**.
 
 ```sh
 python -m pip install -r requirements.txt

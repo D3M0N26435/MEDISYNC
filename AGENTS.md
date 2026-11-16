@@ -62,9 +62,9 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 - `app.py` **nunca** hace polling de Telegram; `bot.py` es el único que recibe updates y reenvía respuestas al portal vía `POST /internal/telegram-reply` con `X-Chat-Bridge-Secret`.
 - Variables requeridas por el puente: `tokenTelegram`/`TELEGRAM_BOT_TOKEN`/`token_telegram`, `chatIdTelegram`/`TELEGRAM_CHAT_ID`, `CHAT_BRIDGE_SECRET`, `APP_BASE_URL`.
 - El estado del chat (rooms, rate limits, mapa mensaje↔sala) está en memoria. Mantén un solo worker: `gunicorn -w 1 --threads 100 app:app`. Con varios workers las respuestas de Telegram y los límites se rompen.
-- MediBot web: `POST /api/medibot` solo para pacientes, 8 consultas/min, respuesta generada desde `chat/informacion.txt`.
+- MediBot web: `POST /api/medibot` solo para pacientes, 8 consultas/min, respuesta generada desde `chat/informacion.txt`. Puede dar orientación general de salud de bajo riesgo, pero no diagnostica, no indica dosis ni receta.
 - `chat/informacion.txt` alimenta a MediBot y a `bot.py`. Si cambias funciones visibles, actualízalo; no describas como demo algo que ya funciona ni prometas inventario/precios que no existen.
-- `bot.py` usa `GEMINI_MODEL` con valor por defecto `gemini-3.5-flash-lite`. Atiende chats privados con Gemini y los comandos `/start`, `/ayuda`, `/funciones`, `/privacidad` y `/soporte`; en el grupo de soporte solo reenvía al portal las respuestas escritas con **Responder**.
+- `bot.py` usa `GEMINI_MODEL` con valor por defecto `gemini-3.5-flash-lite`. Atiende chats privados con Gemini y los comandos `/start`, `/ayuda`, `/cita`, `/salud`, `/funciones`, `/privacidad` y `/soporte`; `/salud` da orientación general sin diagnosticar ni recetar. En el grupo de soporte solo reenvía al portal las respuestas escritas con **Responder**.
 
 ## Configuración no obvia
 
