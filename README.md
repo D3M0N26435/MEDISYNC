@@ -97,3 +97,18 @@ python bot.py
 ```
 
 En producción, configura la URL pública de la aplicación en `APP_BASE_URL` y usa un servidor con soporte Socket.IO, por ejemplo `gunicorn -w 1 --threads 100 app:app`. El servidor web y el bot se ejecutan por separado.
+
+### Variables en Render
+
+Render **no lee** el archivo `.env`, porque está en `.gitignore`. Configura las variables en **Environment** del servicio web. Para MediBot con la API de Gemini:
+
+```env
+apiGoogle=tu_api_key_de_gemini
+AI_PROVIDER=openai_compatible
+AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+AI_MODEL=gemini-3.5-flash-lite
+```
+
+Deja `AI_API_KEY` vacío o elimínalo para que MediBot use `apiGoogle`. No configures `AI_PROJECT_ID`, `AI_LOCATION` ni `AI_ENDPOINT_ID` si usas `openai_compatible`.
+
+Para el chat de soporte, configura también `tokenTelegram`, `chatIdTelegram`, `CHAT_BRIDGE_SECRET` y `APP_BASE_URL=https://tu-servicio.onrender.com`. El `chatIdTelegram` no interviene en MediBot. Después de cambiar variables, espera el reinicio del servicio o haz un despliegue manual.
