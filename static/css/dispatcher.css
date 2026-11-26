@@ -19,6 +19,17 @@
     font-weight: 800;
 }
 .dispatcher-alert .patient-card { box-shadow: none; }
+.dispatcher-map {
+    height: 280px;
+    margin: 14px 0 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    overflow: hidden;
+}
+.dispatcher-map[hidden] { display: none; }
+.dispatcher-map + .map-tools { margin-top: 10px; }
+.map-tools[hidden] { display: none; }
 .dispatcher-location { margin: 14px 0 10px; color: var(--text); font-weight: 600; line-height: 1.5; }
 .dispatcher-alert .btn-action { min-height: 44px; text-decoration: none; }
 .dispatcher-alert a.btn-action {

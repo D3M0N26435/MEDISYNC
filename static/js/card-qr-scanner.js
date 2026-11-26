@@ -7,7 +7,6 @@
     const video = document.getElementById('card-scan-video');
     const status = document.getElementById('card-scan-status');
     const closeButton = document.getElementById('card-scan-close');
-    const result = document.getElementById('card-scan-result');
 
     let stream = null;
     let loopTimer = null;
@@ -44,14 +43,8 @@
             return;
         }
         stopScanner();
-        const url = `/emergencia?t=${encodeURIComponent(token)}`;
-        if (result) {
-            result.href = url;
-            result.hidden = false;
-            result.textContent = 'Abrir tarjeta pública leída';
-        }
-        status.textContent = 'QR leído correctamente. Puedes abrir la tarjeta pública.';
-        dialog.close();
+        status.textContent = 'QR leído correctamente. Abriendo la tarjeta…';
+        window.location.assign(`/emergencia?t=${encodeURIComponent(token)}`);
     }
 
     async function scanLoop() {
@@ -71,10 +64,6 @@
 
     async function startScanner() {
         status.textContent = 'Activando la cámara…';
-        if (result) {
-            result.hidden = true;
-            result.removeAttribute('href');
-        }
         if (typeof window.BarcodeDetector === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
             status.textContent = 'Este navegador no puede leer QR. Usa un dispositivo con cámara compatible.';
             return;

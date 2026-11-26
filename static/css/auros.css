@@ -127,6 +127,7 @@ html[data-theme="dark"] .eyebrow {
 /* Tarjetas: flotación por color de superficie, no por sombra */
 html[data-theme="dark"] .card,
 html[data-theme="dark"] .patient-card,
+html[data-theme="dark"] .dispatcher-alert,
 html[data-theme="dark"] .admin-card,
 html[data-theme="dark"] .card-dialog,
 html[data-theme="dark"] .card-scan-dialog,
@@ -159,8 +160,7 @@ html[data-theme="dark"] .form-group label { color: var(--color-silver-mist); }
 /* Botones: el degradado se reserva para la acción principal */
 html[data-theme="dark"] button.btn-action,
 html[data-theme="dark"] .btn-sos,
-html[data-theme="dark"] .emergency-call,
-html[data-theme="dark"] .card-scan-result {
+html[data-theme="dark"] .emergency-call {
     padding: 12px 20px;
     border: 0;
     border-radius: 6px;
@@ -176,8 +176,7 @@ html[data-theme="dark"] .card-scan-result {
 }
 html[data-theme="dark"] button.btn-action:hover,
 html[data-theme="dark"] .btn-sos:hover,
-html[data-theme="dark"] .emergency-call:hover,
-html[data-theme="dark"] .card-scan-result:hover { filter: brightness(1.08); transform: translateY(-1px); }
+html[data-theme="dark"] .emergency-call:hover { filter: brightness(1.08); transform: translateY(-1px); }
 html[data-theme="dark"] button.btn-action:active,
 html[data-theme="dark"] .btn-sos:active { transform: none; }
 html[data-theme="dark"] button.btn-action:disabled { filter: grayscale(.6); opacity: .6; }
@@ -235,8 +234,12 @@ html[data-theme="dark"] .icon-button {
     background: transparent;
     color: var(--color-liquid-mist);
 }
+html[data-theme="dark"] .menu-toggle {
+    border-color: rgba(203, 255, 252, .45);
+    background: var(--color-liquid-kelp);
+}
 html[data-theme="dark"] .theme-toggle:hover,
-html[data-theme="dark"] .menu-toggle:hover { background: var(--color-liquid-kelp); }
+html[data-theme="dark"] .menu-toggle:hover { background: #04423d; }
 html[data-theme="dark"] .menu-toggle[aria-expanded="true"] {
     background: var(--color-liquid-kelp);
     color: var(--color-platinum);
@@ -322,6 +325,149 @@ html[data-theme="dark"] .sos-options .btn-action.active {
     color: var(--color-liquid-deep);
 }
 html[data-theme="dark"] #resultado { color: var(--color-liquid-mist); }
+
+/* Objetivos táctiles grandes: botones y menú fáciles de ver y tocar */
+.menu-toggle {
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    font-size: 1.75rem;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+.theme-toggle { width: 48px; height: 48px; }
+.icon-button { width: 44px; height: 44px; }
+button.btn-action,
+.btn-login,
+.btn-sos,
+.btn-logout {
+    min-height: 52px;
+    font-size: .9rem;
+}
+
+@media (max-width: 768px) {
+    button.btn-action,
+    .btn-login,
+    .btn-sos,
+    .btn-logout,
+    .map-tools-button {
+        min-height: 56px;
+    }
+}
+
+/* Pantallas reducidas: la navegación pasa al menú, sin pestañas diminutas */
+@media (max-width: 1024px) {
+    body {
+        flex-direction: column;
+        overflow: auto;
+    }
+    aside {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        box-shadow: none;
+    }
+    aside .brand { margin-bottom: 0; }
+    aside .brand span,
+    aside .nav-links li a span:last-child,
+    aside .btn-logout span { display: inline; }
+    .menu-toggle { display: block; }
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-top: 0;
+        border-radius: 0 0 16px 16px;
+        background: var(--surface);
+        box-shadow: var(--shadow-lg);
+        z-index: 40;
+    }
+    aside.menu-open .nav-links { display: flex; }
+    .nav-links li { width: 100%; }
+    .nav-links li a {
+        width: 100%;
+        min-height: 56px;
+        padding: 14px 16px;
+        justify-content: flex-start;
+        border-left: 3px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text);
+        font-size: .85rem;
+        font-weight: 500;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .nav-links li a:hover { background: var(--surface-hover); transform: none; }
+    .nav-links li a.active {
+        background: var(--primary-light);
+        border-left-color: var(--primary);
+        color: var(--primary);
+    }
+    .btn-logout {
+        margin-top: 0;
+        margin-left: auto;
+        padding: 8px 14px;
+    }
+    main {
+        padding: 24px 20px;
+        overflow: visible;
+    }
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+/* Mapas del centro de despacho sobre el tema abisal */
+html[data-theme="dark"] .dispatcher-status {
+    border-radius: 6px;
+    background: var(--color-liquid-deep);
+    color: var(--color-liquid-mist);
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+html[data-theme="dark"] .dispatcher-map {
+    border-color: rgba(255, 255, 255, .08);
+    background: var(--color-liquid-deep);
+}
+html[data-theme="dark"] .leaflet-container {
+    background: var(--color-liquid-deep);
+    font-family: var(--font-matter);
+}
+html[data-theme="dark"] .leaflet-control-attribution {
+    background: rgba(1, 29, 28, .85) !important;
+    color: var(--color-silver-mist);
+}
+html[data-theme="dark"] .leaflet-control-attribution a { color: var(--color-liquid-mist); }
+html[data-theme="dark"] .leaflet-popup-content-wrapper,
+html[data-theme="dark"] .leaflet-popup-tip {
+    background: var(--color-liquid-kelp);
+    color: var(--color-liquid-mist);
+}
+html[data-theme="dark"] .leaflet-popup-content { color: var(--color-liquid-mist); }
+html[data-theme="dark"] .leaflet-bar a {
+    border-color: rgba(255, 255, 255, .12);
+    background: var(--color-liquid-kelp);
+    color: var(--color-platinum);
+}
+html[data-theme="dark"] .leaflet-bar a:hover { background: var(--color-liquid-deep); }
 
 @media (prefers-reduced-motion: reduce) {
     html[data-theme="dark"] *,

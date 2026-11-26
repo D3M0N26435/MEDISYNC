@@ -63,20 +63,6 @@ html[data-theme="dark"] .chat-form textarea { color: #e5f0f1; background: #102a2
 /* Escáner de QR en «Mi tarjeta» */
 .patient-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .patient-section-heading .btn-action { min-height: 48px; flex: 0 0 auto; }
-.card-scan-result {
-    display: inline-flex;
-    align-items: center;
-    min-height: 48px;
-    margin-bottom: 18px;
-    padding: 12px 20px;
-    border-radius: 6px;
-    background: var(--primary);
-    color: #ffffff;
-    font-size: .85rem;
-    font-weight: 600;
-    text-decoration: none;
-}
-.card-scan-result[hidden] { display: none; }
 .card-scan-dialog {
     width: min(100% - 24px, 520px);
     max-height: calc(100dvh - 32px);

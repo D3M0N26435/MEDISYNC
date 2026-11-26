@@ -15,7 +15,8 @@
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
-        <ul class="nav-links"><li><a href="/doctor" class="active">🩺 <span>Mis consultas</span></a></li></ul>
+        <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-label="Menú de apartados">☰</button>
+        <ul class="nav-links"><li><a href="/doctor" class="active"><span>Mis consultas</span></a></li></ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
     <main>
@@ -68,5 +69,6 @@
     <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/doctor.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/mobile-menu.js') }}"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // Sube el sufijo cuando cambien los estáticos del app shell.
-const CACHE_NAME = 'medisync-shell-v3';
+const CACHE_NAME = 'medisync-shell-v4';
 const APP_SHELL = [
     '/',
     '/static/css/main.css',
@@ -19,9 +19,9 @@ const APP_SHELL = [
     '/static/js/roles.js',
     '/static/js/role-switcher.js',
     '/static/js/mobile-menu.js',
+    '/static/js/map-utils.js',
     '/static/js/sos.js',
     '/static/js/emergency-alerts.js',
-    '/static/js/emergency-scanner.js',
     '/static/js/card-qr-scanner.js'
 ];
 
