@@ -7,6 +7,23 @@
 .patient-section-heading p:not(.eyebrow) { color: var(--text-muted); line-height: 1.5; }
 .eyebrow { margin-bottom: 5px; color: var(--primary); font-size: .72rem; font-weight: 700; letter-spacing: .1em; }
 
+#own-card-qr-download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    margin-top: 12px;
+    padding: 12px 18px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--primary);
+    font-size: .85rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+#own-card-qr-download[hidden] { display: none; }
+
 .patient-booking-layout {
     display: grid;
     grid-template-columns: minmax(280px, .8fr) minmax(360px, 1.2fr);

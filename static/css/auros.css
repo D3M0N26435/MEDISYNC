@@ -324,6 +324,16 @@ html[data-theme="dark"] .sos-options .btn-action.active {
     background: var(--gradient-aurora);
     color: var(--color-liquid-deep);
 }
+html[data-theme="dark"] .sos-scan-section {
+    border-color: rgba(255, 255, 255, .1);
+    background: var(--color-liquid-deep);
+}
+html[data-theme="dark"] .sos-scan-section video { background: var(--color-liquid-abyss); }
+html[data-theme="dark"] #own-card-qr-download {
+    border-color: rgba(255, 255, 255, .2);
+    background: transparent;
+    color: var(--color-liquid-mist);
+}
 html[data-theme="dark"] #resultado { color: var(--color-liquid-mist); }
 
 /* Objetivos táctiles grandes: botones y menú fáciles de ver y tocar */

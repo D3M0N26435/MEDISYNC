@@ -599,15 +599,22 @@ async function askMedibot(event) {
 function renderOwnCard(card) {
     renderPatientCard($('own-patient-card'), card);
     const qrPanel = $('own-card-qr');
+    const download = $('own-card-qr-download');
     if (!card?.emergencyToken) {
         qrPanel.hidden = true;
+        if (download) download.hidden = true;
         return;
     }
-    const link = `${window.location.origin}/emergencia?t=${encodeURIComponent(card.emergencyToken)}`;
-    $('own-card-qr-image').src = `/api/emergency-qr/${encodeURIComponent(card.emergencyToken)}`;
+    const token = encodeURIComponent(card.emergencyToken);
+    const link = `${window.location.origin}/emergencia?t=${token}`;
+    $('own-card-qr-image').src = `/api/emergency-qr/${token}`;
     $('own-card-qr-image').alt = 'Código QR de tu tarjeta de asegurado';
     $('own-card-qr-link').href = link;
     $('own-card-qr-link').textContent = link;
+    if (download) {
+        download.href = `/api/emergency-qr/${token}`;
+        download.hidden = false;
+    }
     qrPanel.hidden = false;
 }
 
