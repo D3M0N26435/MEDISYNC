@@ -13,6 +13,7 @@
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
+        <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-label="Menú de apartados">☰</button>
         <ul class="nav-links pharmacist-tabs" role="tablist" aria-label="Apartados de la farmacia">
             <li><a id="pharmacist-tab-venta" class="active" href="#venta" role="tab" aria-selected="true" aria-controls="pharmacist-panel-venta" data-pharmacist-tab="venta">🧾 <span>Venta directa</span></a></li>
             <li><a id="pharmacist-tab-asegurados" href="#asegurados" role="tab" aria-selected="false" aria-controls="pharmacist-panel-asegurados" data-pharmacist-tab="asegurados">🪪 <span>Asegurados</span></a></li>
@@ -125,5 +126,6 @@
     <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/pharmacist.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/mobile-menu.js') }}"></script>
 </body>
 </html>

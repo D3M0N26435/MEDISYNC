@@ -12,6 +12,7 @@
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
+        <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-label="Menú de apartados">☰</button>
         <ul class="nav-links">
             <li><a href="/patient">📅 <span>Mis Citas &amp; Mapa</span></a></li>
             <li><a href="/chat" class="active">💬 <span>Chat con soporte</span></a></li>
@@ -43,5 +44,6 @@
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/mobile-menu.js') }}"></script>
 </body>
 </html>
