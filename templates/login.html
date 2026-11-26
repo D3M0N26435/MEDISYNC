@@ -7,6 +7,7 @@
     {% include 'pwa_head.html' %}
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auros.css') }}">
 </head>
 <body>
     <button class="theme-toggle login-theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button>
@@ -29,7 +30,6 @@
             <button class="btn-login" id="login-submit" type="submit">Acceder al Sistema</button>
         </form>
         <button class="btn-sos" id="open-sos" type="button">🆘 SOS — Pedir ayuda</button>
-        <button class="btn-scan" id="open-scan" type="button">📷 Escanear QR / Mi QR</button>
         <p id="resultado" role="status" aria-live="polite"></p>
     </div>
 
@@ -51,16 +51,8 @@
         <p id="sos-status" role="status" aria-live="polite"></p>
     </dialog>
 
-    <dialog id="emergency-dialog" class="emergency-dialog">
-        <div class="editor-heading"><div><p class="eyebrow">SIN INICIAR SESIÓN</p><h2>Escanear código QR</h2></div><button class="icon-button" type="button" id="close-emergency-dialog" aria-label="Cerrar">✕</button></div>
-        <p>Apunta la cámara al código QR de la tarjeta de asegurado.</p>
-        <video id="emergency-video" playsinline autoplay muted></video>
-        <p id="emergency-scan-status" role="status" aria-live="polite">Activando la cámara…</p>
-    </dialog>
-
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
-    <script type="module" src="{{ url_for('static', filename='js/emergency-scanner.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/sos.js') }}"></script>
 
 </body>

@@ -3,6 +3,7 @@ import { startEmergencySharing } from './emergency-alerts.js';
 (function init() {
     const dialog = document.getElementById('sos-dialog');
     if (!dialog) return;
+    const openBtn = document.getElementById('open-sos');
     const selfBtn = document.getElementById('sos-self');
     const otherBtn = document.getElementById('sos-other');
     const otherField = document.getElementById('sos-other-field');
@@ -13,6 +14,10 @@ import { startEmergencySharing } from './emergency-alerts.js';
     const status = document.getElementById('sos-status');
 
     let target = 'self';
+
+    if (openBtn) {
+        openBtn.addEventListener('click', () => dialog.showModal());
+    }
 
     function setTarget(value) {
         target = value;

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/patient-card.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auros.css') }}">
 </head>
 <body>
     <aside>
@@ -98,7 +99,9 @@
         <section id="patient-panel-tarjeta" class="patient-panel" role="tabpanel" aria-labelledby="patient-tab-tarjeta" hidden>
             <div class="patient-section-heading">
                 <div><p class="eyebrow">ASEGURADO</p><h2>Mi tarjeta médica</h2><p>Datos esenciales para una atención rápida. Solo la administración puede modificarlos.</p></div>
+                <button class="btn-action" id="scan-own-qr" type="button">📷 Escanear mi QR</button>
             </div>
+            <a id="card-scan-result" class="btn-action card-scan-result" href="#" target="_blank" rel="noopener" hidden>Abrir tarjeta pública leída</a>
             <div class="patient-booking-layout">
                 <div class="card patient-list-card">
                     <div id="own-patient-card"></div>
@@ -135,11 +138,19 @@
         </section>
     </main>
 
+    <dialog id="card-scan-dialog" class="card-scan-dialog">
+        <div class="editor-heading"><div><p class="eyebrow">LECTURA DE QR</p><h2>Escanear mi QR</h2></div><button class="icon-button" type="button" id="card-scan-close" aria-label="Cerrar">✕</button></div>
+        <p>Apunta la cámara al código QR de tu tarjeta para comprobarlo.</p>
+        <video id="card-scan-video" playsinline autoplay muted></video>
+        <p id="card-scan-status" role="status" aria-live="polite">Activando la cámara…</p>
+    </dialog>
+
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/patient.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/mobile-menu.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/card-qr-scanner.js') }}"></script>
 </body>
 </html>

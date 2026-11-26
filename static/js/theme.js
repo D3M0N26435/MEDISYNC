@@ -1,11 +1,11 @@
 (function () {
     const storageKey = 'medisync_theme';
-    let theme = 'light';
+    let theme = 'dark';
 
     try {
-        theme = localStorage.getItem(storageKey) || 'light';
+        theme = localStorage.getItem(storageKey) || 'dark';
     } catch (_) {
-        // If storage is unavailable, keep the page usable with the light theme.
+        // Si no hay almacenamiento, se mantiene el tema oscuro por defecto.
     }
 
     function applyTheme(nextTheme) {

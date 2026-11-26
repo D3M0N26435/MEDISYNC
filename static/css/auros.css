@@ -1,0 +1,330 @@
+/* Auros — terminal abisal para MediSync.
+   Se aplica sobre el tema oscuro existente; el tema claro conserva su estética original. */
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --color-liquid-abyss: #012624;
+    --color-liquid-deep: #011d1c;
+    --color-liquid-kelp: #003734;
+    --color-liquid-mist: #edfffe;
+    --color-platinum: #ffffff;
+    --color-silver-mist: #bbc7c6;
+    --color-lavender-phosphor: #fde9ff;
+    --gradient-aurora: linear-gradient(90deg, #00827c 0%, #cbfffc 52%, #fad1ff 100%);
+    --font-matter: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+    --primary: #00827c;
+    --primary-hover: #00a299;
+    --primary-light: #04413d;
+    --bg: var(--color-liquid-abyss);
+    --surface: var(--color-liquid-kelp);
+    --surface-hover: #07433e;
+    --text: var(--color-silver-mist);
+    --heading: var(--color-platinum);
+    --text-muted: var(--color-silver-mist);
+    --border: rgba(255, 255, 255, .1);
+    --border-strong: rgba(255, 255, 255, .2);
+    --radius-sm: 6px;
+    --radius: 16px;
+    --radius-lg: 16px;
+    --radius-xl: 16px;
+    --shadow-sm: none;
+    --shadow: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+}
+
+html[data-theme="dark"] body {
+    background: var(--color-liquid-abyss);
+    color: var(--color-silver-mist);
+    font-family: var(--font-matter);
+}
+
+html[data-theme="dark"] main {
+    background:
+        radial-gradient(ellipse 58% 38% at 94% 0%, rgba(0, 130, 124, .18), transparent 70%),
+        radial-gradient(ellipse 52% 34% at 2% 100%, rgba(250, 209, 255, .07), transparent 72%),
+        var(--color-liquid-abyss);
+}
+
+/* Navegación: superficie sumergida, etiquetas técnicas */
+html[data-theme="dark"] body > aside {
+    background: var(--color-liquid-deep);
+    border-right: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: none;
+}
+html[data-theme="dark"] .brand {
+    color: var(--color-platinum);
+    font-size: .82rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+html[data-theme="dark"] .brand-logo {
+    border: 1px solid rgba(203, 255, 252, .3);
+    border-radius: 6px;
+    background: var(--color-liquid-kelp);
+    box-shadow: none;
+    color: var(--color-liquid-mist);
+    font-weight: 500;
+    letter-spacing: -.04em;
+}
+html[data-theme="dark"] .nav-links li a {
+    min-height: 48px;
+    padding: 13px 14px;
+    border-radius: 6px;
+    color: var(--color-silver-mist);
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+html[data-theme="dark"] .nav-links li a:hover {
+    background: var(--color-liquid-kelp);
+    color: var(--color-platinum);
+    transform: none;
+}
+html[data-theme="dark"] .nav-links li a.active {
+    background: var(--color-liquid-kelp);
+    border-left: 3px solid var(--color-liquid-mist);
+    color: var(--color-platinum);
+}
+html[data-theme="dark"] .btn-logout {
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-silver-mist);
+    font-size: .75rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+html[data-theme="dark"] .btn-logout:hover { background: var(--color-liquid-kelp); color: var(--color-platinum); }
+
+/* Encabezados: tipografía de instrumento, sin sombras ni marcos */
+html[data-theme="dark"] header {
+    padding: 0 0 20px;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+html[data-theme="dark"] header h1 {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 500;
+    letter-spacing: -.04em;
+    line-height: 1;
+    color: var(--color-platinum);
+}
+html[data-theme="dark"] .eyebrow {
+    color: var(--color-silver-mist);
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+/* Tarjetas: flotación por color de superficie, no por sombra */
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .patient-card,
+html[data-theme="dark"] .admin-card,
+html[data-theme="dark"] .card-dialog,
+html[data-theme="dark"] .card-scan-dialog,
+html[data-theme="dark"] .emergency-dialog {
+    border: 1px solid rgba(255, 255, 255, .06);
+    border-radius: 16px;
+    background: var(--color-liquid-kelp);
+    box-shadow: none;
+}
+html[data-theme="dark"] .card:hover { transform: none; background: #04423d; }
+html[data-theme="dark"] .card h2,
+html[data-theme="dark"] .patient-card-heading h3,
+html[data-theme="dark"] .admin-section-heading h2,
+html[data-theme="dark"] .editor-heading h2 {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: var(--color-platinum);
+    font-family: var(--font-matter);
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
+    font-weight: 500;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+}
+html[data-theme="dark"] .card p,
+html[data-theme="dark"] .patient-card-heading p,
+html[data-theme="dark"] .form-group label { color: var(--color-silver-mist); }
+
+/* Botones: el degradado se reserva para la acción principal */
+html[data-theme="dark"] button.btn-action,
+html[data-theme="dark"] .btn-sos,
+html[data-theme="dark"] .emergency-call,
+html[data-theme="dark"] .card-scan-result {
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--gradient-aurora);
+    box-shadow: none;
+    color: var(--color-liquid-deep);
+    font-size: .8rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: filter 140ms ease, transform 140ms ease;
+}
+html[data-theme="dark"] button.btn-action:hover,
+html[data-theme="dark"] .btn-sos:hover,
+html[data-theme="dark"] .emergency-call:hover,
+html[data-theme="dark"] .card-scan-result:hover { filter: brightness(1.08); transform: translateY(-1px); }
+html[data-theme="dark"] button.btn-action:active,
+html[data-theme="dark"] .btn-sos:active { transform: none; }
+html[data-theme="dark"] button.btn-action:disabled { filter: grayscale(.6); opacity: .6; }
+html[data-theme="dark"] button.btn-action.secondary {
+    border: 1px solid rgba(255, 255, 255, .18);
+    background: transparent;
+    color: var(--color-platinum);
+}
+html[data-theme="dark"] .btn-login {
+    border: 1px solid rgba(203, 255, 252, .35);
+    border-radius: 6px;
+    background: var(--color-liquid-kelp);
+    box-shadow: none;
+    color: var(--color-platinum);
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+html[data-theme="dark"] .btn-login:hover { background: #04423d; box-shadow: none; }
+
+/* Controles y tablas sobre el nivel más profundo */
+html[data-theme="dark"] .form-group input,
+html[data-theme="dark"] .form-group select,
+html[data-theme="dark"] .form-group textarea,
+html[data-theme="dark"] .admin-toolbar input,
+html[data-theme="dark"] .admin-toolbar select,
+html[data-theme="dark"] .emergency-dialog input,
+html[data-theme="dark"] .card-scan-dialog input {
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 6px;
+    background: var(--color-liquid-deep);
+    color: var(--color-liquid-mist);
+}
+html[data-theme="dark"] .form-group input:focus,
+html[data-theme="dark"] .form-group select:focus,
+html[data-theme="dark"] .form-group textarea:focus { box-shadow: 0 0 0 3px rgba(0, 130, 124, .25); }
+html[data-theme="dark"] table th { background: var(--color-liquid-deep); color: var(--color-silver-mist); }
+html[data-theme="dark"] table tr:hover td { background: rgba(0, 130, 124, .12); }
+html[data-theme="dark"] .role-badge,
+html[data-theme="dark"] .role-pill,
+html[data-theme="dark"] .status-pill,
+html[data-theme="dark"] .availability-pill {
+    border-radius: 6px;
+    background: var(--color-liquid-deep);
+    color: var(--color-liquid-mist);
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .menu-toggle,
+html[data-theme="dark"] .icon-button {
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-liquid-mist);
+}
+html[data-theme="dark"] .theme-toggle:hover,
+html[data-theme="dark"] .menu-toggle:hover { background: var(--color-liquid-kelp); }
+html[data-theme="dark"] .menu-toggle[aria-expanded="true"] {
+    background: var(--color-liquid-kelp);
+    color: var(--color-platinum);
+}
+
+/* Cifras y datos clínicos: acento rosa pálido solo en énfasis */
+html[data-theme="dark"] .patient-card-row dt {
+    color: var(--color-silver-mist);
+    font-size: .68rem;
+    letter-spacing: .12em;
+}
+html[data-theme="dark"] .patient-card-row dd { color: var(--color-liquid-mist); }
+html[data-theme="dark"] .stat-value,
+html[data-theme="dark"] .dispatcher-count { color: var(--color-lavender-phosphor); }
+
+/* Menú móvil: apartados grandes, legibles y separados */
+@media (max-width: 768px) {
+    html[data-theme="dark"] body > aside { background: var(--color-liquid-deep); }
+    html[data-theme="dark"] aside.menu-open .nav-links {
+        gap: 4px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, .1);
+        border-top: 0;
+        border-radius: 0 0 16px 16px;
+        background: var(--color-liquid-deep);
+        box-shadow: none;
+    }
+    html[data-theme="dark"] .nav-links li a {
+        width: 100%;
+        min-height: 56px;
+        justify-content: flex-start;
+        border-radius: 6px;
+        font-size: .85rem;
+        letter-spacing: .1em;
+    }
+    html[data-theme="dark"] .nav-links li a.active {
+        background: var(--color-liquid-kelp);
+        border-left: 3px solid var(--color-liquid-mist);
+    }
+    html[data-theme="dark"] .btn-logout { min-height: 48px; padding: 8px 12px; }
+}
+
+@media (max-width: 520px) {
+    html[data-theme="dark"] aside .brand > span:last-child { display: none; }
+    html[data-theme="dark"] .nav-links { display: none; }
+    html[data-theme="dark"] aside.menu-open .nav-links { display: flex; }
+}
+
+/* Login: tarjeta abisal y SOS como degradado signature */
+html[data-theme="dark"] .login-card {
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 16px;
+    background: var(--color-liquid-kelp);
+    box-shadow: none;
+}
+html[data-theme="dark"] .login-card h1 {
+    color: var(--color-platinum);
+    font-family: var(--font-matter);
+    font-size: clamp(2rem, 7vw, 2.6rem);
+    font-weight: 500;
+    letter-spacing: -.04em;
+}
+html[data-theme="dark"] .logo-icon {
+    border: 1px solid rgba(203, 255, 252, .3);
+    border-radius: 16px;
+    background: var(--color-liquid-abyss);
+    box-shadow: none;
+    color: var(--color-liquid-mist);
+}
+html[data-theme="dark"] .btn-sos { min-height: 56px; }
+html[data-theme="dark"] .sos-options .btn-action {
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-silver-mist);
+    font-size: .75rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+html[data-theme="dark"] .sos-options .btn-action.active {
+    border-color: transparent;
+    background: var(--gradient-aurora);
+    color: var(--color-liquid-deep);
+}
+html[data-theme="dark"] #resultado { color: var(--color-liquid-mist); }
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-theme="dark"] *,
+    html[data-theme="dark"] *::before,
+    html[data-theme="dark"] *::after { transition-duration: .01ms !important; }
+}

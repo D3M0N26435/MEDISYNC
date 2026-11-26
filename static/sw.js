@@ -1,19 +1,28 @@
 // Sube el sufijo cuando cambien los estáticos del app shell.
-const CACHE_NAME = 'medisync-shell-v2';
+const CACHE_NAME = 'medisync-shell-v3';
 const APP_SHELL = [
     '/',
     '/static/css/main.css',
     '/static/css/login.css',
+    '/static/css/auros.css',
     '/static/css/admin.css',
+    '/static/css/clinical.css',
     '/static/css/emergency.css',
+    '/static/css/patient.css',
     '/static/css/patient-card.css',
+    '/static/css/pharmacist.css',
+    '/static/css/doctor.css',
+    '/static/css/chat.css',
     '/static/css/dispatcher.css',
     '/static/js/theme.js',
     '/static/js/pwa.js',
     '/static/js/roles.js',
     '/static/js/role-switcher.js',
+    '/static/js/mobile-menu.js',
+    '/static/js/sos.js',
+    '/static/js/emergency-alerts.js',
     '/static/js/emergency-scanner.js',
-    '/static/js/emergency-alerts.js'
+    '/static/js/card-qr-scanner.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -53,14 +62,17 @@ self.addEventListener('fetch', (event) => {
     }
 
     if (url.pathname.startsWith('/static/') || url.pathname === '/manifest.webmanifest') {
+        // Red primero: los cambios de CSS/JS se ven sin tener que limpiar la caché a mano.
         event.respondWith(
-            caches.match(request).then((cached) => cached || fetch(request).then((response) => {
-                if (response.ok) {
-                    const copy = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-                }
-                return response;
-            }))
+            fetch(request)
+                .then((response) => {
+                    if (response.ok) {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+                    }
+                    return response;
+                })
+                .catch(() => caches.match(request))
         );
     }
 });

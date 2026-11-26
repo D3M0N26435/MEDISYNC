@@ -60,6 +60,58 @@ html[data-theme="dark"] .medibot-reply { color: #e5f0f1; background: #244449; bo
 html[data-theme="dark"] .medibot-messages { background: #102a2d; border-color: #31565b; }
 html[data-theme="dark"] .chat-form textarea { color: #e5f0f1; background: #102a2d; border-color: #31565b; }
 
+/* Escáner de QR en «Mi tarjeta» */
+.patient-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.patient-section-heading .btn-action { min-height: 48px; flex: 0 0 auto; }
+.card-scan-result {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    margin-bottom: 18px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    background: var(--primary);
+    color: #ffffff;
+    font-size: .85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.card-scan-result[hidden] { display: none; }
+.card-scan-dialog {
+    width: min(100% - 24px, 520px);
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+    padding: clamp(18px, 3vw, 28px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+}
+.card-scan-dialog::backdrop { background: rgba(1, 29, 28, .78); }
+.card-scan-dialog .editor-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.card-scan-dialog h2 { font-size: 1.2rem; }
+.card-scan-dialog p { color: var(--text-muted); line-height: 1.5; font-size: .9rem; }
+.card-scan-dialog video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin: 14px 0 10px;
+    border-radius: var(--radius);
+    background: #011d1c;
+    object-fit: cover;
+}
+.card-scan-dialog .icon-button {
+    width: 40px;
+    height: 40px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+}
+
 @media (max-width: 900px) {
     .patient-booking-layout { grid-template-columns: 1fr; }
 }

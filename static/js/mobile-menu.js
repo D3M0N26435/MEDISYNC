@@ -10,14 +10,17 @@
     }
 
     toggle.addEventListener('click', () => {
-        const open = !aside.classList.toggle('menu-open');
+        const open = aside.classList.toggle('menu-open');
         toggle.setAttribute('aria-expanded', String(open));
     });
 
-    // Cierra al seleccionar una pestaña.
+    // Cierra al seleccionar cualquier apartado del menú.
     navLinks.addEventListener('click', (event) => {
-        const link = event.target.closest('a[role="tab"]');
-        if (link && window.innerWidth <= 768) closeMenu();
+        if (event.target.closest('a') && window.innerWidth <= 768) closeMenu();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeMenu();
     });
 
     // Cierra si se redimensiona a desktop.

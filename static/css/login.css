@@ -176,46 +176,27 @@ html[data-theme="dark"] .input-group input:focus { background: #0e292c; }
 html[data-theme="dark"] .logo-icon { background: #123b3d; }
 html[data-theme="dark"] .theme-toggle { background: #17383b; border-color: #2a6063; color: #fcd34d; }
 
-.btn-sos, .btn-scan {
+.btn-sos {
     width: 100%;
     min-height: 56px;
-    margin: 10px 0 6px;
-    border-radius: 16px;
-    font-weight: 800;
+    margin: 12px 0 6px;
+    border-radius: 6px;
+    border: 0;
+    background: var(--primary);
+    color: #ffffff;
+    font-size: .9rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    border: 0;
-    font-size: 1rem;
-    letter-spacing: .02em;
-    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+    transition: transform 120ms ease, filter 120ms ease;
 }
-.btn-sos {
-    background: var(--primary);
-    color: #ffffff;
-    box-shadow: 0 8px 20px rgba(8, 126, 139, .35);
-}
-.btn-sos:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(8, 126, 139, .45);
-}
+.btn-sos:hover { filter: brightness(1.08); transform: translateY(-2px); }
 .btn-sos:active { transform: translateY(1px); }
-.btn-scan {
-    background: var(--surface);
-    color: var(--heading);
-    border: 2px solid var(--border-strong);
-    box-shadow: var(--shadow);
-}
-.btn-scan:hover {
-    background: var(--primary-light);
-    border-color: var(--primary);
-    color: var(--primary-hover);
-    transform: translateY(-2px);
-}
-.btn-scan:active { transform: translateY(1px); }
 
 .sos-options {
     display: flex;
