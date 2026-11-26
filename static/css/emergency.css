@@ -39,6 +39,56 @@
 
 .emergency-card-slot { margin-bottom: 20px; }
 
+.emergency-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.emergency-actions .btn-action { flex: 1 1 220px; min-height: 48px; text-align: center; }
+.emergency-call {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: none;
+}
+.emergency-call:hover { background: var(--primary-hover); color: #ffffff; }
+.emergency-location-status { min-height: 1.4em; margin-bottom: 16px; color: var(--primary); font-weight: 600; line-height: 1.5; }
+.emergency-location-status.error { color: #b42318; }
+
+.emergency-confirm-dialog {
+    width: min(100% - 24px, 520px);
+    padding: clamp(18px, 3vw, 26px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-xl);
+}
+.emergency-confirm-dialog::backdrop { background: rgba(9, 30, 32, .65); }
+.emergency-confirm-dialog .editor-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.emergency-confirm-dialog .eyebrow { color: var(--primary); font-size: .7rem; font-weight: 800; letter-spacing: .12em; }
+.emergency-confirm-dialog h2 { margin: 4px 0; color: var(--heading); font-size: 1.15rem; }
+.emergency-confirm-dialog .icon-button {
+    width: 34px;
+    height: 34px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+.emergency-confirm-dialog p { color: var(--text-muted); line-height: 1.6; }
+.emergency-confirm-dialog .editor-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
 .emergency-note {
     padding: 16px;
     border: 1px solid var(--border);

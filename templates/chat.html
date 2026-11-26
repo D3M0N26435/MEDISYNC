@@ -22,7 +22,7 @@
         <header>
             <h1>Chat con soporte</h1>
             <div class="header-actions">
-                <span class="role-badge">PACIENTE</span>
+                <div class="role-switcher" data-role-switcher><span class="role-badge">Paciente</span></div>
                 <button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button>
             </div>
         </header>
@@ -41,6 +41,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="{{ url_for('static', filename='js/support-chat.js') }}"></script>
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>
 </html>

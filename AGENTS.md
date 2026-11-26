@@ -23,23 +23,24 @@ firebase deploy --only firestore:rules
 
 - **No hay Firebase Admin SDK** y no debe añadirse para esto. `app.py` valida el ID token con `google.oauth2.id_token.verify_firebase_token` y luego lee `users/{uid}` vía Firestore REST **con el token del propio usuario**.
 - El navegador guarda el token en la cookie HttpOnly `firebase_token` mediante `POST /auth/session`. `static/js/firebase.js` la renueva cada 40 min y expulsa al usuario si el servidor responde 401/403.
-- Protege toda ruta nueva con `@role_required("admin"|"doctor"|"pharmacist"|"patient")`. El decorador redirige al panel del rol real si hay desajuste.
+- Protege toda ruta nueva con `@role_required("admin"|"doctor"|"pharmacist"|"patient"|"dispatcher")`. El decorador acepta cualquiera de los roles del usuario y redirige al principal si no tiene el esperado.
+- `users/{uid}.roles` es la fuente de verdad para multirol; `role` se mantiene como rol principal por compatibilidad. `static/js/roles.js` centraliza `userRoles`/`hasRole` y `static/js/role-switcher.js` pinta el selector solo si hay más de un rol.
 - Los chequeos de rol en JS son solo UX. La autorización efectiva está en `firestore.rules` + `role_required`.
 
 ## Firestore: las reglas son la fuente de verdad
 
-Colecciones: `users`, `patientCards`, `emergencyCards`, `locations`, `doctorDirectory`, `appointments`, `appointmentSlots`, `medicalRecords`, `prescriptions`, `prescriptionOrders`, `pharmacySales`, `medications`.
+Colecciones: `users`, `patientCards`, `emergencyCards`, `emergencyAlerts`, `locations`, `doctorDirectory`, `appointments`, `appointmentSlots`, `medicalRecords`, `prescriptions`, `prescriptionOrders`, `pharmacySales`, `medications`.
 
 - Antes de cambiar la forma de un `setDoc`/`updateDoc`/`addDoc`, lee la regla correspondiente en `firestore.rules`. Varias reglas exigen **conjuntos exactos de claves** (`hasAll`/`hasOnly`), IDs derivados y transiciones de estado concretas.
 - Los IDs no son aleatorios en varios flujos:
   - `appointments/{doctorId}_{date}_{timeKey}` y `appointmentSlots` con el mismo ID.
   - `prescriptionOrders/{prescriptionId}_{patientId}_{pharmacyId}`.
-- `doctorDirectory` es la vista pública del médico (nombre, sede, especialidades, horarios, vacaciones). Se crea/actualiza junto con `users/{uid}` para rol `doctor` en `admin.js`.
+- `doctorDirectory` es la vista pública del médico (nombre, sede, especialidades, horarios, vacaciones). Se crea/actualiza junto con `users/{uid}` cuando `roles` incluye `doctor` en `admin.js`.
 - La reserva de cita es un batch atómico: `appointments` + `appointmentSlots`. No la separes en dos escrituras.
 - El médico solo puede pasar una cita de `scheduled` a `completed` o `no_show`. `completed` exige crear `medicalRecords` y, si hay receta, `prescriptions` en el mismo batch. `no_show` no crea historial.
 - `pharmacySales` es inmutable: el farmacéutico crea la venta y nadie la actualiza ni la borra. Valida claves exactas, productos (`name`, `quantity`, `unitPrice`, `subtotal`), total, pago y que `pharmacyId` coincida con su `locationId`.
 - `medications` es el catálogo editable de cada farmacia (`pharmacyId`, `name`, `presentation`, `unitPrice`, `active`, `createdBy`, timestamps). El farmacéutico solo puede leer/escribir los de su `locationId`; el admin y el médico pueden leer todos (el médico solo para elegir el medicamento al recetar). No hay stock ni inventario. Las ventas guardan una copia del nombre y precio, así que editar o borrar un medicamento no altera ventas pasadas.
-- Las reglas permiten al farmacéutico listar `users` **solo** con `where('role', '==', 'patient')`. No cambies esa consulta a una lista sin filtro: Firestore rechazará la lectura y expondrías perfiles de personal.
+- Las reglas permiten al farmacéutico listar `users` **solo** con `where('roles', 'array-contains', 'patient')`. No cambies esa consulta a una lista sin filtro: Firestore rechazará la lectura y expondrías perfiles de personal. `admin.js` migra los perfiles antiguos añadiendo `roles: [role]` al entrar al panel.
 - El buscador de asegurados usa `users/{uid}.carnet`; el panel de admin lo rellena al crear pacientes. También busca por `email` y `name`. El carnet es el identificador visible, pero el ID del documento sigue siendo el UID de Firebase Auth: cambiarlo rompería `role_required`, citas, recetas e historial. La unicidad del carnet se comprueba en el navegador; no hay restricción nativa en Firestore.
 - `active` ausente se interpreta como activo. La baja es lógica (`active: false`), nunca borrar `users`.
 - Despliega reglas tras cambiarlas; no hay emulador configurado.
@@ -55,7 +56,7 @@ Colecciones: `users`, `patientCards`, `emergencyCards`, `locations`, `doctorDire
 - Los paneles con pestañas (paciente y farmacéutico) usan `data-*-tab`, `aria-selected` y paneles con `hidden`/`.active`. Replica `patient.js` o `pharmacist.js`; no inventes otro patrón de navegación.
 - El farmacéutico tiene tres flujos separados: `Venta directa` (`pharmacySales`, clientes no registrados con autocompletado desde `medications`), `Asegurados` (búsqueda de pacientes + `prescriptionOrders` de su farmacia) y `Medicamentos` (CRUD del catálogo de su farmacia). No mezcles ventas con recetas ni uses `medications` como inventario.
 - El autocompletado de medicamentos vive en `static/js/medication-autocomplete.js` y lo comparten farmacéutico y médico. El médico consulta todo el catálogo activo y deduplica por nombre/presentación para elegir el medicamento de la receta; no escribe en `medications`.
-- El admin crea `doctor`, `pharmacist`, `admin` y `patient` desde `admin.js`. Para pacientes pide carnet, nombre, correo y contraseña, crea la cuenta con un segundo `initializeApp` para no cerrar la sesión del admin y guarda `users/{uid}` con `role: 'patient'`, `carnet`, `name`, `email`, `active: true` y timestamps. Si falla la escritura en Firestore, elimina la cuenta de Authentication recién creada.
+- El admin crea `doctor`, `pharmacist`, `admin`, `dispatcher` y `patient` desde `admin.js`, con un rol principal y casillas de roles adicionales. Para pacientes pide carnet, nombre, correo y contraseña, crea la cuenta con un segundo `initializeApp` para no cerrar la sesión del admin y guarda `users/{uid}` con `role: 'patient'`, `roles: ['patient']`, `carnet`, `name`, `email`, `active: true` y timestamps. Si falla la escritura en Firestore, elimina la cuenta de Authentication recién creada.
 
 ## Chat y bots
 
@@ -65,6 +66,7 @@ Colecciones: `users`, `patientCards`, `emergencyCards`, `locations`, `doctorDire
 - MediBot web: `POST /api/medibot` solo para pacientes, 8 consultas/min, respuesta generada desde `chat/informacion.txt`. Puede dar orientación general de salud de bajo riesgo, pero no diagnostica, no indica dosis ni receta.
 - `chat/informacion.txt` alimenta a MediBot y a `bot.py`. Si cambias funciones visibles, actualízalo; no describas como demo algo que ya funciona ni prometas inventario/precios que no existen.
 - `patientCards/{uid}` guarda tipo de sangre, alergias, enfermedades crónicas y `emergencyToken`; solo admin escribe. `emergencyCards/{token}` es la copia pública mínima, legible por token y sin UID, correo ni carnet. El QR se genera en `/api/emergency-qr/<token>` y apunta a `/emergencia?t=<token>`. Comparte `static/js/patient-card.js` para renderizar la tarjeta en admin, médico, paciente y página pública.
+- El botón público «Emergencia / escanear QR» está en `login.html` y usa `static/js/emergency-scanner.js` (`BarcodeDetector` con entrada manual de respaldo). La tarjeta pública tiene «Llamar emergencias» (`EMERGENCY_PHONE`, por defecto 112) y «Enviar mi ubicación», que crea/actualiza `emergencyAlerts/{alertId}` sin autenticación pero validando `cardToken` contra `emergencyCards`. El panel `/dispatcher` lee esas alertas con `onSnapshot`; solo `dispatcher`/admin pueden listarlas o cambiar su estado a `resolved`/`cancelled`. No hay integración real con 112 ni con ambulancias externas.
 - La app es PWA: `templates/pwa_head.html` se incluye en todas las plantillas, `static/sw.js` se sirve desde `/sw.js` con scope `/` y cachea solo app shell y estáticos; nunca cachees `/auth/*`, `/api/*`, `/internal/*` ni respuestas de Firestore.
 - `bot.py` usa `GEMINI_MODEL` con valor por defecto `gemini-3.5-flash-lite`. Atiende chats privados con Gemini y los comandos `/start`, `/ayuda`, `/cita`, `/salud`, `/funciones`, `/privacidad` y `/soporte`; `/salud` da orientación general sin diagnosticar ni recetar. En el grupo de soporte solo reenvía al portal las respuestas escritas con **Responder**.
 

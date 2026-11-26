@@ -31,6 +31,7 @@ ROLE_ENDPOINTS = {
     "doctor": "doctor_panel",
     "pharmacist": "pharmacist_panel",
     "patient": "patient_panel",
+    "dispatcher": "dispatcher_panel",
 }
 _firebase_token_cookie = "firebase_token"
 _telegram_token = (
@@ -116,9 +117,16 @@ def _get_user_profile(uid, id_token):
 
     fields = response.json().get("fields", {})
     role = fields.get("role", {}).get("stringValue")
+    roles = [
+        value.get("stringValue")
+        for value in fields.get("roles", {}).get("arrayValue", {}).get("values", [])
+        if value.get("stringValue")
+    ]
+    if not roles and role:
+        roles = [role]
     active_field = fields.get("active", {})
     active = active_field.get("booleanValue", True)
-    return {"role": role, "active": active}
+    return {"role": role, "roles": roles, "active": active}
 
 
 def _load_assistant_knowledge():
@@ -239,7 +247,7 @@ def _active_patient_uid():
         app.logger.exception("No se pudo verificar la sesión del chat.")
         return None
 
-    if not profile or profile.get("role") != "patient":
+    if not profile or "patient" not in _profile_roles(profile):
         return None
     if profile.get("active") is False:
         return None
@@ -369,8 +377,30 @@ def get_firebase_config():
     }
 
 
-def render_panel(template):
-    return render_template(template, firebase_config=get_firebase_config())
+def _profile_roles(profile):
+    """Roles autorizados, con compatibilidad para perfiles que aún no tienen roles[]."""
+    roles = profile.get("roles") if isinstance(profile.get("roles"), list) else []
+    roles = [role for role in roles if role in ROLE_ENDPOINTS]
+    if not roles and profile.get("role") in ROLE_ENDPOINTS:
+        roles = [profile["role"]]
+    return roles
+
+
+def _primary_role(profile, roles):
+    if profile.get("role") in roles:
+        return profile["role"]
+    return roles[0] if roles else ""
+
+
+def emergency_phone():
+    value = os.getenv("EMERGENCY_PHONE", "112").strip()
+    if value and all(char.isdigit() or char in "+#()- " for char in value):
+        return value
+    return "112"
+
+
+def render_panel(template, **context):
+    return render_template(template, firebase_config=get_firebase_config(), **context)
 
 
 def role_required(expected_role):
@@ -400,12 +430,13 @@ def role_required(expected_role):
             if not profile:
                 return _redirect_to_login()
 
-            role = profile.get("role")
-            if profile.get("active") is False or role not in ROLE_ENDPOINTS:
+            roles = _profile_roles(profile)
+            if profile.get("active") is False or not roles:
                 return _redirect_to_login()
 
-            if role != expected_role:
-                return redirect(url_for(ROLE_ENDPOINTS[role]))
+            primary_role = _primary_role(profile, roles)
+            if expected_role not in roles:
+                return redirect(url_for(ROLE_ENDPOINTS[primary_role]))
 
             return view(*args, **kwargs)
         return wrapped
@@ -419,7 +450,7 @@ def login():
 
 @app.route("/emergencia")
 def emergency_card():
-    return render_panel("emergencia.html")
+    return render_panel("emergencia.html", emergency_phone=emergency_phone())
 
 
 @app.route("/manifest.webmanifest")
@@ -507,13 +538,14 @@ def create_session():
     if not profile:
         return jsonify(error="Tu cuenta no tiene un perfil autorizado. Contacta al administrador."), 403
 
-    role = profile.get("role")
+    roles = _profile_roles(profile)
     if profile.get("active") is not True:
         return jsonify(error="Tu cuenta está inactiva. Contacta al administrador."), 403
-    if role not in ROLE_ENDPOINTS:
+    if not roles:
         return jsonify(error="Tu perfil no tiene un rol autorizado. Contacta al administrador."), 403
 
-    response = make_response(jsonify(redirect=url_for(ROLE_ENDPOINTS[role])))
+    primary_role = _primary_role(profile, roles)
+    response = make_response(jsonify(redirect=url_for(ROLE_ENDPOINTS[primary_role])))
     max_age = max(1, min(3600, int(expires_at - time.time()))) if expires_at else 3600
     response.set_cookie(
         _firebase_token_cookie,
@@ -554,6 +586,12 @@ def pharmacist_panel():
 @role_required("patient")
 def patient_panel():
     return render_panel("patient_dashboard.html")
+
+
+@app.route("/dispatcher")
+@role_required("dispatcher")
+def dispatcher_panel():
+    return render_panel("dispatcher_dashboard.html")
 
 
 @app.route("/api/medibot", methods=["POST"])

@@ -31,7 +31,31 @@ function escapeHtml(value = '') {
 }
 
 function roleName(role) {
-    return ({ admin: 'Administrador', doctor: 'Médico', pharmacist: 'Farmacéutico', patient: 'Paciente' })[role] || role || 'Sin rol';
+    return ({ admin: 'Administrador', doctor: 'Médico', pharmacist: 'Farmacéutico', patient: 'Paciente', dispatcher: 'Despacho' })[role] || role || 'Sin rol';
+}
+
+function staffRoles(user) {
+    return Array.isArray(user?.roles) ? user.roles.filter(Boolean) : (user?.role ? [user.role] : []);
+}
+
+function staffHasRole(user, role) {
+    return staffRoles(user).includes(role);
+}
+
+function roleLabels(user) {
+    const labels = staffRoles(user).map(roleName);
+    return labels.length ? labels.join(' · ') : 'Sin rol';
+}
+
+function selectedStaffRoles() {
+    const primary = $('staff-role').value;
+    const extras = [...document.querySelectorAll('[data-staff-extra-role]:checked')].map((input) => input.value);
+    return [primary, ...extras.filter((role) => role !== primary)];
+}
+
+function setStaffRoleControlsDisabled(disabled) {
+    $('staff-role').disabled = disabled;
+    document.querySelectorAll('[data-staff-extra-role]').forEach((input) => { input.disabled = disabled; });
 }
 
 function locationTypeName(type) {
@@ -71,10 +95,10 @@ function staffAvailability(user) {
 function renderStaff() {
     const query = $('staff-search').value.trim().toLowerCase();
     const roleFilter = $('staff-role-filter').value;
-    const rows = [...staffById.entries()].filter(([, user]) => ['admin', 'doctor', 'pharmacist'].includes(user.role));
+    const rows = [...staffById.entries()].filter(([, user]) => staffRoles(user).some((role) => ['admin', 'doctor', 'pharmacist', 'dispatcher'].includes(role)));
     const filtered = rows.filter(([uid, user]) => {
-        const text = `${uid} ${user.name || ''} ${user.email || ''} ${user.role || ''}`.toLowerCase();
-        return (!query || text.includes(query)) && (!roleFilter || user.role === roleFilter);
+        const text = `${uid} ${user.name || ''} ${user.email || ''} ${staffRoles(user).join(' ')}`.toLowerCase();
+        return (!query || text.includes(query)) && (!roleFilter || staffHasRole(user, roleFilter));
     });
     const tbody = $('staff-table-body');
     if (!filtered.length) {
@@ -86,7 +110,7 @@ function renderStaff() {
         const disabled = user.active === false;
         return `<tr>
             <td><strong>${escapeHtml(user.name || 'Sin nombre')}</strong><small>${escapeHtml(user.email || uid)}</small></td>
-            <td><span class="role-pill">${escapeHtml(roleName(user.role))}</span></td>
+            <td><span class="role-pill">${escapeHtml(roleLabels(user))}</span></td>
             <td>${location ? `<span class="location-type-label">${escapeHtml(locationTypeName(location.type))}</span><strong>${escapeHtml(location.name)}</strong>` : '<span class="muted">Sin asignar</span>'}</td>
             <td>${staffAvailability(user)}</td>
             <td><span class="status-pill ${disabled ? 'disabled' : 'enabled'}">${disabled ? 'Inactivo' : 'Activo'}</span></td>
@@ -172,7 +196,7 @@ function validateDoctorSchedule(schedules) {
 }
 
 function syncDoctorSettings() {
-    $('doctor-settings').hidden = $('staff-role').value !== 'doctor';
+    $('doctor-settings').hidden = !selectedStaffRoles().includes('doctor');
 }
 
 function openStaffForm(uid = '') {
@@ -186,11 +210,16 @@ function openStaffForm(uid = '') {
     $('staff-form-eyebrow').textContent = editing ? 'EDITAR PERFIL' : 'NUEVO PERFIL';
     $('staff-form-title').textContent = editing ? 'Editar personal' : 'Añadir personal';
     $('save-staff-button').textContent = editing ? 'Guardar cambios' : 'Crear perfil';
+    const roles = staffRoles(user);
+    const primary = roles.includes(user?.role) ? user.role : (roles[0] || 'doctor');
     $('staff-name').value = user?.name || '';
     $('staff-email').value = user?.email || '';
     $('staff-email').readOnly = editing;
-    $('staff-role').value = user?.role || 'doctor';
-    $('staff-role').disabled = editing && uid === auth.currentUser?.uid;
+    $('staff-role').value = primary;
+    document.querySelectorAll('[data-staff-extra-role]').forEach((input) => {
+        input.checked = roles.includes(input.value) && input.value !== primary;
+    });
+    setStaffRoleControlsDisabled(editing && uid === auth.currentUser?.uid);
     $('staff-location').value = user?.locationId || '';
     const doctorDirectory = doctorDirectoryById.get(uid) || user || {};
     $('doctor-specialties').value = (doctorDirectory.specialties || []).join(', ');
@@ -210,14 +239,15 @@ async function saveStaff(event) {
     const email = $('staff-email').value.trim().toLowerCase();
     const password = $('staff-password').value;
     const vacationPeriods = readVacationPeriods();
-    const role = uid === auth.currentUser?.uid ? staffById.get(uid).role : $('staff-role').value;
+    const roles = uid === auth.currentUser?.uid ? staffRoles(staffById.get(uid)) : selectedStaffRoles();
+    const role = roles[0] || '';
     const specialties = $('doctor-specialties').value.split(',').map((value) => value.trim()).filter(Boolean);
     const weeklyAvailability = readDoctorSchedule();
     if (vacationPeriods.some((period) => !period.start || !period.end || period.start > period.end)) {
         showFeedback('Revisa los periodos: cada fecha de inicio debe tener una fecha final igual o posterior.', 'error');
         return;
     }
-    if (role === 'doctor') {
+    if (roles.includes('doctor')) {
         const selectedLocation = locationsById.get($('staff-location').value);
         if (!selectedLocation || !['health_center', 'hospital'].includes(selectedLocation.type)) {
             showFeedback('Asigna al médico a un centro de salud o hospital.', 'error');
@@ -232,7 +262,7 @@ async function saveStaff(event) {
             showFeedback(scheduleError, 'error');
             return;
         }
-    } else if (role === 'pharmacist') {
+    } else if (roles.includes('pharmacist')) {
         const selectedLocation = locationsById.get($('staff-location').value);
         if (!selectedLocation || selectedLocation.type !== 'pharmacy') {
             showFeedback('Asigna al farmacéutico a una farmacia.', 'error');
@@ -243,11 +273,12 @@ async function saveStaff(event) {
         name: $('staff-name').value.trim(),
         email,
         role,
+        roles,
         locationId: $('staff-location').value || '',
         vacationPeriods,
         updatedAt: serverTimestamp()
     };
-    if (role === 'doctor') {
+    if (roles.includes('doctor')) {
         profile.specialties = specialties;
         profile.weeklyAvailability = weeklyAvailability;
     }
@@ -256,7 +287,7 @@ async function saveStaff(event) {
     try {
         if (uid) {
             await updateDoc(doc(db, 'users', uid), profile);
-            if (role === 'doctor') {
+            if (roles.includes('doctor')) {
                 await setDoc(doc(db, 'doctorDirectory', uid), {
                     name: profile.name,
                     locationId: profile.locationId,
@@ -278,7 +309,7 @@ async function saveStaff(event) {
                 const credential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
                 try {
                     await setDoc(doc(db, 'users', credential.user.uid), { ...profile, active: true, createdAt: serverTimestamp() });
-                    if (role === 'doctor') {
+                    if (roles.includes('doctor')) {
                         await setDoc(doc(db, 'doctorDirectory', credential.user.uid), {
                             name: profile.name,
                             locationId: profile.locationId,
@@ -343,7 +374,7 @@ async function handleStaffAction(event) {
             const actionText = active ? 'reactivar' : 'dar de baja';
             if (!window.confirm(`¿Quieres ${actionText} a ${user.name || user.email}?`)) return;
             await updateDoc(doc(db, 'users', id), { active, updatedAt: serverTimestamp() });
-            if (user.role === 'doctor') {
+            if (staffHasRole(user, 'doctor')) {
                 await updateDoc(doc(db, 'doctorDirectory', id), { active, updatedAt: serverTimestamp() });
             }
             showFeedback(active ? 'Perfil reactivado.' : 'Personal dado de baja. El acceso quedará bloqueado al siguiente inicio de sesión.');
@@ -357,7 +388,7 @@ async function handleStaffAction(event) {
 
 // El carnet es el identificador visible; el documento sigue usando el UID de Firebase Auth.
 function patientEntries() {
-    return [...staffById.entries()].filter(([, user]) => user.role === 'patient');
+    return [...staffById.entries()].filter(([, user]) => staffHasRole(user, 'patient'));
 }
 
 function renderPatients() {
@@ -485,6 +516,7 @@ async function savePatient(event) {
                         name,
                         email,
                         role: 'patient',
+                        roles: ['patient'],
                         active: true,
                         createdAt: serverTimestamp()
                     });
@@ -615,7 +647,7 @@ function selectLocation(id, pan = true) {
 
 function renderLocationTeam() {
     const location = locationsById.get(selectedLocationId);
-    const team = [...staffById.entries()].filter(([, user]) => user.locationId === selectedLocationId && ['admin', 'doctor', 'pharmacist'].includes(user.role));
+    const team = [...staffById.entries()].filter(([, user]) => user.locationId === selectedLocationId && staffRoles(user).some((role) => ['admin', 'doctor', 'pharmacist', 'dispatcher'].includes(role)));
     if (!location) {
         $('location-team').innerHTML = '<p class="empty-state">No hay una sede seleccionada.</p>';
         return;
@@ -634,7 +666,7 @@ function renderLocations() {
         container.innerHTML = '<p class="empty-state">No hay sedes registradas en esta categoría. Añade una nueva sede.</p>';
     } else {
         container.innerHTML = locations.map(([id, location]) => {
-            const people = [...staffById.values()].filter((user) => user.locationId === id && ['admin', 'doctor', 'pharmacist'].includes(user.role));
+            const people = [...staffById.values()].filter((user) => user.locationId === id && staffRoles(user).some((role) => ['admin', 'doctor', 'pharmacist', 'dispatcher'].includes(role)));
             const activePeople = people.filter((user) => user.active !== false).length;
             return `<article class="location-row ${id === selectedLocationId ? 'selected' : ''}" data-location-select="${escapeHtml(id)}">
                 <button type="button" class="location-summary" data-location-open="${escapeHtml(id)}"><span class="location-icon">${location.type === 'pharmacy' ? '✚' : '⌂'}</span><span class="location-copy"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(location.address)}</small></span><span class="location-count">${activePeople} ${activePeople === 1 ? 'persona' : 'personas'}</span></button>
@@ -682,11 +714,11 @@ async function saveLocation(event) {
     }
     const type = $('location-type').value;
     const assignedStaff = [...staffById.values()].filter((user) => user.locationId === id);
-    if (assignedStaff.some((user) => user.role === 'doctor') && !['health_center', 'hospital'].includes(type)) {
+    if (assignedStaff.some((user) => staffHasRole(user, 'doctor')) && !['health_center', 'hospital'].includes(type)) {
         showFeedback('Reasigna a los médicos antes de cambiar esta sede a farmacia.', 'error');
         return;
     }
-    if (assignedStaff.some((user) => user.role === 'pharmacist') && type !== 'pharmacy') {
+    if (assignedStaff.some((user) => staffHasRole(user, 'pharmacist')) && type !== 'pharmacy') {
         showFeedback('Reasigna a los farmacéuticos antes de cambiar el tipo de sede.', 'error');
         return;
     }
@@ -748,6 +780,13 @@ async function loadData() {
     locationsById.clear();
     doctorDirectoryById.clear();
     patientCardsById.clear();
+    const migrations = usersSnapshot.docs
+        .filter((item) => !Array.isArray(item.data().roles))
+        .map((item) => updateDoc(item.ref, {
+            roles: [item.data().role].filter(Boolean),
+            updatedAt: serverTimestamp()
+        }).catch((error) => console.warn('No se pudo migrar los roles de', item.id, error)));
+    await Promise.all(migrations);
     usersSnapshot.forEach((item) => staffById.set(item.id, item.data()));
     locationsSnapshot.forEach((item) => locationsById.set(item.id, item.data()));
     doctorDirectorySnapshot.forEach((item) => doctorDirectoryById.set(item.id, item.data()));
@@ -783,6 +822,7 @@ function bindEvents() {
     $('new-staff-button').addEventListener('click', () => openStaffForm());
     $('staff-form').addEventListener('submit', saveStaff);
     $('staff-role').addEventListener('change', syncDoctorSettings);
+    document.querySelectorAll('[data-staff-extra-role]').forEach((input) => input.addEventListener('change', syncDoctorSettings));
     $('add-doctor-schedule').addEventListener('click', () => addDoctorScheduleRow());
     $('doctor-schedule-rows').addEventListener('click', (event) => event.target.closest('.remove-doctor-schedule')?.closest('.doctor-schedule-row')?.remove());
     $('staff-table-body').addEventListener('click', handleStaffAction);
@@ -819,7 +859,7 @@ onAuthStateChanged(auth, async (user) => {
     }
     try {
         const profile = await getDoc(doc(db, 'users', user.uid));
-        if (!profile.exists() || profile.data().role !== 'admin' || profile.data().active === false) {
+        if (!profile.exists() || !staffHasRole(profile.data(), 'admin') || profile.data().active === false) {
             showFeedback('Esta cuenta no tiene permisos de administración.', 'error');
             await signOut(auth);
             window.setTimeout(() => window.location.replace('/'), 1200);

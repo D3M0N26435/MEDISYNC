@@ -20,7 +20,7 @@
     <main>
         <header>
             <h1>Panel del Médico</h1>
-            <div class="header-actions"><span class="role-badge">MÉDICO</span><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
+            <div class="header-actions"><div class="role-switcher" data-role-switcher><span class="role-badge">Médico</span></div><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
         </header>
 
         <div id="doctor-feedback" class="clinical-feedback" role="status" aria-live="polite"></div>
@@ -64,6 +64,7 @@
     </main>
 
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/doctor.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>

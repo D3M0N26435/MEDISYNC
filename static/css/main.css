@@ -586,6 +586,39 @@ html[data-theme="dark"] .map-tools-error { color: #ffb4a9; }
 }
 .theme-toggle:hover { transform: translateY(-1px); background: var(--primary); color: #fff; }
 .header-actions { display: flex; align-items: center; gap: 12px; }
+.role-switcher { display: inline-flex; align-items: center; gap: 8px; }
+.role-switcher .role-badge { text-transform: uppercase; }
+.role-menu { position: relative; }
+.role-menu > summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--primary);
+    font-size: .78rem;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+.role-menu > summary::-webkit-details-marker { display: none; }
+.role-menu-links {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    right: 0;
+    display: grid;
+    min-width: 170px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+}
+.role-menu-links a { padding: 10px 12px; border-radius: var(--radius-sm); color: var(--text); font-size: .85rem; text-decoration: none; }
+.role-menu-links a:hover { background: var(--primary-light); color: var(--primary); }
 
 body > aside {
     color: #e8f5f3;

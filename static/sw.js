@@ -1,12 +1,19 @@
 // Sube el sufijo cuando cambien los estáticos del app shell.
-const CACHE_NAME = 'medisync-shell-v1';
+const CACHE_NAME = 'medisync-shell-v2';
 const APP_SHELL = [
     '/',
     '/static/css/main.css',
     '/static/css/login.css',
+    '/static/css/admin.css',
+    '/static/css/emergency.css',
     '/static/css/patient-card.css',
+    '/static/css/dispatcher.css',
     '/static/js/theme.js',
-    '/static/js/pwa.js'
+    '/static/js/pwa.js',
+    '/static/js/roles.js',
+    '/static/js/role-switcher.js',
+    '/static/js/emergency-scanner.js',
+    '/static/js/emergency-alerts.js'
 ];
 
 self.addEventListener('install', (event) => {

@@ -13,6 +13,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
 import { attachMedicationAutocomplete, medicationDisplayName } from './medication-autocomplete.js';
+import { hasRole } from './roles.js';
 
 const $ = (id) => document.getElementById(id);
 const tabTitles = {
@@ -582,7 +583,7 @@ async function loadSales() {
 }
 
 async function loadPatients() {
-    const snapshot = await getDocs(query(collection(db, 'users'), where('role', '==', 'patient')));
+    const snapshot = await getDocs(query(collection(db, 'users'), where('roles', 'array-contains', 'patient')));
     patients = snapshot.docs
         .map((item) => ({ id: item.id, ...item.data() }))
         .sort((a, b) => patientName(a).localeCompare(patientName(b), 'es'));
@@ -592,7 +593,7 @@ async function loadPatients() {
 async function loadPharmacistData(user) {
     const profile = await getDoc(doc(db, 'users', user.uid));
     const userData = profile.exists() ? profile.data() : {};
-    if (userData.role !== 'pharmacist' || userData.active === false) {
+    if (!hasRole(userData, 'pharmacist') || userData.active === false) {
         window.location.replace('/');
         return;
     }

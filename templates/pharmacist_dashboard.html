@@ -23,7 +23,7 @@
     <main>
         <header>
             <h1 id="pharmacist-page-title">Venta directa</h1>
-            <div class="header-actions"><span class="role-badge">FARMACÉUTICO</span><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
+            <div class="header-actions"><div class="role-switcher" data-role-switcher><span class="role-badge">Farmacéutico</span></div><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
         </header>
 
         <p id="pharmacy-location-label" class="pharmacist-location">Cargando sede…</p>
@@ -122,6 +122,7 @@
     </main>
 
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/pharmacist.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>

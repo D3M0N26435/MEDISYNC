@@ -13,6 +13,7 @@ Antes de usar el panel, crea en Firebase Authentication la cuenta inicial de adm
   "name": "Administrador",
   "email": "admin@tu-dominio.com",
   "role": "admin",
+  "roles": ["admin"],
   "active": true
 }
 ```
@@ -45,7 +46,7 @@ El panel tiene tres pestañas:
 - **Asegurados**: busca pacientes registrados por nombre completo, correo o carnet para entregar las recetas que solicitaron en esa farmacia. El buscador usa el campo `carnet` de `users/{uid}`; si no existe, también puede encontrar al paciente por nombre o correo.
 - **Medicamentos**: permite crear, editar, activar/desactivar y eliminar los medicamentos de esa farmacia en `medications`. Cada documento guarda `pharmacyId`, `name`, `presentation`, `unitPrice`, `active`, `createdBy`, `createdAt` y `updatedAt`. El catálogo es independiente por farmacia y no controla stock. Los medicamentos inactivos no aparecen en las sugerencias de venta.
 
-El panel de administración rellena `carnet`, `name` y `email` al crear pacientes. Para pacientes antiguos creados a mano, agrega el campo `carnet` a `users/{uid}` (por ejemplo, `"carnet": "12345678"`). La búsqueda por correo usa `email` y la búsqueda por nombre usa `name`. Las reglas permiten que un farmacéutico activo lea únicamente perfiles con `role: "patient"`; no puede leer perfiles de otro personal. Despliega las reglas después de actualizarlas:
+El panel de administración rellena `carnet`, `name` y `email` al crear pacientes. Para pacientes antiguos creados a mano, agrega el campo `carnet` a `users/{uid}` (por ejemplo, `"carnet": "12345678"`). La búsqueda por correo usa `email` y la búsqueda por nombre usa `name`. Las reglas permiten que un farmacéutico activo lea únicamente perfiles con `roles` que incluya `"patient"`; no puede leer perfiles de otro personal. Despliega las reglas después de actualizarlas:
 
 ```sh
 firebase deploy --only firestore:rules
@@ -55,7 +56,9 @@ firebase deploy --only firestore:rules
 
 El chat de soporte está en `/chat` y requiere una sesión activa de paciente. Los mensajes llegan al grupo de Telegram configurado y el equipo puede responder usando la opción **Responder** sobre el mensaje reenviado. El puente usa `bot.py` como único proceso que recibe actualizaciones de Telegram. El panel del paciente también incluye **MediBot**, que responde con IA, puede dar orientación general de salud de bajo riesgo y no pasa por Telegram. No diagnostica, no receta ni sustituye una consulta médica.
 
-Cada asegurado tiene una tarjeta con nombre, carnet, tipo de sangre, alergias y enfermedades crónicas. La administración es el único rol que la edita; el médico la consulta al registrar una atención o abrir el historial, y el paciente la ve en **Mi tarjeta** junto con su código QR. El QR apunta a `/emergencia?t=<token>` y muestra una copia pública mínima, sin correo ni UID. La web también es instalable como PWA: incluye manifiesto, iconos y un service worker que solo cachea el app shell y los estáticos.
+Cada asegurado tiene una tarjeta con nombre, carnet, tipo de sangre, alergias y enfermedades crónicas. La administración es el único rol que la edita; el médico la consulta al registrar una atención o abrir el historial, y el paciente la ve en **Mi tarjeta** junto con su código QR. El QR apunta a `/emergencia?t=<token>` y muestra una copia pública mínima, sin correo, UID ni carnet. La web también es instalable como PWA: incluye manifiesto, iconos y un service worker que solo cachea el app shell y los estáticos.
+
+En la pantalla de acceso hay un botón **Emergencia / escanear QR** que abre la tarjeta sin iniciar sesión. La tarjeta pública permite llamar al número configurado en `EMERGENCY_PHONE` (por defecto `112`) y, tras confirmar, enviar la ubicación del navegador al panel **Despacho** (`/dispatcher`). Las alertas se actualizan en tiempo real y el personal de despacho puede marcarlas como atendidas o cancelarlas. Esto es un puente interno: **no envía nada a un servicio externo de ambulancias**. Para usarlo crea un perfil con rol `dispatcher` desde administración. Un mismo usuario puede tener varios roles: en administración elige un rol principal y marca los adicionales; en la cabecera aparecerá **Cambiar rol** solo si tiene más de uno.
 
 Configura estas variables en `.env`; las usan `app.py` y `bot.py`:
 
@@ -64,6 +67,7 @@ tokenTelegram=token_del_bot
 chatIdTelegram=id_del_chat_de_soporte
 CHAT_BRIDGE_SECRET=un_secreto_compartido_largo
 APP_BASE_URL=http://127.0.0.1:5000
+EMERGENCY_PHONE=112
 
 apiGoogle=tu_api_key_de_gemini
 GEMINI_MODEL=gemini-3.5-flash-lite
@@ -76,7 +80,8 @@ AI_MODEL=gemini-3.5-flash-lite
 - `tokenTelegram`: token del bot creado en **@BotFather**; también se acepta `token_telegram`.
 - `chatIdTelegram`: ID numérico del grupo de soporte; los grupos suelen tener un ID negativo.
 - `CHAT_BRIDGE_SECRET`: cadena larga e inventada, idéntica en la web y en el bot.
-- `APP_BASE_URL`: URL de la web que el bot puede alcanzar para devolver la respuesta al portal.
+- `APP_BASE_URL`: URL de la web que el bot puede alcanzar para devolver la respuesta al portal y que usan los QR para apuntar a producción.
+- `EMERGENCY_PHONE`: número del botón público «Llamar emergencias»; por defecto `112`.
 - `apiGoogle`: API key de Google AI Studio. También se acepta `GEMINI_API_KEY`.
 - `GEMINI_MODEL`: modelo de Gemini para `bot.py`; por defecto `gemini-3.5-flash-lite`.
 - `AI_MODEL`: modelo de MediBot web; en el ejemplo usa el mismo Gemini.

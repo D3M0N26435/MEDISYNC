@@ -28,11 +28,25 @@
 
             <button class="btn-login" id="login-submit" type="submit">Acceder al Sistema</button>
         </form>
+        <button class="btn-emergency" id="open-emergency-scanner" type="button">🆘 Emergencia / escanear QR</button>
         <p id="resultado" role="status" aria-live="polite"></p>
     </div>
 
+    <dialog id="emergency-dialog" class="emergency-dialog">
+        <div class="editor-heading"><div><p class="eyebrow">SIN INICIAR SESIÓN</p><h2>Tarjeta de emergencia</h2></div><button class="icon-button" type="button" id="close-emergency-dialog" aria-label="Cerrar">✕</button></div>
+        <p>Escanea el QR del asegurado o escribe su código para ver la tarjeta médica y pedir auxilio.</p>
+        <video id="emergency-video" playsinline autoplay muted></video>
+        <p id="emergency-scan-status" role="status" aria-live="polite">Activando la cámara…</p>
+        <form id="emergency-code-form">
+            <label for="emergency-code">¿No puedes escanear? Ingresa el código</label>
+            <input id="emergency-code" autocomplete="off" placeholder="Código de 20 caracteres o más" required>
+            <button class="btn-action" type="submit">Ver tarjeta</button>
+        </form>
+    </dialog>
+
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/emergency-scanner.js') }}"></script>
 
 </body>
 </html>

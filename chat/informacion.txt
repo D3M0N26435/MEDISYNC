@@ -7,6 +7,8 @@ ROLES Y PANELES
 - Médico: ve sus citas, registra la atención clínica, emite recetas y consulta el historial de sus pacientes. Al recetar puede buscar medicamentos en el catálogo activo de cualquier farmacia para elegir el nombre y la presentación; también puede escribirlos manualmente.
 - Farmacéutico: tiene tres apartados. En Venta directa registra compras de personas que no están registradas como pacientes y puede buscar productos en el catálogo de su farmacia mientras escribe. En Asegurados busca pacientes registrados por carnet, correo o nombre completo para entregar las recetas solicitadas en su farmacia. En Medicamentos gestiona el catálogo de nombres y precios de su farmacia.
 - Paciente: agenda citas con los centros y médicos disponibles, consulta sus recetas e historial, solicita la preparación de recetas en farmacias autorizadas, consulta su tarjeta de asegurado con código QR y puede usar MediBot.
+- Despacho: consulta en tiempo real las alertas de emergencia enviadas desde las tarjetas públicas, ve la ubicación compartida y puede marcarlas como atendidas o cancelarlas.
+- Una misma persona puede tener varios roles. Administración elige un rol principal y marca los adicionales; la cabecera muestra «Cambiar rol» solo cuando hay más de un panel disponible.
 
 MAPAS Y UBICACIÓN
 - Los mapas del panel de administración y del paciente tienen «Mi ubicación» y «Cómo llegar» debajo del mapa. La ubicación se pide al navegador solo cuando se pulsa el botón y no se guarda en MediSync.
@@ -24,7 +26,10 @@ TARJETA DE ASEGURADO Y QR
 - Cada paciente registrado tiene una tarjeta con nombre, carnet, tipo de sangre, alergias y enfermedades crónicas.
 - Estos datos son gestionados exclusivamente por la administración. El médico los ve al registrar una consulta o al abrir el historial del paciente, pero no puede editarlos.
 - En el panel del paciente, la pestaña «Mi tarjeta» muestra la tarjeta y un código QR privado. Al escanearlo se abre una página pública con la información esencial, sin necesidad de iniciar sesión.
-- La tarjeta pública no muestra correo, número de documento completo, uid de Firebase ni datos de contacto. Si el paciente se da de baja, su tarjeta pública queda desactivada.
+- La tarjeta pública no muestra correo, carnet, uid de Firebase ni datos de contacto. Si el paciente se da de baja, su tarjeta pública queda desactivada.
+- En la pantalla de acceso hay un botón «Emergencia / escanear QR» para abrir la tarjeta sin iniciar sesión. Si el navegador no puede leer QR, se puede escribir el código manualmente.
+- La tarjeta pública tiene «Llamar emergencias», que abre el teléfono con el número configurado por la plataforma (por defecto 112), y «Enviar mi ubicación». Tras confirmar, la ubicación llega al panel de despacho y se actualiza mientras la página siga abierta; se puede detener el envío en cualquier momento.
+- Esto es un puente interno de la plataforma: no llama ni envía información a servicios externos de ambulancias.
 - El sitio web se puede instalar como aplicación (PWA) desde el menú del navegador y funciona con icono propio; el service worker solo guarda el app shell y los archivos estáticos.
 
 ALCANCE DE MEDIBOT

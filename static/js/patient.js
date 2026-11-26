@@ -14,6 +14,7 @@ import {
 import { auth, db } from './firebase.js';
 import { attachMapTools } from './map-utils.js';
 import { loadPatientCard, renderPatientCard } from './patient-card.js';
+import { hasRole } from './roles.js';
 
 const $ = (id) => document.getElementById(id);
 const state = {
@@ -614,7 +615,7 @@ async function loadPatientData(user) {
     state.user = user;
     const profileSnapshot = await getDoc(doc(db, 'users', user.uid));
     state.profile = profileSnapshot.exists() ? profileSnapshot.data() : {};
-    if (state.profile.role !== 'patient' || state.profile.active === false) {
+    if (!hasRole(state.profile, 'patient') || state.profile.active === false) {
         window.location.replace('/');
         return;
     }

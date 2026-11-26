@@ -22,6 +22,17 @@
         </section>
         <p id="emergency-status" class="emergency-status" role="status" aria-live="polite">Cargando tarjeta…</p>
         <div id="emergency-card" class="emergency-card-slot"></div>
+        <div id="emergency-actions" class="emergency-actions" hidden>
+            <a id="emergency-call" class="btn-action emergency-call" href="tel:{{ emergency_phone }}">📞 Llamar emergencias</a>
+            <button id="emergency-location-button" class="btn-action" type="button">📍 Enviar mi ubicación</button>
+            <button id="emergency-stop-button" class="btn-action secondary" type="button" hidden>Detener envío</button>
+        </div>
+        <p id="emergency-location-status" class="emergency-location-status" role="status" aria-live="polite"></p>
+        <dialog id="emergency-confirm-dialog" class="emergency-confirm-dialog">
+            <div class="editor-heading"><div><p class="eyebrow">CONFIRMACIÓN</p><h2>Compartir ubicación</h2></div><button class="icon-button" type="button" id="emergency-confirm-close" aria-label="Cancelar">✕</button></div>
+            <p>Tu ubicación se enviará al equipo de despacho de MediSync y se actualizará mientras mantengas esta página abierta. Solo se usa para atender esta emergencia.</p>
+            <div class="editor-actions"><button class="btn-action" type="button" id="emergency-confirm-send">Sí, enviar ubicación</button><button class="btn-action secondary" type="button" id="emergency-confirm-cancel">Cancelar</button></div>
+        </dialog>
         <p class="emergency-note">Ante una emergencia, contacta de inmediato con el servicio de emergencias de tu localidad. Esta tarjeta no sustituye la atención médica.</p>
     </main>
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>

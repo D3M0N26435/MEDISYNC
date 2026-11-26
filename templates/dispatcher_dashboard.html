@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSync - Centro de despacho</title>
+    {% include 'pwa_head.html' %}
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient-card.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dispatcher.css') }}">
+</head>
+<body>
+    <aside>
+        <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
+        <ul class="nav-links"><li><a href="/dispatcher" class="active">🚑 <span>Centro de despacho</span></a></li></ul>
+        <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
+    </aside>
+    <main>
+        <header>
+            <h1>Centro de despacho</h1>
+            <div class="header-actions"><div class="role-switcher" data-role-switcher><span class="role-badge">Despacho</span></div><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
+        </header>
+        <section class="dispatcher-section">
+            <div class="admin-section-heading"><div><p class="eyebrow">EMERGENCIAS EN VIVO</p><h2>Alertas recibidas</h2><p>Las ubicaciones se actualizan en tiempo real mientras la persona mantenga abierta su tarjeta.</p></div></div>
+            <p id="dispatcher-feedback" class="admin-feedback" role="status" aria-live="polite"></p>
+            <div id="dispatcher-alerts" class="dispatcher-alerts"><p class="empty-state">Cargando alertas…</p></div>
+        </section>
+    </main>
+    <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/dispatcher.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
+</body>
+</html>

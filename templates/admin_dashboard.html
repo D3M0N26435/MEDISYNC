@@ -24,7 +24,7 @@
     <main>
         <header>
             <h1>Administración de MediSync</h1>
-            <div class="header-actions"><span class="role-badge">ADMIN</span><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
+            <div class="header-actions"><div class="role-switcher" data-role-switcher><span class="role-badge">Admin</span></div><button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button></div>
         </header>
 
         <p id="admin-feedback" class="admin-feedback" role="status" aria-live="polite"></p>
@@ -39,7 +39,7 @@
                     <label class="admin-search-label" for="staff-search">Buscar personal</label>
                     <input id="staff-search" type="search" placeholder="Nombre, correo o rol">
                     <select id="staff-role-filter" aria-label="Filtrar por rol">
-                        <option value="">Todos los roles</option><option value="doctor">Médicos</option><option value="pharmacist">Farmacéuticos</option><option value="admin">Administradores</option>
+                        <option value="">Todos los roles</option><option value="doctor">Médicos</option><option value="pharmacist">Farmacéuticos</option><option value="admin">Administradores</option><option value="dispatcher">Despacho</option>
                     </select>
                 </div>
                 <div class="table-wrap">
@@ -57,9 +57,20 @@
                         <div class="form-group"><label for="staff-name">Nombre completo</label><input id="staff-name" required maxlength="100" placeholder="Nombre y apellido"></div>
                         <div class="form-group"><label for="staff-email">Correo electrónico</label><input id="staff-email" type="email" required autocomplete="off" placeholder="persona@medisync.com"></div>
                         <div class="form-group" id="staff-password-group"><label for="staff-password">Contraseña inicial</label><input id="staff-password" type="password" minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres"><small>Se usará para crear su acceso a MediSync.</small></div>
-                        <div class="form-group"><label for="staff-role">Rol</label><select id="staff-role" required><option value="doctor">Médico</option><option value="pharmacist">Farmacéutico</option><option value="admin">Administrador</option></select></div>
+                        <div class="form-group"><label for="staff-role">Rol principal</label><select id="staff-role" required><option value="doctor">Médico</option><option value="pharmacist">Farmacéutico</option><option value="admin">Administrador</option><option value="dispatcher">Despacho</option></select></div>
                         <div class="form-group"><label for="staff-location">Centro o farmacia</label><select id="staff-location"><option value="">Sin asignar</option></select></div>
                     </div>
+                    <fieldset class="role-extras">
+                        <legend>Roles adicionales</legend>
+                        <p class="form-hint">Marca los roles extra si la misma persona también atiende otras áreas. El primero será el panel de entrada.</p>
+                        <div class="role-extras-grid">
+                            <label><input type="checkbox" data-staff-extra-role value="admin"> Administrador</label>
+                            <label><input type="checkbox" data-staff-extra-role value="doctor"> Médico</label>
+                            <label><input type="checkbox" data-staff-extra-role value="pharmacist"> Farmacéutico</label>
+                            <label><input type="checkbox" data-staff-extra-role value="patient"> Paciente</label>
+                            <label><input type="checkbox" data-staff-extra-role value="dispatcher"> Despacho</label>
+                        </div>
+                    </fieldset>
                     <fieldset id="doctor-settings" class="doctor-settings" hidden>
                         <legend>Especialidades y agenda médica</legend>
                         <div class="form-group"><label for="doctor-specialties">Especialidades</label><input id="doctor-specialties" maxlength="300" placeholder="Medicina general, Pediatría"><small>Separa las especialidades con comas.</small></div>
@@ -152,6 +163,7 @@
 
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/role-switcher.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/admin.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/logout.js') }}"></script>
 </body>

@@ -210,6 +210,7 @@ async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• Usar los mapas y las rutas hacia sedes, centros o farmacias.\n"
         "• Entender los paneles de administración, médico y farmacéutico.\n"
         "• Consultar tu tarjeta de asegurado y generar su código QR.\n"
+        "• Abrir la tarjeta pública desde el botón de emergencia de la pantalla de acceso.\n"
         "• Dar orientación general sobre síntomas comunes y autocuidado.\n\n"
         "No puedo consultar tu cuenta, citas, recetas, precios ni inventario en "
         "tiempo real. No diagnostico ni receto. Para una incidencia, usa el chat "
@@ -258,7 +259,10 @@ async def funciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "con búsqueda de medicamentos.\n"
         "• Farmacéutico: venta directa, entrega de recetas de asegurados y catálogo "
         "de medicamentos.\n"
-        "• Paciente: citas, recetas, historial, tarjeta con QR, mapas y MediBot.\n\n"
+        "• Paciente: citas, recetas, historial, tarjeta con QR, mapas y MediBot.\n"
+        "• Despacho: alertas de emergencia en tiempo real con la ubicación compartida "
+        "desde la tarjeta pública.\n\n"
+        "Una persona puede tener varios roles y cambiar de panel desde la cabecera. "
         "El catálogo de medicamentos no controla existencias ni inventario."
     )
 

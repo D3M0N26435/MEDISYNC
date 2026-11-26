@@ -166,6 +166,70 @@ html[data-theme="dark"] .input-group input:focus { background: #0e292c; }
 html[data-theme="dark"] .logo-icon { background: #123b3d; }
 html[data-theme="dark"] .theme-toggle { background: #17383b; border-color: #2a6063; color: #fcd34d; }
 
+.btn-emergency {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+.btn-emergency:hover { background: var(--primary-light); border-color: var(--primary); }
+
+.emergency-dialog {
+    width: min(100% - 24px, 520px);
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+    padding: clamp(18px, 3vw, 26px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-xl);
+}
+.emergency-dialog::backdrop { background: rgba(9, 30, 32, .65); }
+.emergency-dialog .editor-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.emergency-dialog .eyebrow { color: var(--primary); font-size: .7rem; font-weight: 800; letter-spacing: .12em; }
+.emergency-dialog h2 { margin: 4px 0; color: var(--heading); font-size: 1.15rem; }
+.emergency-dialog .icon-button {
+    width: 34px;
+    height: 34px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+.emergency-dialog .btn-action {
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+.emergency-dialog p { color: var(--text-muted); line-height: 1.5; font-size: .9rem; }
+.emergency-dialog video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin: 14px 0 10px;
+    border-radius: var(--radius);
+    background: #0b2225;
+    object-fit: cover;
+}
+.emergency-dialog form { display: grid; gap: 8px; margin-top: 14px; }
+.emergency-dialog label { color: var(--heading); font-size: .85rem; font-weight: 700; }
+.emergency-dialog input { min-height: 44px; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+
 @media (max-width: 520px) {
     body { padding-bottom: env(safe-area-inset-bottom); }
     .login-card { padding: 20px; }

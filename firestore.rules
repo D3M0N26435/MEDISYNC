@@ -19,20 +19,50 @@ service cloud.firestore {
         && (!('active' in profile(request.auth.uid)) || profile(request.auth.uid).active == true);
     }
 
+    function hasListRoles(data) {
+      return 'roles' in data && data.roles is list;
+    }
+
+    function userRoles(uid) {
+      let data = profile(uid);
+      return hasListRoles(data) ? data.roles : [data.role];
+    }
+
+    function hasRole(uid, role) {
+      return role in userRoles(uid);
+    }
+
+    function resourceHasRole(role) {
+      return hasListRoles(resource.data)
+        ? role in resource.data.roles
+        : resource.data.role == role;
+    }
+
+    function hasRoleAfter(uid, role) {
+      let data = getAfter(profilePath(uid)).data;
+      return hasListRoles(data)
+        ? role in data.roles
+        : data.role == role;
+    }
+
     function isAdmin() {
-      return activeAccount() && profile(request.auth.uid).role == 'admin';
+      return activeAccount() && hasRole(request.auth.uid, 'admin');
     }
 
     function isPatient() {
-      return activeAccount() && profile(request.auth.uid).role == 'patient';
+      return activeAccount() && hasRole(request.auth.uid, 'patient');
     }
 
     function isDoctor() {
-      return activeAccount() && profile(request.auth.uid).role == 'doctor';
+      return activeAccount() && hasRole(request.auth.uid, 'doctor');
     }
 
     function isPharmacist() {
-      return activeAccount() && profile(request.auth.uid).role == 'pharmacist';
+      return activeAccount() && hasRole(request.auth.uid, 'pharmacist');
+    }
+
+    function isDispatcher() {
+      return activeAccount() && hasRole(request.auth.uid, 'dispatcher');
     }
 
     function doctorDirectoryPath(doctorId) {
@@ -59,6 +89,10 @@ service cloud.firestore {
       return /databases/$(database)/documents/patientCards/$(patientId);
     }
 
+    function emergencyCardPath(token) {
+      return /databases/$(database)/documents/emergencyCards/$(token);
+    }
+
     function pharmacistHasPrescriptionOrder(prescriptionId, patientId) {
       let pharmacyId = profile(request.auth.uid).locationId;
       let orderPath = pharmacyOrderPath(prescriptionId, patientId, pharmacyId);
@@ -72,9 +106,9 @@ service cloud.firestore {
       allow get: if signedIn()
         && (request.auth.uid == userId
           || isAdmin()
-          || (isPharmacist() && resource.data.role == 'patient'));
+          || (isPharmacist() && resourceHasRole('patient')));
       allow list: if isAdmin()
-        || (isPharmacist() && resource.data.role == 'patient');
+        || (isPharmacist() && resourceHasRole('patient'));
       allow create, update, delete: if isAdmin();
     }
 
@@ -108,7 +142,7 @@ service cloud.firestore {
         && request.resource.data.updatedAt == request.time
         && request.resource.data.updatedBy == request.auth.uid
         && existsAfter(profilePath(patientId))
-        && getAfter(profilePath(patientId)).data.role == 'patient';
+        && hasRoleAfter(patientId, 'patient');
       allow update: if isAdmin()
         && request.resource.data.keys().hasAll([
           'patientId', 'carnet', 'name', 'bloodType', 'allergies',
@@ -175,6 +209,64 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.updatedAt == request.time;
       allow delete: if isAdmin();
+    }
+
+    // Alertas creadas desde la tarjeta pública y leídas en tiempo real por despacho.
+    match /emergencyAlerts/{alertId} {
+      allow get, list: if isDispatcher() || isAdmin();
+      allow create: if request.auth == null
+        && alertId.size() >= 20
+        && request.resource.data.keys().hasAll([
+          'cardToken', 'name', 'bloodType', 'allergies', 'chronicConditions',
+          'lat', 'lng', 'accuracy', 'status', 'note', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'cardToken', 'name', 'bloodType', 'allergies', 'chronicConditions',
+          'lat', 'lng', 'accuracy', 'status', 'note', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.cardToken is string
+        && request.resource.data.cardToken.size() >= 20
+        && exists(emergencyCardPath(request.resource.data.cardToken))
+        && get(emergencyCardPath(request.resource.data.cardToken)).data.active == true
+        && request.resource.data.name == get(emergencyCardPath(request.resource.data.cardToken)).data.name
+        && request.resource.data.bloodType == get(emergencyCardPath(request.resource.data.cardToken)).data.bloodType
+        && request.resource.data.allergies == get(emergencyCardPath(request.resource.data.cardToken)).data.allergies
+        && request.resource.data.chronicConditions == get(emergencyCardPath(request.resource.data.cardToken)).data.chronicConditions
+        && request.resource.data.lat is number
+        && request.resource.data.lng is number
+        && request.resource.data.accuracy is number
+        && request.resource.data.status == 'active'
+        && request.resource.data.note == ''
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if request.resource.data.keys().hasAll([
+          'cardToken', 'name', 'bloodType', 'allergies', 'chronicConditions',
+          'lat', 'lng', 'accuracy', 'status', 'note', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'cardToken', 'name', 'bloodType', 'allergies', 'chronicConditions',
+          'lat', 'lng', 'accuracy', 'status', 'note', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.cardToken == resource.data.cardToken
+        && request.resource.data.name == resource.data.name
+        && request.resource.data.bloodType == resource.data.bloodType
+        && request.resource.data.allergies == resource.data.allergies
+        && request.resource.data.chronicConditions == resource.data.chronicConditions
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.lat is number
+        && request.resource.data.lng is number
+        && request.resource.data.accuracy is number
+        && request.resource.data.updatedAt == request.time
+        && (
+          (request.auth == null
+            && resource.data.status == 'active'
+            && request.resource.data.status in ['active', 'cancelled']
+            && request.resource.data.note == '')
+          || (isDispatcher()
+            && request.resource.data.status in ['active', 'resolved', 'cancelled']
+            && request.resource.data.note is string)
+        );
+      allow delete: if isDispatcher() || isAdmin();
     }
 
     match /locations/{locationId} {
