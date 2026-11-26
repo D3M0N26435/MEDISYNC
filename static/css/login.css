@@ -166,6 +166,12 @@ html[data-theme="dark"] .input-group input:focus { background: #0e292c; }
 html[data-theme="dark"] .logo-icon { background: #123b3d; }
 html[data-theme="dark"] .theme-toggle { background: #17383b; border-color: #2a6063; color: #fcd34d; }
 
+@media (max-width: 520px) {
+    body { padding-bottom: env(safe-area-inset-bottom); }
+    .login-card { padding: 20px; }
+    .btn-login { min-height: 48px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }

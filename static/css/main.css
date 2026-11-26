@@ -502,6 +502,11 @@ html[data-theme="dark"] .map-tools-error { color: #ffb4a9; }
         flex-direction: column; 
         overflow: auto; 
     }
+    aside .brand span,
+    aside .nav-links li a span:last-child,
+    aside .btn-logout span { display: inline; }
+    aside .brand { justify-content: flex-start; }
+    aside .nav-links li a { justify-content: flex-start; }
     aside { 
         width: 100%; 
         height: auto; 
@@ -552,11 +557,11 @@ html[data-theme="dark"] .map-tools-error { color: #ffb4a9; }
 
 @media (max-width: 520px) {
     aside { gap: var(--space-2); }
-    aside .brand { font-size: 0; gap: 0; }
     .nav-links { justify-content: flex-start; flex-wrap: nowrap; }
+    aside .brand { font-size: 1rem; }
+    aside .brand > span:last-child { display: none; }
     main { padding: 20px 16px; }
     .card { padding: 20px; }
-    table { display: block; overflow-x: auto; white-space: nowrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -670,3 +675,36 @@ html[data-theme="dark"] table tr:hover td { background: rgba(45, 212, 191, .055)
 html[data-theme="dark"] #map { border-color: var(--border); }
 html[data-theme="dark"] .theme-toggle { background: #17383b; border-color: #2a6063; color: #fcd34d; }
 html[data-theme="dark"] .theme-toggle:hover { background: #205054; color: #fff; }
+
+/* Móvil y tacto: objetivos cómodos, scroll predecible y áreas seguras */
+@media (max-width: 768px) {
+    aside {
+        padding-top: calc(var(--space-3) + env(safe-area-inset-top));
+        padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+        scrollbar-width: thin;
+    }
+    main {
+        padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+    }
+    header h1 { overflow-wrap: anywhere; }
+    .header-actions { flex-wrap: wrap; justify-content: flex-start; }
+    .nav-links li a,
+    .btn-logout,
+    .btn-action,
+    .theme-toggle,
+    .icon-button,
+    .filter-chip,
+    .table-action,
+    .map-tools-button {
+        min-height: 44px;
+    }
+    .nav-links li a { white-space: nowrap; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+@media (max-width: 520px) {
+    table { display: table; white-space: normal; }
+    .row-actions { flex-wrap: wrap; }
+    .admin-form-grid,
+    .clinical-form-grid { grid-template-columns: 1fr; }
+}

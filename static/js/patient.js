@@ -13,6 +13,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
 import { attachMapTools } from './map-utils.js';
+import { loadPatientCard, renderPatientCard } from './patient-card.js';
 
 const $ = (id) => document.getElementById(id);
 const state = {
@@ -36,6 +37,7 @@ const tabTitles = {
     agendar: 'Agendar una consulta',
     recetas: 'Mis recetas',
     historial: 'Historial clínico',
+    tarjeta: 'Mi tarjeta de asegurado',
     medibot: 'MediBot'
 };
 
@@ -593,6 +595,21 @@ async function askMedibot(event) {
     }
 }
 
+function renderOwnCard(card) {
+    renderPatientCard($('own-patient-card'), card);
+    const qrPanel = $('own-card-qr');
+    if (!card?.emergencyToken) {
+        qrPanel.hidden = true;
+        return;
+    }
+    const link = `${window.location.origin}/emergencia?t=${encodeURIComponent(card.emergencyToken)}`;
+    $('own-card-qr-image').src = `/api/emergency-qr/${encodeURIComponent(card.emergencyToken)}`;
+    $('own-card-qr-image').alt = 'Código QR de tu tarjeta de asegurado';
+    $('own-card-qr-link').href = link;
+    $('own-card-qr-link').textContent = link;
+    qrPanel.hidden = false;
+}
+
 async function loadPatientData(user) {
     state.user = user;
     const profileSnapshot = await getDoc(doc(db, 'users', user.uid));
@@ -603,7 +620,8 @@ async function loadPatientData(user) {
     }
 
     const ownQuery = (name) => getDocs(query(collection(db, name), where('patientId', '==', user.uid)));
-    const [locationsSnapshot, doctorsSnapshot, appointmentsSnapshot, prescriptionsSnapshot, ordersSnapshot, recordsSnapshot] = await Promise.all([
+    const [patientCardSnapshot, locationsSnapshot, doctorsSnapshot, appointmentsSnapshot, prescriptionsSnapshot, ordersSnapshot, recordsSnapshot] = await Promise.all([
+        getDoc(doc(db, 'patientCards', user.uid)),
         getDocs(collection(db, 'locations')),
         getDocs(collection(db, 'doctorDirectory')),
         ownQuery('appointments'),
@@ -619,6 +637,7 @@ async function loadPatientData(user) {
     state.orders = ordersSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
     state.records = recordsSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 
+    renderOwnCard(patientCardSnapshot.exists() ? { id: patientCardSnapshot.id, ...patientCardSnapshot.data() } : null);
     populateCenters();
     populatePharmacies();
     renderAppointments();

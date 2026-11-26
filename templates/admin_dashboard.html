@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediSync - Administración</title>
+    {% include 'pwa_head.html' %}
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient-card.css') }}">
 </head>
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
         <ul class="nav-links" role="tablist" aria-label="Administración">
-            <li><a id="tab-personal-label" href="#personal" class="active" role="tab" aria-selected="true" data-admin-tab="personal">👥 Gestión de Personal</a></li>
-            <li><a id="tab-pacientes-label" href="#pacientes" role="tab" aria-selected="false" data-admin-tab="pacientes">🩺 Pacientes</a></li>
-            <li><a id="tab-sedes-label" href="#sedes" role="tab" aria-selected="false" data-admin-tab="sedes">📍 Centros y Farmacias</a></li>
+            <li><a id="tab-personal-label" href="#personal" class="active" role="tab" aria-selected="true" data-admin-tab="personal">👥 <span>Gestión de Personal</span></a></li>
+            <li><a id="tab-pacientes-label" href="#pacientes" role="tab" aria-selected="false" data-admin-tab="pacientes">🩺 <span>Pacientes</span></a></li>
+            <li><a id="tab-sedes-label" href="#sedes" role="tab" aria-selected="false" data-admin-tab="sedes">📍 <span>Centros y Farmacias</span></a></li>
         </ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
@@ -97,6 +99,15 @@
                         <div class="form-group"><label for="patient-email">Correo electrónico</label><input id="patient-email" type="email" required autocomplete="off" placeholder="paciente@correo.com"></div>
                         <div class="form-group" id="patient-password-group"><label for="patient-password">Contraseña inicial</label><input id="patient-password" type="password" minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres"><small>El paciente la usará para iniciar sesión.</small></div>
                     </div>
+                    <fieldset class="patient-card-fieldset">
+                        <legend>Tarjeta de asegurado</legend>
+                        <p class="form-hint">Estos datos aparecen en la tarjeta QR y en las consultas médicas. Solo la administración puede editarlos.</p>
+                        <div class="admin-form-grid">
+                            <div class="form-group"><label for="patient-blood-type">Tipo de sangre</label><select id="patient-blood-type"><option value="">No registrado</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option><option value="O+">O+</option><option value="O-">O-</option></select></div>
+                            <div class="form-group form-grid-wide"><label for="patient-allergies">Alergias</label><textarea id="patient-allergies" rows="2" maxlength="500" placeholder="Ej. Penicilina, maní, látex"></textarea></div>
+                            <div class="form-group form-grid-wide"><label for="patient-chronic">Enfermedades crónicas</label><textarea id="patient-chronic" rows="2" maxlength="500" placeholder="Ej. Hipertensión, diabetes"></textarea></div>
+                        </div>
+                    </fieldset>
                     <div class="editor-actions"><button class="btn-action" id="save-patient-button" type="submit">Crear paciente</button><button class="btn-action secondary" id="cancel-patient-button-bottom" type="button">Cancelar</button></div>
                 </form>
             </div>
@@ -126,6 +137,17 @@
                 </form>
             </div>
         </section>
+
+        <dialog id="patient-card-dialog" class="card-dialog">
+            <div class="editor-heading"><div><p class="eyebrow">QR DEL ASEGURADO</p><h2 id="card-dialog-name">Tarjeta</h2></div><button class="icon-button" type="button" id="card-dialog-close" aria-label="Cerrar tarjeta">✕</button></div>
+            <div class="patient-card-qr">
+                <img id="card-dialog-image" alt="Código QR de la tarjeta del asegurado">
+                <div>
+                    <p>Comparte este código QR o el enlace con el paciente. Al escanearlo se muestra su tarjeta pública con tipo de sangre, alergias y enfermedades crónicas.</p>
+                    <a id="card-dialog-link" href="#" target="_blank" rel="noopener"></a>
+                </div>
+            </div>
+        </dialog>
     </main>
 
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>

@@ -1,0 +1,55 @@
+.emergency-body {
+    display: block;
+    min-height: 100vh;
+    overflow: auto;
+}
+
+.emergency-page {
+    width: min(100%, 760px);
+    margin: 0 auto;
+    padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 32px) calc(48px + env(safe-area-inset-bottom));
+}
+
+.emergency-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.emergency-header .brand { margin-bottom: 0; }
+
+.emergency-intro { margin-bottom: 20px; }
+.emergency-intro h1 {
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    line-height: 1.15;
+    margin-bottom: 10px;
+}
+.emergency-intro p { color: var(--text-muted); line-height: 1.6; }
+
+.emergency-status {
+    min-height: 1.4em;
+    margin-bottom: 16px;
+    color: var(--primary);
+    font-weight: 600;
+}
+.emergency-status.error { color: #b42318; }
+
+.emergency-card-slot { margin-bottom: 20px; }
+
+.emergency-note {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-size: .92rem;
+}
+
+@media (max-width: 520px) {
+    .emergency-header { flex-wrap: wrap; }
+    .emergency-intro h1 { font-size: 1.7rem; }
+}

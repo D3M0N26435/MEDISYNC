@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediSync - Panel Médico</title>
+    {% include 'pwa_head.html' %}
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/doctor.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient-card.css') }}">
 </head>
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
-        <ul class="nav-links"><li><a href="/doctor" class="active">🩺 Mis consultas</a></li></ul>
+        <ul class="nav-links"><li><a href="/doctor" class="active">🩺 <span>Mis consultas</span></a></li></ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
     <main>
@@ -30,6 +32,7 @@
 
         <section id="record-editor" class="card clinical-editor" hidden>
             <div class="clinical-heading"><div><p class="eyebrow">ATENCIÓN</p><h2 id="record-appointment-title">Registrar consulta</h2><p id="record-patient-summary"></p></div><button id="close-record-editor" type="button" class="icon-button" aria-label="Cerrar formulario">✕</button></div>
+            <div id="record-patient-card" class="patient-card-slot" hidden></div>
             <form id="record-form">
                 <input id="record-appointment-id" type="hidden">
                 <input id="record-patient-id" type="hidden">
@@ -54,6 +57,7 @@
 
         <section id="patient-history" class="card clinical-editor" hidden>
             <div class="clinical-heading"><div><p class="eyebrow">HISTORIAL</p><h2 id="history-patient-name">Historial clínico</h2><p id="history-patient-info"></p></div><button id="close-history" type="button" class="icon-button" aria-label="Cerrar historial">✕</button></div>
+            <div id="history-patient-card" class="patient-card-slot" hidden></div>
             <div id="history-list" class="clinical-list"><p class="empty-state">Sin registros clínicos previos.</p></div>
             <div id="history-prescriptions" class="clinical-list" style="margin-top:24px;"></div>
         </section>

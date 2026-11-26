@@ -13,6 +13,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { auth, db } from './firebase.js';
 import { attachMedicationAutocomplete, medicationDisplayName, normalizeText } from './medication-autocomplete.js';
+import { loadPatientCard, renderPatientCard } from './patient-card.js';
 
 const $ = (id) => document.getElementById(id);
 let currentUser = null;
@@ -166,6 +167,19 @@ function addMedicineRow(item = {}) {
     $('prescription-items').append(row);
 }
 
+async function showPatientCard(containerId, patientId) {
+    const container = $(containerId);
+    if (!container) return;
+    container.hidden = false;
+    try {
+        const card = await loadPatientCard(patientId);
+        renderPatientCard(container, card);
+    } catch (error) {
+        console.error(error);
+        renderPatientCard(container, null);
+    }
+}
+
 function openRecordEditor(appointmentId) {
     selectedAppointment = appointments.find((item) => item.id === appointmentId);
     if (!selectedAppointment) return;
@@ -178,6 +192,7 @@ function openRecordEditor(appointmentId) {
     $('record-patient-id').value = selectedAppointment.patientId;
     $('record-appointment-title').textContent = 'Registrar consulta';
     $('record-patient-summary').textContent = `${selectedAppointment.patientName || 'Paciente'} · ${selectedAppointment.specialty} · ${dateLabel(selectedAppointment.date)} ${selectedAppointment.time}`;
+    showPatientCard('record-patient-card', selectedAppointment.patientId);
     $('prescription-items').replaceChildren();
     $('prescription-expiry').min = new Date().toISOString().slice(0, 10);
     $('record-editor').hidden = false;
@@ -217,6 +232,7 @@ function openPatientHistory(appointmentId) {
     $('history-patient-info').textContent = `${appointment.centerName || 'Centro'} · ${appointment.specialty || ''} · Cita: ${dateLabel(appointment.date)} ${appointment.time}`;
     $('patient-history').hidden = false;
     $('patient-history').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showPatientCard('history-patient-card', appointment.patientId);
     loadPatientHistory(appointment.patientId);
 }
 

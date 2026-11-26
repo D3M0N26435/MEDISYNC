@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarjeta de asegurado - MediSync</title>
+    {% include 'pwa_head.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient-card.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/emergency.css') }}">
+</head>
+<body class="emergency-body">
+    <main class="emergency-page">
+        <header class="emergency-header">
+            <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
+            <button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a tema oscuro" title="Cambiar tema"><span data-theme-icon aria-hidden="true">☾</span></button>
+        </header>
+        <section class="emergency-intro">
+            <p class="eyebrow">TARJETA DE ASEGURADO</p>
+            <h1>Información médica esencial</h1>
+            <p>Esta tarjeta contiene los datos que el personal de salud necesita para una atención inicial.</p>
+        </section>
+        <p id="emergency-status" class="emergency-status" role="status" aria-live="polite">Cargando tarjeta…</p>
+        <div id="emergency-card" class="emergency-card-slot"></div>
+        <p class="emergency-note">Ante una emergencia, contacta de inmediato con el servicio de emergencias de tu localidad. Esta tarjeta no sustituye la atención médica.</p>
+    </main>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
+    <script type="module" src="{{ url_for('static', filename='js/emergency.js') }}"></script>
+</body>
+</html>

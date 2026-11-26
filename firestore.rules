@@ -55,6 +55,10 @@ service cloud.firestore {
       return /databases/$(database)/documents/prescriptionOrders/$(prescriptionId + '_' + patientId + '_' + pharmacyId);
     }
 
+    function patientCardPath(patientId) {
+      return /databases/$(database)/documents/patientCards/$(patientId);
+    }
+
     function pharmacistHasPrescriptionOrder(prescriptionId, patientId) {
       let pharmacyId = profile(request.auth.uid).locationId;
       let orderPath = pharmacyOrderPath(prescriptionId, patientId, pharmacyId);
@@ -72,6 +76,105 @@ service cloud.firestore {
       allow list: if isAdmin()
         || (isPharmacist() && resource.data.role == 'patient');
       allow create, update, delete: if isAdmin();
+    }
+
+    // Datos clínicos esenciales del asegurado. Solo administración puede escribirlos.
+    match /patientCards/{patientId} {
+      allow get: if isAdmin()
+        || (isPatient() && request.auth.uid == patientId)
+        || isDoctor();
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasAll([
+          'patientId', 'carnet', 'name', 'bloodType', 'allergies',
+          'chronicConditions', 'emergencyToken', 'active', 'createdAt',
+          'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'patientId', 'carnet', 'name', 'bloodType', 'allergies',
+          'chronicConditions', 'emergencyToken', 'active', 'createdAt',
+          'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.patientId == patientId
+        && request.resource.data.carnet is string
+        && request.resource.data.name is string
+        && request.resource.data.bloodType is string
+        && request.resource.data.allergies is string
+        && request.resource.data.chronicConditions is string
+        && request.resource.data.emergencyToken is string
+        && request.resource.data.emergencyToken.size() >= 20
+        && request.resource.data.active is bool
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid
+        && existsAfter(profilePath(patientId))
+        && getAfter(profilePath(patientId)).data.role == 'patient';
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasAll([
+          'patientId', 'carnet', 'name', 'bloodType', 'allergies',
+          'chronicConditions', 'emergencyToken', 'active', 'createdAt',
+          'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'patientId', 'carnet', 'name', 'bloodType', 'allergies',
+          'chronicConditions', 'emergencyToken', 'active', 'createdAt',
+          'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.patientId == patientId
+        && request.resource.data.patientId == resource.data.patientId
+        && request.resource.data.carnet is string
+        && request.resource.data.name is string
+        && request.resource.data.bloodType is string
+        && request.resource.data.allergies is string
+        && request.resource.data.chronicConditions is string
+        && request.resource.data.emergencyToken is string
+        && request.resource.data.emergencyToken.size() >= 20
+        && request.resource.data.active is bool
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Tarjeta pública por token. Nunca incluye UID, correo ni datos de contacto.
+    match /emergencyCards/{token} {
+      allow get: if resource.data.active == true;
+      allow list: if false;
+      allow create: if isAdmin()
+        && token.size() >= 20
+        && request.resource.data.keys().hasAll([
+          'name', 'bloodType', 'allergies', 'chronicConditions',
+          'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'name', 'bloodType', 'allergies', 'chronicConditions',
+          'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.bloodType is string
+        && request.resource.data.allergies is string
+        && request.resource.data.chronicConditions is string
+        && request.resource.data.active is bool
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin()
+        && token.size() >= 20
+        && request.resource.data.keys().hasAll([
+          'name', 'bloodType', 'allergies', 'chronicConditions',
+          'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'name', 'bloodType', 'allergies', 'chronicConditions',
+          'active', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.bloodType is string
+        && request.resource.data.allergies is string
+        && request.resource.data.chronicConditions is string
+        && request.resource.data.active is bool
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isAdmin();
     }
 
     match /locations/{locationId} {

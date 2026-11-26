@@ -1,0 +1,108 @@
+.patient-card {
+    padding: clamp(16px, 3vw, 24px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.patient-card-heading { margin-bottom: 14px; }
+.patient-card-heading h3 {
+    color: var(--heading);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    font-size: 1.25rem;
+}
+.patient-card-heading p { margin-top: 4px; color: var(--text-muted); font-size: .88rem; }
+
+.patient-card-alert {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid #f2c7bd;
+    border-radius: var(--radius);
+    background: #fff4f1;
+    color: #8f2d1d;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.patient-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+}
+.patient-card-row {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+}
+.patient-card-row dt {
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+.patient-card-row dd { color: var(--text); font-size: .95rem; line-height: 1.5; overflow-wrap: anywhere; }
+.patient-card-footer { margin-top: 14px; color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
+
+.patient-card-qr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    margin-top: 18px;
+}
+.patient-card-qr img {
+    width: min(180px, 45vw);
+    height: auto;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+}
+.patient-card-qr div { flex: 1 1 220px; }
+.patient-card-qr p { margin-bottom: 10px; color: var(--text-muted); font-size: .88rem; line-height: 1.5; }
+.patient-card-qr a { color: var(--primary); font-weight: 700; overflow-wrap: anywhere; }
+
+html[data-theme="dark"] .patient-card-alert { border-color: #6b2c24; background: #321c1a; color: #ffb4a9; }
+html[data-theme="dark"] .patient-card-row { background: #102a2d; }
+html[data-theme="dark"] .patient-card-qr img { background: #fff; }
+
+.patient-card-slot { margin-bottom: 20px; }
+
+.patient-card-fieldset {
+    margin: 20px 0;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+.patient-card-fieldset legend {
+    padding: 0 8px;
+    color: var(--primary);
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.form-hint { margin-bottom: 14px; color: var(--text-muted); font-size: .85rem; line-height: 1.5; }
+
+.card-dialog {
+    width: min(100% - 24px, 560px);
+    max-height: calc(100dvh - 32px);
+    padding: clamp(18px, 3vw, 28px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-xl);
+}
+.card-dialog::backdrop { background: rgba(9, 30, 32, .62); }
+.card-dialog .editor-heading { margin-bottom: 18px; }
+.card-dialog h2 { font-size: 1.15rem; overflow-wrap: anywhere; }
+
+@media (max-width: 520px) {
+    .patient-card-qr { flex-direction: column; align-items: flex-start; }
+    .patient-card-qr img { width: min(200px, 70vw); }
+}

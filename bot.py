@@ -209,6 +209,7 @@ async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• Consultar recetas e historial en el panel del paciente.\n"
         "• Usar los mapas y las rutas hacia sedes, centros o farmacias.\n"
         "• Entender los paneles de administración, médico y farmacéutico.\n"
+        "• Consultar tu tarjeta de asegurado y generar su código QR.\n"
         "• Dar orientación general sobre síntomas comunes y autocuidado.\n\n"
         "No puedo consultar tu cuenta, citas, recetas, precios ni inventario en "
         "tiempo real. No diagnostico ni receto. Para una incidencia, usa el chat "
@@ -251,11 +252,13 @@ async def salud(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def funciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "MediSync organiza la atención médica por roles:\n\n"
-        "• Administración: personal, pacientes, carnets, roles, sedes y vacaciones.\n"
-        "• Médico: citas, atención clínica, historial y recetas con búsqueda de medicamentos.\n"
+        "• Administración: personal, pacientes, carnets, roles, sedes, vacaciones y "
+        "tarjetas de asegurado.\n"
+        "• Médico: citas, atención clínica, historial, tarjeta del paciente y recetas "
+        "con búsqueda de medicamentos.\n"
         "• Farmacéutico: venta directa, entrega de recetas de asegurados y catálogo "
         "de medicamentos.\n"
-        "• Paciente: citas, recetas, historial, mapas y MediBot.\n\n"
+        "• Paciente: citas, recetas, historial, tarjeta con QR, mapas y MediBot.\n\n"
         "El catálogo de medicamentos no controla existencias ni inventario."
     )
 

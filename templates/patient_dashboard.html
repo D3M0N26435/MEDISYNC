@@ -4,19 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediSync - Portal del Paciente</title>
+    {% include 'pwa_head.html' %}
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/patient.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient-card.css') }}">
 </head>
 <body>
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
         <ul class="nav-links patient-tabs" role="tablist" aria-label="Apartados del paciente">
-            <li><a id="patient-tab-agendar" class="active" href="#agendar" role="tab" aria-selected="true" aria-controls="patient-panel-agendar" data-patient-tab="agendar">📅 Agendar</a></li>
-            <li><a id="patient-tab-recetas" href="#recetas" role="tab" aria-selected="false" aria-controls="patient-panel-recetas" data-patient-tab="recetas">💊 Recetas</a></li>
-            <li><a id="patient-tab-historial" href="#historial" role="tab" aria-selected="false" aria-controls="patient-panel-historial" data-patient-tab="historial">🩺 Historial</a></li>
-            <li><a id="patient-tab-medibot" href="#medibot" role="tab" aria-selected="false" aria-controls="patient-panel-medibot" data-patient-tab="medibot">🤖 MediBot</a></li>
+            <li><a id="patient-tab-agendar" class="active" href="#agendar" role="tab" aria-selected="true" aria-controls="patient-panel-agendar" data-patient-tab="agendar">📅 <span>Agendar</span></a></li>
+            <li><a id="patient-tab-recetas" href="#recetas" role="tab" aria-selected="false" aria-controls="patient-panel-recetas" data-patient-tab="recetas">💊 <span>Recetas</span></a></li>
+            <li><a id="patient-tab-historial" href="#historial" role="tab" aria-selected="false" aria-controls="patient-panel-historial" data-patient-tab="historial">🩺 <span>Historial</span></a></li>
+            <li><a id="patient-tab-tarjeta" href="#tarjeta" role="tab" aria-selected="false" aria-controls="patient-panel-tarjeta" data-patient-tab="tarjeta">🪪 <span>Mi tarjeta</span></a></li>
+            <li><a id="patient-tab-medibot" href="#medibot" role="tab" aria-selected="false" aria-controls="patient-panel-medibot" data-patient-tab="medibot">🤖 <span>MediBot</span></a></li>
         </ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
@@ -88,6 +91,27 @@
             </div>
             <div class="card patient-list-card">
                 <div id="medical-history-list" class="patient-record-list"><p class="empty-state">Cargando tu historial…</p></div>
+            </div>
+        </section>
+
+        <section id="patient-panel-tarjeta" class="patient-panel" role="tabpanel" aria-labelledby="patient-tab-tarjeta" hidden>
+            <div class="patient-section-heading">
+                <div><p class="eyebrow">ASEGURADO</p><h2>Mi tarjeta médica</h2><p>Datos esenciales para una atención rápida. Solo la administración puede modificarlos.</p></div>
+            </div>
+            <div class="patient-booking-layout">
+                <div class="card patient-list-card">
+                    <div id="own-patient-card"></div>
+                </div>
+                <div class="card patient-list-card" id="own-card-qr" hidden>
+                    <div class="patient-card-heading"><div><h3>Tu código QR</h3><p>Compártelo para mostrar tu tarjeta sin iniciar sesión.</p></div></div>
+                    <div class="patient-card-qr">
+                        <img id="own-card-qr-image" alt="Código QR de tu tarjeta de asegurado">
+                        <div>
+                            <p>Guarda este QR en tu teléfono o compártelo con quien pueda necesitarlo.</p>
+                            <a id="own-card-qr-link" href="#" target="_blank" rel="noopener"></a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 

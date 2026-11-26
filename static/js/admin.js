@@ -1,6 +1,6 @@
 import { initializeApp, deleteApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, deleteUser } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import { collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import { firebaseConfig, auth, db } from './firebase.js';
 import { attachMapTools } from './map-utils.js';
 
@@ -9,6 +9,7 @@ const locationsCollection = collection(db, 'locations');
 const staffById = new Map();
 const locationsById = new Map();
 const doctorDirectoryById = new Map();
+const patientCardsById = new Map();
 let activeLocationFilter = 'all';
 let selectedLocationId = '';
 let adminMap;
@@ -378,7 +379,7 @@ function renderPatients() {
             <td><strong>${escapeHtml(user.name || 'Sin nombre')}</strong></td>
             <td>${escapeHtml(user.email || 'Sin correo')}</td>
             <td><span class="status-pill ${disabled ? 'disabled' : 'enabled'}">${disabled ? 'Inactivo' : 'Activo'}</span></td>
-            <td><div class="row-actions"><button type="button" class="table-action" data-patient-action="edit" data-id="${escapeHtml(uid)}">Editar</button>${disabled ? `<button type="button" class="table-action restore" data-patient-action="restore" data-id="${escapeHtml(uid)}">Reactivar</button>` : `<button type="button" class="table-action danger" data-patient-action="deactivate" data-id="${escapeHtml(uid)}">Dar de baja</button>`}<button type="button" class="table-action" data-patient-action="reset" data-id="${escapeHtml(uid)}">Restablecer acceso</button></div></td>
+            <td><div class="row-actions"><button type="button" class="table-action" data-patient-action="edit" data-id="${escapeHtml(uid)}">Editar</button><button type="button" class="table-action" data-patient-action="card" data-id="${escapeHtml(uid)}">Tarjeta</button>${disabled ? `<button type="button" class="table-action restore" data-patient-action="restore" data-id="${escapeHtml(uid)}">Reactivar</button>` : `<button type="button" class="table-action danger" data-patient-action="deactivate" data-id="${escapeHtml(uid)}">Dar de baja</button>`}<button type="button" class="table-action" data-patient-action="reset" data-id="${escapeHtml(uid)}">Restablecer acceso</button></div></td>
         </tr>`;
     }).join('');
 }
@@ -392,15 +393,26 @@ function openPatientForm(uid = '') {
     $('patient-form-eyebrow').textContent = editing ? 'EDITAR PACIENTE' : 'NUEVO PACIENTE';
     $('patient-form-title').textContent = editing ? 'Editar paciente' : 'Añadir paciente';
     $('save-patient-button').textContent = editing ? 'Guardar cambios' : 'Crear paciente';
+    const card = editing ? (patientCardsById.get(uid) || {}) : {};
     $('patient-carnet').value = user?.carnet || '';
     $('patient-name').value = user?.name || '';
     $('patient-email').value = user?.email || '';
+    $('patient-blood-type').value = card.bloodType || '';
+    $('patient-allergies').value = card.allergies || '';
+    $('patient-chronic').value = card.chronicConditions || '';
     $('patient-email').readOnly = editing;
     $('patient-email').required = !editing;
     $('patient-password-group').hidden = editing;
     $('patient-password').required = !editing;
     $('patient-editor-card').hidden = false;
     $('patient-editor-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function newEmergencyToken() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID().replace(/-/g, '');
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 async function savePatient(event) {
@@ -410,6 +422,9 @@ async function savePatient(event) {
     const name = $('patient-name').value.trim();
     const email = $('patient-email').value.trim().toLowerCase();
     const password = $('patient-password').value;
+    const bloodType = $('patient-blood-type').value;
+    const allergies = $('patient-allergies').value.trim();
+    const chronicConditions = $('patient-chronic').value.trim();
     if (!carnet) {
         showFeedback('El carnet de identidad es obligatorio.', 'error');
         return;
@@ -420,17 +435,43 @@ async function savePatient(event) {
         showFeedback('Ya existe un paciente con ese carnet de identidad.', 'error');
         return;
     }
+
+    const existingCard = uid ? (patientCardsById.get(uid) || {}) : {};
+    const token = existingCard.emergencyToken || newEmergencyToken();
+    const createdAt = existingCard.createdAt || serverTimestamp();
+    const active = uid ? staffById.get(uid)?.active !== false : true;
+    const cardData = {
+        patientId: uid || '',
+        carnet,
+        name,
+        bloodType,
+        allergies,
+        chronicConditions,
+        emergencyToken: token,
+        active,
+        createdAt,
+        updatedAt: serverTimestamp(),
+        updatedBy: auth.currentUser?.uid || ''
+    };
+    const publicCardData = {
+        name,
+        bloodType,
+        allergies,
+        chronicConditions,
+        active,
+        createdAt,
+        updatedAt: serverTimestamp()
+    };
     const saveButton = $('save-patient-button');
     saveButton.disabled = true;
     try {
         if (uid) {
-            await updateDoc(doc(db, 'users', uid), {
-                carnet,
-                name,
-                role: 'patient',
-                updatedAt: serverTimestamp()
-            });
-            showFeedback('Paciente actualizado.');
+            const batch = writeBatch(db);
+            batch.update(doc(db, 'users', uid), { carnet, name, updatedAt: serverTimestamp() });
+            batch.set(doc(db, 'patientCards', uid), cardData);
+            batch.set(doc(db, 'emergencyCards', token), publicCardData);
+            await batch.commit();
+            showFeedback('Paciente y tarjeta actualizados.');
         } else {
             if (password.length < 6) throw new Error('La contraseña inicial debe tener al menos 6 caracteres.');
             const secondaryApp = initializeApp(firebaseConfig, `patient-creation-${Date.now()}`);
@@ -438,7 +479,8 @@ async function savePatient(event) {
                 const secondaryAuth = getAuth(secondaryApp);
                 const credential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
                 try {
-                    await setDoc(doc(db, 'users', credential.user.uid), {
+                    const batch = writeBatch(db);
+                    batch.set(doc(db, 'users', credential.user.uid), {
                         carnet,
                         name,
                         email,
@@ -446,6 +488,9 @@ async function savePatient(event) {
                         active: true,
                         createdAt: serverTimestamp()
                     });
+                    batch.set(doc(db, 'patientCards', credential.user.uid), { ...cardData, patientId: credential.user.uid });
+                    batch.set(doc(db, 'emergencyCards', token), publicCardData);
+                    await batch.commit();
                 } catch (error) {
                     await deleteUser(credential.user).catch(() => {});
                     throw error;
@@ -454,7 +499,7 @@ async function savePatient(event) {
             } finally {
                 await deleteApp(secondaryApp);
             }
-            showFeedback('Paciente creado. Ya puede iniciar sesión con su correo y contraseña.');
+            showFeedback('Paciente creado con su tarjeta de asegurado. Ya puede iniciar sesión.');
         }
         $('patient-editor-card').hidden = true;
         await loadData();
@@ -466,6 +511,22 @@ async function savePatient(event) {
     }
 }
 
+function openPatientCard(uid) {
+    const card = patientCardsById.get(uid);
+    const user = staffById.get(uid) || {};
+    if (!card?.emergencyToken) {
+        showFeedback('Este paciente todavía no tiene una tarjeta con código QR.', 'error');
+        return;
+    }
+    const link = `${window.location.origin}/emergencia?t=${encodeURIComponent(card.emergencyToken)}`;
+    $('card-dialog-name').textContent = user.name || card.name || 'Asegurado';
+    $('card-dialog-image').src = `/api/emergency-qr/${encodeURIComponent(card.emergencyToken)}`;
+    $('card-dialog-image').alt = `Código QR de la tarjeta de ${user.name || card.name || 'asegurado'}`;
+    $('card-dialog-link').href = link;
+    $('card-dialog-link').textContent = link;
+    $('patient-card-dialog').showModal();
+}
+
 async function handlePatientAction(event) {
     const button = event.target.closest('[data-patient-action]');
     if (!button) return;
@@ -474,6 +535,7 @@ async function handlePatientAction(event) {
     if (!user) return;
     try {
         if (patientAction === 'edit') return openPatientForm(id);
+        if (patientAction === 'card') return openPatientCard(id);
         if (patientAction === 'reset') {
             if (!user.email) {
                 showFeedback('Este paciente no tiene un correo registrado.', 'error');
@@ -487,8 +549,22 @@ async function handlePatientAction(event) {
             const active = patientAction === 'restore';
             const actionText = active ? 'reactivar' : 'dar de baja';
             if (!window.confirm(`¿Quieres ${actionText} a ${user.name || user.carnet || user.email}?`)) return;
-            await updateDoc(doc(db, 'users', id), { active, updatedAt: serverTimestamp() });
-            showFeedback(active ? 'Paciente reactivado.' : 'Paciente dado de baja. Su acceso quedará bloqueado al siguiente inicio de sesión.');
+            const batch = writeBatch(db);
+            batch.update(doc(db, 'users', id), { active, updatedAt: serverTimestamp() });
+            const card = patientCardsById.get(id);
+            if (card?.emergencyToken) {
+                batch.update(doc(db, 'patientCards', id), {
+                    active,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: auth.currentUser?.uid || ''
+                });
+                batch.update(doc(db, 'emergencyCards', card.emergencyToken), {
+                    active,
+                    updatedAt: serverTimestamp()
+                });
+            }
+            await batch.commit();
+            showFeedback(active ? 'Paciente y tarjeta reactivados.' : 'Paciente dado de baja. Su tarjeta pública también quedó desactivada.');
             await loadData();
         }
     } catch (error) {
@@ -662,17 +738,20 @@ async function handleLocationClick(event) {
 }
 
 async function loadData() {
-    const [usersSnapshot, locationsSnapshot, doctorDirectorySnapshot] = await Promise.all([
+    const [usersSnapshot, locationsSnapshot, doctorDirectorySnapshot, patientCardsSnapshot] = await Promise.all([
         getDocs(staffCollection),
         getDocs(locationsCollection),
-        getDocs(collection(db, 'doctorDirectory'))
+        getDocs(collection(db, 'doctorDirectory')),
+        getDocs(collection(db, 'patientCards'))
     ]);
     staffById.clear();
     locationsById.clear();
     doctorDirectoryById.clear();
+    patientCardsById.clear();
     usersSnapshot.forEach((item) => staffById.set(item.id, item.data()));
     locationsSnapshot.forEach((item) => locationsById.set(item.id, item.data()));
     doctorDirectorySnapshot.forEach((item) => doctorDirectoryById.set(item.id, item.data()));
+    patientCardsSnapshot.forEach((item) => patientCardsById.set(item.id, item.data()));
     syncLocationSelect();
     renderStaff();
     renderPatients();
@@ -719,6 +798,7 @@ function bindEvents() {
     $('patients-table-body').addEventListener('click', handlePatientAction);
     $('cancel-patient-button').addEventListener('click', () => $('patient-editor-card').hidden = true);
     $('cancel-patient-button-bottom').addEventListener('click', () => $('patient-editor-card').hidden = true);
+    $('card-dialog-close').addEventListener('click', () => $('patient-card-dialog').close());
     $('new-location-button').addEventListener('click', () => openLocationForm());
     $('location-form').addEventListener('submit', saveLocation);
     $('locations-list').addEventListener('click', handleLocationClick);

@@ -55,6 +55,8 @@ firebase deploy --only firestore:rules
 
 El chat de soporte está en `/chat` y requiere una sesión activa de paciente. Los mensajes llegan al grupo de Telegram configurado y el equipo puede responder usando la opción **Responder** sobre el mensaje reenviado. El puente usa `bot.py` como único proceso que recibe actualizaciones de Telegram. El panel del paciente también incluye **MediBot**, que responde con IA, puede dar orientación general de salud de bajo riesgo y no pasa por Telegram. No diagnostica, no receta ni sustituye una consulta médica.
 
+Cada asegurado tiene una tarjeta con nombre, carnet, tipo de sangre, alergias y enfermedades crónicas. La administración es el único rol que la edita; el médico la consulta al registrar una atención o abrir el historial, y el paciente la ve en **Mi tarjeta** junto con su código QR. El QR apunta a `/emergencia?t=<token>` y muestra una copia pública mínima, sin correo ni UID. La web también es instalable como PWA: incluye manifiesto, iconos y un service worker que solo cachea el app shell y los estáticos.
+
 Configura estas variables en `.env`; las usan `app.py` y `bot.py`:
 
 ```env

@@ -28,7 +28,7 @@ firebase deploy --only firestore:rules
 
 ## Firestore: las reglas son la fuente de verdad
 
-Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointmentSlots`, `medicalRecords`, `prescriptions`, `prescriptionOrders`, `pharmacySales`, `medications`.
+Colecciones: `users`, `patientCards`, `emergencyCards`, `locations`, `doctorDirectory`, `appointments`, `appointmentSlots`, `medicalRecords`, `prescriptions`, `prescriptionOrders`, `pharmacySales`, `medications`.
 
 - Antes de cambiar la forma de un `setDoc`/`updateDoc`/`addDoc`, lee la regla correspondiente en `firestore.rules`. Varias reglas exigen **conjuntos exactos de claves** (`hasAll`/`hasOnly`), IDs derivados y transiciones de estado concretas.
 - Los IDs no son aleatorios en varios flujos:
@@ -64,6 +64,8 @@ Colecciones: `users`, `locations`, `doctorDirectory`, `appointments`, `appointme
 - El estado del chat (rooms, rate limits, mapa mensaje↔sala) está en memoria. Mantén un solo worker: `gunicorn -w 1 --threads 100 app:app`. Con varios workers las respuestas de Telegram y los límites se rompen.
 - MediBot web: `POST /api/medibot` solo para pacientes, 8 consultas/min, respuesta generada desde `chat/informacion.txt`. Puede dar orientación general de salud de bajo riesgo, pero no diagnostica, no indica dosis ni receta.
 - `chat/informacion.txt` alimenta a MediBot y a `bot.py`. Si cambias funciones visibles, actualízalo; no describas como demo algo que ya funciona ni prometas inventario/precios que no existen.
+- `patientCards/{uid}` guarda tipo de sangre, alergias, enfermedades crónicas y `emergencyToken`; solo admin escribe. `emergencyCards/{token}` es la copia pública mínima, legible por token y sin UID, correo ni carnet. El QR se genera en `/api/emergency-qr/<token>` y apunta a `/emergencia?t=<token>`. Comparte `static/js/patient-card.js` para renderizar la tarjeta en admin, médico, paciente y página pública.
+- La app es PWA: `templates/pwa_head.html` se incluye en todas las plantillas, `static/sw.js` se sirve desde `/sw.js` con scope `/` y cachea solo app shell y estáticos; nunca cachees `/auth/*`, `/api/*`, `/internal/*` ni respuestas de Firestore.
 - `bot.py` usa `GEMINI_MODEL` con valor por defecto `gemini-3.5-flash-lite`. Atiende chats privados con Gemini y los comandos `/start`, `/ayuda`, `/cita`, `/salud`, `/funciones`, `/privacidad` y `/soporte`; `/salud` da orientación general sin diagnosticar ni recetar. En el grupo de soporte solo reenvía al portal las respuestas escritas con **Responder**.
 
 ## Configuración no obvia

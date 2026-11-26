@@ -1,4 +1,5 @@
 import hmac
+import io
 import os
 import threading
 import time
@@ -7,7 +8,7 @@ from functools import lru_cache, wraps
 from pathlib import Path
 from urllib.parse import quote
 
-from flask import Flask, abort, jsonify, make_response, redirect, render_template, request, url_for
+from flask import Flask, Response, abort, jsonify, make_response, redirect, render_template, request, url_for
 from flask_socketio import SocketIO, emit, join_room
 from dotenv import load_dotenv
 import google.auth
@@ -414,6 +415,63 @@ def role_required(expected_role):
 @app.route("/")
 def login():
     return render_panel("login.html")
+
+
+@app.route("/emergencia")
+def emergency_card():
+    return render_panel("emergencia.html")
+
+
+@app.route("/manifest.webmanifest")
+def web_manifest():
+    content = (BASE_DIR / "static" / "manifest.webmanifest").read_text(encoding="utf-8")
+    return Response(content, mimetype="application/manifest+json")
+
+
+@app.route("/sw.js")
+def service_worker():
+    content = (BASE_DIR / "static" / "sw.js").read_text(encoding="utf-8")
+    response = make_response(content)
+    response.headers["Content-Type"] = "application/javascript"
+    response.headers["Service-Worker-Allowed"] = "/"
+    response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+@app.route("/api/emergency-qr/<token>")
+def emergency_qr(token):
+    if len(token) < 20 or not all(char.isalnum() or char in "-_" for char in token):
+        abort(404)
+
+    base_url = os.getenv("APP_BASE_URL", "").strip().rstrip("/")
+    if not base_url:
+        scheme = "https" if os.getenv("RENDER") or request.is_secure else "http"
+        base_url = f"{scheme}://{request.host}"
+    card_url = f"{base_url}/emergencia?t={quote(token, safe='')}"
+
+    try:
+        import qrcode
+        from qrcode.image.svg import SvgPathImage
+    except ModuleNotFoundError:
+        return jsonify(error="El generador de QR no está disponible en este despliegue."), 503
+
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=2,
+        image_factory=SvgPathImage
+    )
+    qr.add_data(card_url)
+    qr.make(fit=True)
+    image = qr.make_image(fill_color="#147d83", back_color="white")
+    stream = io.BytesIO()
+    image.save(stream)
+    return Response(
+        stream.getvalue(),
+        mimetype="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=86400"}
+    )
 
 
 @app.route("/auth/session", methods=["POST"])

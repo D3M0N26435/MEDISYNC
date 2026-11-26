@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediSync - Panel Farmacéutico</title>
+    {% include 'pwa_head.html' %}
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clinical.css') }}">
@@ -13,9 +14,9 @@
     <aside>
         <div class="brand"><span class="brand-logo" aria-label="Espacio reservado para el logo oficial">MS</span><span>MediSync</span></div>
         <ul class="nav-links pharmacist-tabs" role="tablist" aria-label="Apartados de la farmacia">
-            <li><a id="pharmacist-tab-venta" class="active" href="#venta" role="tab" aria-selected="true" aria-controls="pharmacist-panel-venta" data-pharmacist-tab="venta">🧾 Venta directa</a></li>
-            <li><a id="pharmacist-tab-asegurados" href="#asegurados" role="tab" aria-selected="false" aria-controls="pharmacist-panel-asegurados" data-pharmacist-tab="asegurados">🪪 Asegurados</a></li>
-            <li><a id="pharmacist-tab-medicamentos" href="#medicamentos" role="tab" aria-selected="false" aria-controls="pharmacist-panel-medicamentos" data-pharmacist-tab="medicamentos">💊 Medicamentos</a></li>
+            <li><a id="pharmacist-tab-venta" class="active" href="#venta" role="tab" aria-selected="true" aria-controls="pharmacist-panel-venta" data-pharmacist-tab="venta">🧾 <span>Venta directa</span></a></li>
+            <li><a id="pharmacist-tab-asegurados" href="#asegurados" role="tab" aria-selected="false" aria-controls="pharmacist-panel-asegurados" data-pharmacist-tab="asegurados">🪪 <span>Asegurados</span></a></li>
+            <li><a id="pharmacist-tab-medicamentos" href="#medicamentos" role="tab" aria-selected="false" aria-controls="pharmacist-panel-medicamentos" data-pharmacist-tab="medicamentos">💊 <span>Medicamentos</span></a></li>
         </ul>
         <button type="button" data-logout class="btn-logout">Cerrar Sesión</button>
     </aside>
