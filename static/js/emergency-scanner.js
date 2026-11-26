@@ -1,10 +1,8 @@
 const dialog = document.getElementById('emergency-dialog');
 const video = document.getElementById('emergency-video');
 const status = document.getElementById('emergency-scan-status');
-const codeInput = document.getElementById('emergency-code');
-const openButton = document.getElementById('open-emergency-scanner');
+const openButton = document.getElementById('open-scan');
 const closeButton = document.getElementById('close-emergency-dialog');
-const codeForm = document.getElementById('emergency-code-form');
 
 let stream = null;
 let loopTimer = null;
@@ -25,7 +23,7 @@ function cleanCode(value) {
 function goToCard(code) {
     const token = cleanCode(code);
     if (!token) {
-        status.textContent = 'Ese código no es válido. Revisa el QR o pide el enlace al asegurado.';
+        status.textContent = 'Ese código no es válido. Escanea un código QR de tarjeta de asegurado.';
         return;
     }
     window.location.assign(`/emergencia?t=${encodeURIComponent(token)}`);
@@ -49,7 +47,7 @@ async function scanLoop() {
 async function startScanner() {
     status.textContent = 'Activando la cámara…';
     if (typeof window.BarcodeDetector === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-        status.textContent = 'Este navegador no puede leer QR. Usa el código manual o actualiza el navegador.';
+        status.textContent = 'Este navegador no puede leer QR. Usa un dispositivo con cámara compatible.';
         return;
     }
     try {
@@ -57,10 +55,10 @@ async function startScanner() {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
         video.srcObject = stream;
         await video.play();
-        status.textContent = 'Apunta la cámara al QR del asegurado.';
+        status.textContent = 'Apunta la cámara al código QR de la tarjeta.';
         scanLoop();
     } catch (error) {
-        status.textContent = 'No se pudo acceder a la cámara. Puedes escribir el código manualmente.';
+        status.textContent = 'No se pudo acceder a la cámara.';
     }
 }
 
@@ -75,16 +73,16 @@ function stopScanner() {
     video.srcObject = null;
 }
 
-openButton.addEventListener('click', () => {
-    dialog.showModal();
-    startScanner();
-});
-closeButton.addEventListener('click', () => {
-    stopScanner();
-    dialog.close();
-});
+if (openButton) {
+    openButton.addEventListener('click', () => {
+        dialog.showModal();
+        startScanner();
+    });
+}
+if (closeButton) {
+    closeButton.addEventListener('click', () => {
+        stopScanner();
+        dialog.close();
+    });
+}
 dialog.addEventListener('close', stopScanner);
-codeForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    goToCard(codeInput.value);
-});

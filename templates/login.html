@@ -28,25 +28,40 @@
 
             <button class="btn-login" id="login-submit" type="submit">Acceder al Sistema</button>
         </form>
-        <button class="btn-emergency" id="open-emergency-scanner" type="button">🆘 Emergencia / escanear QR</button>
+        <button class="btn-sos" id="open-sos" type="button">🆘 SOS — Pedir ayuda</button>
+        <button class="btn-scan" id="open-scan" type="button">📷 Escanear QR / Mi QR</button>
         <p id="resultado" role="status" aria-live="polite"></p>
     </div>
 
+    <dialog id="sos-dialog" class="emergency-dialog">
+        <div class="editor-heading"><div><p class="eyebrow">SIN INICIAR SESIÓN</p><h2>Pedir ayuda</h2></div><button class="icon-button" type="button" id="sos-close" aria-label="Cerrar">✕</button></div>
+        <p>¿Para quién es la solicitud de ayuda?</p>
+        <div class="sos-options">
+            <button class="btn-action active" type="button" id="sos-self" data-sos-target="self">Para mí</button>
+            <button class="btn-action" type="button" id="sos-other" data-sos-target="other">Para alguien más (sin seguro)</button>
+        </div>
+        <div id="sos-other-field" hidden>
+            <label for="sos-other-name">Nombre de la persona</label>
+            <input id="sos-other-name" autocomplete="off" placeholder="Nombre (opcional)">
+        </div>
+        <div class="editor-actions">
+            <button class="btn-action" type="button" id="sos-send">Enviar ubicación y pedir ayuda</button>
+            <button class="btn-action secondary" type="button" id="sos-cancel">Cancelar</button>
+        </div>
+        <p id="sos-status" role="status" aria-live="polite"></p>
+    </dialog>
+
     <dialog id="emergency-dialog" class="emergency-dialog">
-        <div class="editor-heading"><div><p class="eyebrow">SIN INICIAR SESIÓN</p><h2>Tarjeta de emergencia</h2></div><button class="icon-button" type="button" id="close-emergency-dialog" aria-label="Cerrar">✕</button></div>
-        <p>Escanea el QR del asegurado o escribe su código para ver la tarjeta médica y pedir auxilio.</p>
+        <div class="editor-heading"><div><p class="eyebrow">SIN INICIAR SESIÓN</p><h2>Escanear código QR</h2></div><button class="icon-button" type="button" id="close-emergency-dialog" aria-label="Cerrar">✕</button></div>
+        <p>Apunta la cámara al código QR de la tarjeta de asegurado.</p>
         <video id="emergency-video" playsinline autoplay muted></video>
         <p id="emergency-scan-status" role="status" aria-live="polite">Activando la cámara…</p>
-        <form id="emergency-code-form">
-            <label for="emergency-code">¿No puedes escanear? Ingresa el código</label>
-            <input id="emergency-code" autocomplete="off" placeholder="Código de 20 caracteres o más" required>
-            <button class="btn-action" type="submit">Ver tarjeta</button>
-        </form>
     </dialog>
 
     <script id="firebase-config" type="application/json">{{ firebase_config|tojson }}</script>
     <script type="module" src="{{ url_for('static', filename='js/login.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/emergency-scanner.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/sos.js') }}"></script>
 
 </body>
 </html>

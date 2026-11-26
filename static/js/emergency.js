@@ -20,7 +20,7 @@ async function sendLocation() {
     sendButton.disabled = true;
     setLocationStatus('Obteniendo tu ubicación…');
     try {
-        await startEmergencySharing(currentCard, (message) => setLocationStatus(message, true));
+        await startEmergencySharing(currentCard, undefined, (message) => setLocationStatus(message, true));
         setLocationStatus('Ubicación enviada. El equipo de despacho ya puede verla.');
         sendButton.hidden = true;
         stopButton.hidden = false;

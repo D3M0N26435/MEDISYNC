@@ -14,15 +14,16 @@ function currentPosition(options = {}) {
     });
 }
 
-export async function startEmergencySharing(card, onError) {
+export async function startEmergencySharing(card, displayName, onError) {
     if (!navigator.geolocation) throw new Error('Este navegador no puede compartir la ubicación.');
     const position = await currentPosition();
+    const hasCard = Boolean(card);
     const alertRef = await addDoc(collection(db, 'emergencyAlerts'), {
-        cardToken: card.id,
-        name: card.name || '',
-        bloodType: card.bloodType || '',
-        allergies: card.allergies || '',
-        chronicConditions: card.chronicConditions || '',
+        cardToken: hasCard ? card.id : '',
+        name: displayName || (hasCard ? card.name || '' : 'Anónimo'),
+        bloodType: hasCard ? card.bloodType || '' : '',
+        allergies: hasCard ? card.allergies || '' : '',
+        chronicConditions: hasCard ? card.chronicConditions || '' : '',
         lat: position.coords.latitude,
         lng: position.coords.longitude,
         accuracy: position.coords.accuracy || 0,

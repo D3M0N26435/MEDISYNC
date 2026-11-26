@@ -166,19 +166,54 @@ html[data-theme="dark"] .input-group input:focus { background: #0e292c; }
 html[data-theme="dark"] .logo-icon { background: #123b3d; }
 html[data-theme="dark"] .theme-toggle { background: #17383b; border-color: #2a6063; color: #fcd34d; }
 
-.btn-emergency {
+.btn-sos, .btn-scan {
     width: 100%;
-    min-height: 48px;
-    margin-top: 12px;
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
+    min-height: 52px;
+    margin-top: 10px;
+    border-radius: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 0;
+}
+.btn-sos {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: var(--shadow);
+}
+.btn-sos:hover { background: var(--primary-hover); }
+.btn-scan {
     background: var(--surface);
     color: var(--primary);
+    border: 1px solid var(--border-strong);
+}
+.btn-scan:hover { background: var(--primary-light); color: var(--primary-hover); border-color: var(--primary); }
+
+.sos-options {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0 4px;
+}
+.sos-options .btn-action {
+    flex: 1;
+    min-height: 48px;
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
     font-weight: 700;
     cursor: pointer;
-    transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
-.btn-emergency:hover { background: var(--primary-light); border-color: var(--primary); }
+.sos-options .btn-action.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+}
+.sos-options .btn-action:hover { border-color: var(--primary); }
+#sos-other-field { margin-top: 10px; }
 
 .emergency-dialog {
     width: min(100% - 24px, 520px);
